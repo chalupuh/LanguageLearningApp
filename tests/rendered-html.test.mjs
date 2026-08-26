@@ -40,7 +40,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   ]);
   assert.match(page, /Check my understanding/);
   assert.match(page, /Reveal full transcript/);
-  assert.match(page, /does not pretend to score your accent/);
+  assert.match(page, /without pretending to score individual sounds/);
   assert.match(page, /Bring your own French/);
   assert.match(page, /Today’s review/);
   assert.match(page, /Your earprint/);
@@ -75,6 +75,12 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /aria-pressed/);
   assert.match(speech, /X-Voice-Cache/);
   assert.match(feedback, /8 \* 1024 \* 1024/);
+  assert.match(feedback, /word_accuracy/);
+  assert.match(feedback, /liaison_practice/);
+  assert.match(feedback, /replay_drill/);
+  assert.match(page, /French reference · follow along/);
+  assert.match(page, /measureSpeechTiming/);
+  assert.match(page, /Liaison to practise/);
   assert.match(comprehension, /0-100 percentage scale/);
   assert.match(guard, /Sign in to use AI coaching/);
 });
