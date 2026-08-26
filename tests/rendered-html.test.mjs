@@ -1,91 +1,83 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-const templateRoot = new URL("../", import.meta.url);
-const previewRoot = new URL("../app/_sites-preview/", import.meta.url);
+const root = new URL("../", import.meta.url);
 
 async function render() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
-
   return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
+    new Request("http://localhost/", { headers: { accept: "text/html" } }),
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
   );
 }
 
-test("server-renders the starter loading skeleton", async () => {
+test("renders the French listening coach", async () => {
   const response = await render();
   assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
   const html = await response.text();
-  assert.match(html, developmentPreviewMeta);
-  assert.match(html, /<title>Your site is taking shape<\/title>/i);
-  assert.match(html, /Building your site/);
-  assert.match(html, /Your site is taking shape/);
-  assert.match(
-    html,
-    /Your first version will appear here automatically when it’s ready\./,
-  );
-  assert.doesNotMatch(html, /Codex/);
-  assert.match(html, /react-loading-skeleton/);
-  assert.match(html, /role="status"/);
+  assert.match(html, /À l’Oreille/);
+  assert.match(html, /French that finally clicks/);
+  assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });
 
-test("keeps the loading skeleton scoped and disposable", async () => {
-  const [preview, css, page, layout, packageJson, files] = await Promise.all([
-    readFile(new URL("SkeletonPreview.tsx", previewRoot), "utf8"),
-    readFile(new URL("preview.css", previewRoot), "utf8"),
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readdir(previewRoot),
+test("keeps the learning loop and AI routes honest", async () => {
+  const [page, speech, feedback, comprehension, guard, progressRoute, schema, hosting] = await Promise.all([
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/api/speech/route.ts", root), "utf8"),
+    readFile(new URL("app/api/feedback/route.ts", root), "utf8"),
+    readFile(new URL("app/api/comprehension/route.ts", root), "utf8"),
+    readFile(new URL("app/api/ai-guard.ts", root), "utf8"),
+    readFile(new URL("app/api/progress/route.ts", root), "utf8"),
+    readFile(new URL("db/schema.ts", root), "utf8"),
+    readFile(new URL(".openai/hosting.json", root), "utf8"),
   ]);
+  assert.match(page, /Check my understanding/);
+  assert.match(page, /Reveal full transcript/);
+  assert.match(page, /does not pretend to score your accent/);
+  assert.match(page, /Bring your own French/);
+  assert.match(page, /Today’s review/);
+  assert.match(page, /Your earprint/);
+  assert.match(page, /Again.*Hard.*Good.*Easy/s);
+  assert.match(page, /\[\"today\",\"library\",\"studio\"\]/);
+  assert.doesNotMatch(page, /\[\"home\",\"practice\",\"library\",\"studio\",\"progress\"\]/);
+  assert.match(page, /function SelectionSaver/);
+  assert.match(page, /Save phrase/);
+  assert.match(page, /Already in your notebook/);
+  assert.match(page, /p\.text\.includes\(phrase\)/);
+  assert.match(page, /function PhraseReviewDeck/);
+  assert.match(page, /function SpeakingHistory/);
+  assert.match(page, /Export backup/);
+  assert.match(progressRoute, /oai-authenticated-user-id/);
+  assert.match(progressRoute, /onConflictDoUpdate/);
+  assert.match(schema, /learner_progress/);
+  assert.match(hosting, /\"d1\": \"DB\"/);
+  assert.match(page, /aria-pressed/);
+  assert.match(speech, /X-Voice-Cache/);
+  assert.match(feedback, /8 \* 1024 \* 1024/);
+  assert.match(comprehension, /0-100 percentage scale/);
+  assert.match(guard, /Sign in to use AI coaching/);
+});
 
-  assert.deepEqual(files.sort(), ["SkeletonPreview.tsx", "preview.css"]);
-  assert.match(preview, /from "react-loading-skeleton"/);
-  assert.match(preview, /baseColor="#eceae7"/);
-  assert.match(preview, /highlightColor="#f9f8f6"/);
-  assert.match(preview, /duration=\{2\.8\}/);
-  assert.match(preview, /sites-skeleton-search-placeholder/);
-  assert.match(packageJson, /"react-loading-skeleton": "3\.5\.0"/);
-
-  const shellIndex = preview.indexOf('className="sites-skeleton-shell"');
-  const statusIndex = preview.indexOf('className="sites-skeleton-status"');
-  assert.ok(shellIndex >= 0 && statusIndex > shellIndex);
-  assert.match(css, /position:\s*fixed/);
-  assert.match(css, /inset:\s*0/);
-  assert.match(css, /opacity:\s*0\.52/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /#020617|canvas|pets|progress/i);
-  assert.doesNotMatch(
-    preview,
-    /loading-spinner|status-mark|status-progress|canvas|cookie|random/i,
+test("ships a complete audio-backed B1 starter library", async () => {
+  const catalog = await readFile(new URL("content/passages.ts", root), "utf8");
+  const audioFiles = [...catalog.matchAll(/audioFile: "(\/audio\/passages\/[^"]+\.mp3)"/g)].map(
+    ([, file]) => file,
   );
 
-  assert.match(page, /export const metadata:\s*Metadata/);
-  assert.match(page, /"codex-preview": "development"/);
-  assert.match(page, /<SkeletonPreview \/>/);
-  assert.match(layout, /title:\s*"Starter Project"/);
-  assert.doesNotMatch(layout, /codex-preview|_sites-preview|themeColor|\bViewport\b/);
-  assert.doesNotMatch(css, /(^|\s)(html|body)\s*\{/m);
+  assert.equal(audioFiles.length, 8);
+  assert.equal(new Set(audioFiles).size, 8);
+  assert.match(catalog, /name: "Léa"/);
+  assert.match(catalog, /name: "Thomas"/);
+  assert.match(catalog, /name: "Inès"/);
+  assert.match(catalog, /name: "Malik"/);
 
-  await assert.rejects(
-    access(new URL("public/_sites-preview", templateRoot)),
-  );
+  for (const audioFile of audioFiles) {
+    const file = new URL(`public${audioFile}`, root);
+    const details = await stat(file);
+    assert.ok(details.size > 100_000, `${audioFile} should contain generated speech`);
+  }
 });

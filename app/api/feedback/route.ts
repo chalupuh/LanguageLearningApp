@@ -1,4 +1,8 @@
+import { guardAiRequest } from "../ai-guard";
+
 export async function POST(request: Request) {
+  const denied = guardAiRequest(request);
+  if (denied) return denied;
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI feedback is not configured." }, { status: 503 });
   const form = await request.formData();
@@ -6,6 +10,7 @@ export async function POST(request: Request) {
   const level = String(form.get("level") || "B1");
   const task = String(form.get("task") || "spoken retell");
   if (!(audio instanceof File)) return Response.json({ error: "An audio recording is required." }, { status: 400 });
+  if (audio.size > 8 * 1024 * 1024) return Response.json({ error: "Keep recordings under 8 MB." }, { status: 413 });
 
   const transcriptionForm = new FormData();
   transcriptionForm.append("file", audio, "recording.webm");
