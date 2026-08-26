@@ -18,13 +18,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "À l’Oreille",
     description: "French that finally clicks.",
-    images: [{ url: "/og.png", width: 1536, height: 909, alt: "À l’Oreille — French that finally clicks" }],
+    images: [{ url: "/og-coquette.png", width: 1536, height: 1024, alt: "À l’Oreille — French that finally clicks" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "À l’Oreille",
     description: "French that finally clicks.",
-    images: ["/og.png"],
+    images: ["/og-coquette.png"],
   },
   icons: {
     icon: "/favicon.svg",
