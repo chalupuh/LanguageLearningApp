@@ -1,17 +1,15 @@
+import { authorizeAppRequest } from "./app-auth";
+
 const WINDOW_MS = 60 * 60 * 1000;
 const MAX_REQUESTS = 60;
 const usage = new Map<string, { count: number; resetsAt: number }>();
 
 export function guardAiRequest(request: Request): Response | null {
-  const url = new URL(request.url);
-  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  const userId = request.headers.get("oai-authenticated-user-id");
+  const auth = authorizeAppRequest(request);
+  if (auth.status === 401) return Response.json({ error: "Sign in to use AI coaching." }, { status: 401 });
+  if (auth.status === 403) return Response.json({ error: "This account is not invited to this app." }, { status: 403 });
 
-  if (!local && !userId) {
-    return Response.json({ error: "Sign in to use AI coaching." }, { status: 401 });
-  }
-
-  const key = userId ?? "local-development";
+  const key = auth.identity?.userId ?? "local-development";
   const now = Date.now();
   const current = usage.get(key);
   const bucket = !current || current.resetsAt <= now

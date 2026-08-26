@@ -25,12 +25,14 @@ test("renders the French listening coach", async () => {
 });
 
 test("keeps the learning loop and AI routes honest", async () => {
-  const [page, speech, feedback, comprehension, guard, progressRoute, transcriptRoute, schema, hosting] = await Promise.all([
+  const [page, speech, feedback, comprehension, guard, appAuth, sessionRoute, progressRoute, transcriptRoute, schema, hosting] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/api/speech/route.ts", root), "utf8"),
     readFile(new URL("app/api/feedback/route.ts", root), "utf8"),
     readFile(new URL("app/api/comprehension/route.ts", root), "utf8"),
     readFile(new URL("app/api/ai-guard.ts", root), "utf8"),
+    readFile(new URL("app/api/app-auth.ts", root), "utf8"),
+    readFile(new URL("app/api/session/route.ts", root), "utf8"),
     readFile(new URL("app/api/progress/route.ts", root), "utf8"),
     readFile(new URL("app/api/youtube-transcript/route.ts", root), "utf8"),
     readFile(new URL("db/schema.ts", root), "utf8"),
@@ -58,10 +60,15 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Nikki’s notebook/);
   assert.match(page, /feedbackNotes/);
   assert.match(page, /Mark handled/);
+  assert.match(page, /function AccessGate/);
+  assert.match(page, /Continue with ChatGPT/);
+  assert.match(appAuth, /ALLOWED_USER_EMAILS/);
+  assert.match(appAuth, /status: 403/);
+  assert.match(sessionRoute, /authorized: true/);
   assert.match(page, /Studio shadowing/);
   assert.match(transcriptRoute, /captionTracks/);
   assert.match(transcriptRoute, /No public captions are available/);
-  assert.match(progressRoute, /oai-authenticated-user-id/);
+  assert.match(appAuth, /oai-authenticated-user-id/);
   assert.match(progressRoute, /onConflictDoUpdate/);
   assert.match(schema, /learner_progress/);
   assert.match(hosting, /\"d1\": \"DB\"/);
@@ -90,4 +97,21 @@ test("ships a complete audio-backed B1 starter library", async () => {
     const details = await stat(file);
     assert.ok(details.size > 100_000, `${audioFile} should contain generated speech`);
   }
+});
+
+test("allows only invited ChatGPT accounts", async () => {
+  const previousAllowlist = process.env.ALLOWED_USER_EMAILS;
+  process.env.ALLOWED_USER_EMAILS = "owner@example.com,learner@example.com";
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("auth-test", `${process.pid}-${Date.now()}`);
+  const { default: worker } = await import(workerUrl.href);
+  const env = { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } };
+  const ctx = { waitUntil() {}, passThroughOnException() {} };
+  const request = (email) => new Request("https://example.com/api/session", { headers: email ? { "oai-authenticated-user-id": `user-${email}`, "oai-authenticated-user-email": email } : {} });
+
+  assert.equal((await worker.fetch(request(null), env, ctx)).status, 401);
+  assert.equal((await worker.fetch(request("stranger@example.com"), env, ctx)).status, 403);
+  assert.equal((await worker.fetch(request("learner@example.com"), env, ctx)).status, 200);
+  if (previousAllowlist === undefined) delete process.env.ALLOWED_USER_EMAILS;
+  else process.env.ALLOWED_USER_EMAILS = previousAllowlist;
 });

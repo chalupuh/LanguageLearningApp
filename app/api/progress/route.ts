@@ -1,19 +1,12 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { learnerProgress } from "../../../db/schema";
-
-function identity(request: Request) {
-  const url = new URL(request.url);
-  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  const userId = request.headers.get("oai-authenticated-user-id");
-  const email = request.headers.get("oai-authenticated-user-email");
-  if (!userId && !local) return null;
-  return { userId: userId ?? "local-development", email };
-}
+import { authorizeAppRequest } from "../app-auth";
 
 export async function GET(request: Request) {
-  const user = identity(request);
-  if (!user) return Response.json({ error: "Sign in to sync progress." }, { status: 401 });
+  const auth = authorizeAppRequest(request);
+  const user = auth.identity;
+  if (!user) return Response.json({ error: auth.status === 403 ? "This account is not invited." : "Sign in to sync progress." }, { status: auth.status });
   try {
     const [record] = await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId, user.userId)).limit(1);
     return Response.json({ state: record ? JSON.parse(record.state) : null, syncedAt: record?.updatedAt ?? null });
@@ -23,8 +16,9 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const user = identity(request);
-  if (!user) return Response.json({ error: "Sign in to sync progress." }, { status: 401 });
+  const auth = authorizeAppRequest(request);
+  const user = auth.identity;
+  if (!user) return Response.json({ error: auth.status === 403 ? "This account is not invited." : "Sign in to sync progress." }, { status: auth.status });
   const state = await request.json().catch(() => null);
   if (!state || typeof state !== "object") return Response.json({ error: "Invalid progress data." }, { status: 400 });
   const serialized = JSON.stringify(state);
