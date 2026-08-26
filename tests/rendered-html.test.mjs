@@ -25,7 +25,7 @@ test("renders the French listening coach", async () => {
 });
 
 test("keeps the learning loop and AI routes honest", async () => {
-  const [page, speech, feedback, comprehension, guard, appAuth, sessionRoute, progressRoute, transcriptRoute, schema, hosting] = await Promise.all([
+  const [page, speech, feedback, comprehension, guard, appAuth, sessionRoute, feedbackInbox, progressRoute, transcriptRoute, schema, hosting] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/api/speech/route.ts", root), "utf8"),
     readFile(new URL("app/api/feedback/route.ts", root), "utf8"),
@@ -33,6 +33,7 @@ test("keeps the learning loop and AI routes honest", async () => {
     readFile(new URL("app/api/ai-guard.ts", root), "utf8"),
     readFile(new URL("app/api/app-auth.ts", root), "utf8"),
     readFile(new URL("app/api/session/route.ts", root), "utf8"),
+    readFile(new URL("app/api/feedback-inbox/route.ts", root), "utf8"),
     readFile(new URL("app/api/progress/route.ts", root), "utf8"),
     readFile(new URL("app/api/youtube-transcript/route.ts", root), "utf8"),
     readFile(new URL("db/schema.ts", root), "utf8"),
@@ -81,6 +82,12 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /French reference · follow along/);
   assert.match(page, /measureSpeechTiming/);
   assert.match(page, /Liaison to practise/);
+  assert.match(page, /function DailyReviewCard/);
+  assert.match(page, /Review complete/);
+  assert.match(page, /Return to Today/);
+  assert.match(page, /review-confirmation/);
+  assert.match(feedbackInbox, /OWNER_EMAIL/);
+  assert.match(feedbackInbox, /submittedBy/);
   assert.match(comprehension, /0-100 percentage scale/);
   assert.match(guard, /Sign in to use AI coaching/);
 });
