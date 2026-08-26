@@ -57,6 +57,8 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Export backup/);
   assert.match(page, /function AboutView/);
   assert.match(page, /function StudioView/);
+  assert.match(page, /function ClipTimeline/);
+  assert.match(page, /Selected passage/);
   assert.match(page, /function FeedbackNotebook/);
   assert.match(page, /Nikki’s notebook/);
   assert.match(page, /feedbackNotes/);
@@ -68,7 +70,10 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(sessionRoute, /authorized: true/);
   assert.match(page, /Studio shadowing/);
   assert.match(transcriptRoute, /captionTracks/);
-  assert.match(transcriptRoute, /No public captions are available/);
+  assert.match(transcriptRoute, /does not expose captions/);
+  assert.match(transcriptRoute, /fmt=json3/);
+  assert.match(transcriptRoute, /videoDetails/);
+  assert.match(transcriptRoute, /"automatic" : "manual"/);
   assert.match(appAuth, /oai-authenticated-user-id/);
   assert.match(progressRoute, /onConflictDoUpdate/);
   assert.match(schema, /learner_progress/);
@@ -82,6 +87,10 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /French reference · follow along/);
   assert.match(page, /measureSpeechTiming/);
   assert.match(page, /Liaison to practise/);
+  assert.match(page, /function NewUpdates/);
+  assert.match(page, /What’s new at À l’Oreille/);
+  assert.match(page, /lastSeenUpdateId/);
+  assert.match(page, /You’ll only see this again after the app gets another update/);
   assert.match(page, /function DailyReviewCard/);
   assert.match(page, /Review complete/);
   assert.match(page, /Return to Today/);

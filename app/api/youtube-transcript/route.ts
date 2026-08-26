@@ -1,34 +1,54 @@
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+type CaptionTrack = { baseUrl?: string; languageCode?: string; kind?: string; name?: { simpleText?: string; runs?: Array<{ text?: string }> } };
+type CaptionCue = { start: number; duration: number; text: string };
+
+function parsePlayerResponse(html: string) {
+  for (const marker of ["ytInitialPlayerResponse = ", "var ytInitialPlayerResponse = "]) {
+    const markerStart = html.indexOf(marker), start = html.indexOf("{", markerStart + marker.length);
+    if (markerStart < 0 || start < 0) continue;
+    let depth = 0, quoted = false, escaped = false;
+    for (let index = start; index < html.length; index++) {
+      const character = html[index];
+      if (quoted) { if (escaped) escaped = false; else if (character === "\\") escaped = true; else if (character === '"') quoted = false; continue; }
+      if (character === '"') quoted = true;
+      else if (character === "{") depth++;
+      else if (character === "}" && --depth === 0) return JSON.parse(html.slice(start, index + 1));
+    }
+  }
+  throw new Error("Player data was not found.");
+}
+
+function cueText(value: string) { return value.replace(/\n/g, " ").replace(/\s+/g, " ").trim(); }
+function makeTranscript(cues: CaptionCue[]) {
+  const lines: string[] = [];
+  for (const cue of cues) {
+    if (!cue.text || lines.at(-1) === cue.text) continue;
+    if (lines.at(-1) && cue.text.startsWith(lines.at(-1)!)) lines[lines.length - 1] = cue.text;
+    else lines.push(cue.text);
+  }
+  return lines.join(" ").replace(/\s+([,.!?;:])/g, "$1").trim();
+}
 
 export async function POST(request: Request) {
   const { videoId } = await request.json().catch(() => ({ videoId: "" }));
   if (!VIDEO_ID.test(videoId)) return Response.json({ error: "Invalid YouTube video." }, { status: 400 });
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const watch = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-    clearTimeout(timeout);
+    const watch = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { signal: AbortSignal.timeout(10000), headers: { "User-Agent": "Mozilla/5.0 (compatible; ALOreille/1.0)" } });
     if (!watch.ok) throw new Error();
-    const html = await watch.text();
-    const marker = "ytInitialPlayerResponse = ";
-    const start = html.indexOf(marker);
-    if (start < 0) throw new Error();
-    const jsonStart = start + marker.length;
-    const jsonEnd = html.indexOf(";</script>", jsonStart);
-    if (jsonEnd < 0) throw new Error();
-    const player = JSON.parse(html.slice(jsonStart, jsonEnd));
-    const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
-    const track = tracks.find((item: any) => item.languageCode?.startsWith("fr")) ?? tracks[0];
-    if (!track?.baseUrl) return Response.json({ transcript: null, reason: "No public captions are available." });
-    const captions = await fetch(`${track.baseUrl}&fmt=json3`, { signal: AbortSignal.timeout(8000) });
+    const player = parsePlayerResponse(await watch.text());
+    const durationSeconds = Number(player?.videoDetails?.lengthSeconds ?? 0) || null;
+    const tracks: CaptionTrack[] = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
+    const frenchTracks = tracks.filter(track => track.languageCode?.toLowerCase().startsWith("fr"));
+    const track = frenchTracks.sort((a, b) => Number(a.kind === "asr") - Number(b.kind === "asr"))[0];
+    if (!track?.baseUrl) return Response.json({ transcript: null, durationSeconds, reason: tracks.length ? "This video has captions, but no French caption track." : "This video does not expose captions.", availableLanguages: [...new Set(tracks.map(item => item.languageCode).filter(Boolean))] });
+    const captions = await fetch(`${track.baseUrl}${track.baseUrl.includes("?") ? "&" : "?"}fmt=json3`, { signal: AbortSignal.timeout(10000) });
     if (!captions.ok) throw new Error();
     const data = await captions.json();
-    const transcript = (data.events ?? []).flatMap((event: any) => event.segs ?? []).map((segment: any) => segment.utf8 ?? "").join(" ").replace(/\s+/g, " ").trim();
-    return Response.json({ transcript: transcript || null, language: track.languageCode, generated: track.kind === "asr" });
+    const cues: CaptionCue[] = (data.events ?? []).map((event: any) => ({ start: Number(event.tStartMs ?? 0) / 1000, duration: Number(event.dDurationMs ?? 0) / 1000, text: cueText((event.segs ?? []).map((segment: any) => segment.utf8 ?? "").join("")) })).filter((cue: CaptionCue) => cue.text && !/^\[(music|musique)\]$/i.test(cue.text));
+    const transcript = makeTranscript(cues);
+    const trackName = track.name?.simpleText ?? track.name?.runs?.map(run => run.text ?? "").join("") ?? track.languageCode;
+    return Response.json({ transcript: transcript || null, cues, durationSeconds, language: track.languageCode, source: track.kind === "asr" ? "automatic" : "manual", trackName });
   } catch {
-    return Response.json({ transcript: null, reason: "Captions could not be retrieved. Paste a transcript to continue." });
+    return Response.json({ transcript: null, reason: "Captions could not be retrieved. Paste the French transcript to continue." });
   }
 }
