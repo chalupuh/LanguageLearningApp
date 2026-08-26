@@ -54,6 +54,10 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Export backup/);
   assert.match(page, /function AboutView/);
   assert.match(page, /function StudioView/);
+  assert.match(page, /function FeedbackNotebook/);
+  assert.match(page, /Nikki’s notebook/);
+  assert.match(page, /feedbackNotes/);
+  assert.match(page, /Mark handled/);
   assert.match(page, /Studio shadowing/);
   assert.match(transcriptRoute, /captionTracks/);
   assert.match(transcriptRoute, /No public captions are available/);
