@@ -25,13 +25,14 @@ test("renders the French listening coach", async () => {
 });
 
 test("keeps the learning loop and AI routes honest", async () => {
-  const [page, speech, feedback, comprehension, guard, progressRoute, schema, hosting] = await Promise.all([
+  const [page, speech, feedback, comprehension, guard, progressRoute, transcriptRoute, schema, hosting] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/api/speech/route.ts", root), "utf8"),
     readFile(new URL("app/api/feedback/route.ts", root), "utf8"),
     readFile(new URL("app/api/comprehension/route.ts", root), "utf8"),
     readFile(new URL("app/api/ai-guard.ts", root), "utf8"),
     readFile(new URL("app/api/progress/route.ts", root), "utf8"),
+    readFile(new URL("app/api/youtube-transcript/route.ts", root), "utf8"),
     readFile(new URL("db/schema.ts", root), "utf8"),
     readFile(new URL(".openai/hosting.json", root), "utf8"),
   ]);
@@ -42,7 +43,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Today’s review/);
   assert.match(page, /Your earprint/);
   assert.match(page, /Again.*Hard.*Good.*Easy/s);
-  assert.match(page, /\[\"today\",\"library\",\"studio\"\]/);
+  assert.match(page, /\[\"today\",\"library\",\"studio\",\"about\"\]/);
   assert.doesNotMatch(page, /\[\"home\",\"practice\",\"library\",\"studio\",\"progress\"\]/);
   assert.match(page, /function SelectionSaver/);
   assert.match(page, /Save phrase/);
@@ -51,6 +52,11 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /function PhraseReviewDeck/);
   assert.match(page, /function SpeakingHistory/);
   assert.match(page, /Export backup/);
+  assert.match(page, /function AboutView/);
+  assert.match(page, /function StudioView/);
+  assert.match(page, /Studio shadowing/);
+  assert.match(transcriptRoute, /captionTracks/);
+  assert.match(transcriptRoute, /No public captions are available/);
   assert.match(progressRoute, /oai-authenticated-user-id/);
   assert.match(progressRoute, /onConflictDoUpdate/);
   assert.match(schema, /learner_progress/);
