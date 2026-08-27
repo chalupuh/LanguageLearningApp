@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { passages, type Passage } from "../content/passages";
+import OwnerFeedbackLink from "./feedback/owner-feedback-link";
 
 const waves=[18,28,15,36,22,44,29,53,34,23,48,31,56,38,26,46,32,52,40,24,35,47,30,42,20,34,25,45,29,38,19,28,16,24,13];
 const labels=[{name:"First listen",sub:"Catch the big picture"},{name:"Decode",sub:"Find what you missed"},{name:"Shadow",sub:"Match the speaker"},{name:"Retell",sub:"Make it your own"}];
@@ -86,7 +87,7 @@ function FeedbackNotebook({notes,onAdd,onToggle,onRemove}:{notes:FeedbackNote[];
 function AccessGate({children}:{children:ReactNode}){
  const [state,setState]=useState<"checking"|"allowed"|"signed-out"|"denied">("checking");
  useEffect(()=>{fetch("/api/session",{cache:"no-store"}).then(response=>{if(response.ok)setState("allowed");else if(response.status===403)setState("denied");else setState("signed-out")}).catch(()=>setState("signed-out"))},[]);
- if(state==="allowed")return <>{children}</>;
+ if(state==="allowed")return <><OwnerFeedbackLink/>{children}</>;
  return <main className="access-page"><section className="access-card"><div className="access-mark">à</div><p className="eyebrow">À l’Oreille · Private listening room</p>{state==="checking"?<><h1>Opening your French notebook…</h1><p className="access-copy">One quiet moment while we check your invitation.</p><div className="access-loading" aria-label="Checking access"><span/><span/><span/></div></>:state==="signed-out"?<><h1>Bienvenue, Nikki.</h1><p className="access-copy">Sign in with the ChatGPT account that received your invitation. Your lessons, saved phrases, and notes will follow you between devices.</p><a className="access-primary" href="/signin-with-chatgpt?return_to=%2F">Continue with ChatGPT <span>→</span></a><small>Only invited accounts can enter or use the app’s AI voice and coaching.</small></>:<><h1>This account isn’t on the guest list.</h1><p className="access-copy">Sign out, then continue with the ChatGPT account Nikki uses at the invited email address.</p><a className="access-primary" href="/signout-with-chatgpt?return_to=%2F">Switch ChatGPT account <span>→</span></a><small>If this still appears, ask Christopher to check the invited email.</small></>}</section></main>
 }
 

@@ -101,9 +101,62 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Return to Today/);
   assert.match(page, /review-confirmation/);
   assert.match(feedbackInbox, /OWNER_EMAIL/);
-  assert.match(feedbackInbox, /submittedBy/);
+  assert.match(feedbackInbox, /collectFeedbackNotes/);
   assert.match(comprehension, /0-100 percentage scale/);
   assert.match(guard, /Sign in to use AI coaching/);
+});
+
+test("extracts full feedback from large learner records without modifying progress", async () => {
+  const ts = await import("typescript");
+  const source = await readFile(new URL("lib/feedback-notes.ts", root), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
+  const { collectFeedbackNotes } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+  const noteText = "Please make shadow playback easier.\n".repeat(12);
+  const records = [{ email: "learner@example.com", state: JSON.stringify({ speakingAttempts: [{ transcript: "x".repeat(20000) }], feedbackNotes: [
+    { id: "old", createdAt: "2026-08-26T10:00:00Z", kind: "idea", text: "Show a transcript", resolved: true },
+    { id: "new", createdAt: "2026-08-27T10:00:00Z", kind: "bug", text: noteText, resolved: false },
+  ] }) }];
+  const original = JSON.stringify(records);
+  const result = collectFeedbackNotes(records);
+  assert.equal(result.unreadableRecords, 0);
+  assert.equal(result.notes.length, 2);
+  assert.equal(result.notes[0].text, noteText);
+  assert.equal(result.notes[0].submittedBy, "learner@example.com");
+  assert.equal(result.notes[1].resolved, true);
+  assert.equal(JSON.stringify(records), original);
+  assert.equal(collectFeedbackNotes([{ email: null, state: "broken" }]).unreadableRecords, 1);
+});
+
+test("feedback inbox rejects non-owners and exposes owner navigation only to the owner", async () => {
+  const previous = { allowed: process.env.ALLOWED_USER_EMAILS, owner: process.env.OWNER_EMAIL };
+  process.env.ALLOWED_USER_EMAILS = "owner@example.com,learner@example.com";
+  process.env.OWNER_EMAIL = "owner@example.com";
+  try {
+    const { default: worker } = await import(new URL("../dist/server/index.js", import.meta.url));
+    const env = { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } };
+    const ctx = { waitUntil() {}, passThroughOnException() {} };
+    const request = (path, email) => new Request(`https://example.com${path}`, { headers: email ? { "oai-authenticated-user-id": `test-${email}`, "oai-authenticated-user-email": email } : {} });
+    assert.equal((await worker.fetch(request("/api/feedback-inbox", null), env, ctx)).status, 401);
+    const denied = await worker.fetch(request("/api/feedback-inbox", "learner@example.com"), env, ctx);
+    assert.equal(denied.status, 403);
+    assert.match(denied.headers.get("cache-control"), /no-store/);
+    assert.equal((await denied.json()).notes, undefined);
+    const owner = await worker.fetch(request("/api/session", "owner@example.com"), env, ctx);
+    assert.equal((await owner.json()).isOwner, true);
+    const learner = await worker.fetch(request("/api/session", "learner@example.com"), env, ctx);
+    assert.equal((await learner.json()).isOwner, false);
+    process.env.OWNER_EMAIL = "";
+    assert.equal((await worker.fetch(request("/api/feedback-inbox", "owner@example.com"), env, ctx)).status, 403);
+    const page = await worker.fetch(request("/feedback", null), env, ctx);
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.match(html, /Nikki’s feedback/);
+    assert.match(html, /Opening the feedback notebook/);
+    assert.doesNotMatch(html, /learner@example.com/);
+  } finally {
+    if (previous.allowed === undefined) delete process.env.ALLOWED_USER_EMAILS; else process.env.ALLOWED_USER_EMAILS = previous.allowed;
+    if (previous.owner === undefined) delete process.env.OWNER_EMAIL; else process.env.OWNER_EMAIL = previous.owner;
+  }
 });
 
 test("ships a complete audio-backed B1 starter library", async () => {
