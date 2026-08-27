@@ -9,9 +9,9 @@ export async function GET(request: Request) {
   if (!user) return Response.json({ error: auth.status === 403 ? "This account is not invited." : "Sign in to sync progress." }, { status: auth.status });
   try {
     const [record] = await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId, user.userId)).limit(1);
-    return Response.json({ state: record ? JSON.parse(record.state) : null, syncedAt: record?.updatedAt ?? null });
+    return Response.json({ state: record ? JSON.parse(record.state) : null, userId:user.userId, syncedAt: record?.updatedAt ?? null }, {headers:{"Cache-Control":"private, no-store"}});
   } catch {
-    return Response.json({ state: null, syncUnavailable: true });
+    return Response.json({ state: null, syncUnavailable: true }, {status:503,headers:{"Cache-Control":"private, no-store"}});
   }
 }
 

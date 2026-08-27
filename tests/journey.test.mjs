@@ -24,6 +24,7 @@ async function moduleUrl(path){
  const replacements={
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
+  "../../../content/releases":"content/releases.ts",
   "../../../db/schema":"db/schema.ts",
  };
  for(const [specifier,target]of Object.entries(replacements))if(source.includes('"'+specifier+'"'))source=source.replaceAll('"'+specifier+'"',JSON.stringify(await moduleUrl(target)));
@@ -57,7 +58,13 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.historicalXp,825);assert.equal(state.events.length,0);
+  assert.equal(state.releases.length,2);
+  assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
+  assert.equal((await post({kind:"release-seen",source:"2026-08-27-progress-collection"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-08-27-progress-collection"})).status,200);
+  state=await (await GET(request())).json();
+  assert.equal(state.releases.length,0);
+  assert.equal(state.historicalXp,825);assert.equal(state.events.filter(e=>e.xp>0).length,0);
   assert.equal(state.checkpoint.questions[0].answer,undefined);
   assert.equal((await post({kind:"equip",source:"croissant",category:"avatar"})).status,403);
   assert.equal((await post({kind:"loop",source:"library:cafe"})).status,400);
@@ -83,6 +90,7 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   // A stale progress save cannot change ledger XP or historical credit.
   sqlite.prepare("UPDATE learner_progress SET state=? WHERE user_id=?").run(JSON.stringify({xp:0,completed:["cafe"],reviews:{cafe:new Date(clock-1000).toISOString()},savedPhrases:["bonjour"],phraseReviews:{}}),"nikki");
   state=await (await GET(request())).json();assert.equal(state.historicalXp,825);assert.equal(state.avatar,"croissant");assert.equal(state.weeklyGoal,4);
+  assert.equal(state.releases.length,0,"stale progress must not resurrect dismissed updates");
   assert.equal((await (await GET(request(undefined,"owner"))).json()).events.length,0);
   clock+=2*86400000;
   // A shadow reward must not block the separately earned due review reward.
@@ -111,4 +119,21 @@ test("listening comparisons separate conditions and require evidence",async()=>{
  assert.equal(listeningSummary([observation("1",50)]).trends[0].recent,null);
  const result=listeningSummary([observation("1",40),observation("2",60),observation("3",70),observation("4",90),observation("5",100,"familiar"),observation("6",100,"replay")]);
  assert.equal(result.trends[0].count,4);assert.equal(result.trends[0].earlier,50);assert.equal(result.trends[0].recent,80);
+});
+test("release history shows only unseen updates and tolerates unknown legacy IDs",async()=>{
+ const {releases,unseenReleases}=await import(await moduleUrl("content/releases.ts"));
+ assert.equal(unseenReleases([]).length,2);
+ assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),[releases[1].id]);
+ assert.equal(unseenReleases([],"unrecognized-old-version").length,2);
+ assert.equal(unseenReleases(releases.map(r=>({kind:"release-seen",source:r.id}))).length,0);
+});
+test("loop drafts and review saves remain independent",async()=>{
+ const page=await readFile(new URL("app/page.tsx",root),"utf8");
+ assert.match(page,/summary:firstSummary,retell,/);
+ assert.match(page,/summary:studioFirst,retell:studioRetell/);
+ assert.match(page,/text=\{retell\} setText=\{setRetell\}/);
+ assert.match(page,/text=\{studioRetell\} setText=\{setStudioRetell\}/);
+ assert.match(page,/if\(await onRate\(phrase,rating\)\)/);
+ assert.match(page,/response.status===200/);
+ assert.doesNotMatch(page,/localStorage.getItem\(PROGRESS_KEY\)/);
 });

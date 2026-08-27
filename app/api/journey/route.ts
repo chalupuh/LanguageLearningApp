@@ -2,6 +2,7 @@ import { authorizeAppRequest } from "../app-auth";
 import { earnedXp, rewards } from "../../../lib/journey";
 import { passages } from "../../../content/passages";
 import { checkpoints } from "../../../content/checkpoints";
+import { releases, unseenReleases } from "../../../content/releases";
 const headers = { "Cache-Control": "private, no-store" };
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers });
 async function context(userId: string) {
@@ -17,11 +18,11 @@ async function context(userId: string) {
 export async function GET(request: Request) {
   const auth = authorizeAppRequest(request); if (!auth.identity) return reply({error:"Sign in to see your journey."},auth.status);
   try {
-    const {events,profile} = await context(auth.identity.userId);
+    const {events,profile,legacy} = await context(auth.identity.userId);
     const used = new Set(events.filter(e=>e.kind==="checkpoint").map(e=>e.source));
     const next = checkpoints.find(c=>!used.has(c.id));
     const last = Math.max(0,...events.filter(e=>e.kind==="checkpoint").map(e=>e.createdAt));
-    return reply({...profile,userId:undefined,events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
+    return reply({...profile,userId:undefined,releases:unseenReleases(events,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
   } catch { return reply({error:"Your journey could not be loaded. Please retry."},503); }
 }
 export async function POST(request: Request) {
@@ -32,6 +33,12 @@ export async function POST(request: Request) {
   try {
     const userId=auth.identity.userId, c=await context(userId), now=Date.now(), day=new Date(now).toISOString().slice(0,10);
     let kind=body.kind, xp=0, id="", data:Record<string,unknown>={};
+    if(kind==="release-seen"){
+      const index=releases.findIndex(r=>r.id===body.source);
+      if(index<0)return reply({error:"Unknown update."},400);
+      await c.db.insert(c.schema.journeyEvents).values(releases.slice(0,index+1).map(r=>({userId,id:"release-seen:"+r.id,kind,source:r.id,xp:0,createdAt:now,details:"{}"}))).onConflictDoNothing();
+      return reply({saved:true});
+    }
     if (kind==="equip") {
       const category=body.category;
       if (!["avatar","background","frame"].includes(category)) return reply({error:"Unknown cosmetic type."},400);

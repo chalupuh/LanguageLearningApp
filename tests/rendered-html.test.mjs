@@ -100,7 +100,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Move selected passage/);
   assert.match(page, /Drag the pink passage to move it/);
   assert.match(page, /getDuration/);
-  assert.match(page, /enablejsapi=1/);
+  assert.match(page, /onStateChange:report/);
   assert.match(page, /function FeedbackNotebook/);
   assert.match(page, /Nikki’s notebook/);
   assert.match(page, /feedbackNotes/);
