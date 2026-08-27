@@ -2,19 +2,32 @@ const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 type CaptionTrack = { baseUrl?: string; languageCode?: string; kind?: string; name?: { simpleText?: string; runs?: Array<{ text?: string }> } };
 type CaptionCue = { start: number; duration: number; text: string };
 
-function parsePlayerResponse(html: string) {
+function parsePlayerResponse(html: string, expectedVideoId: string) {
+  let fallback: any = null;
   for (const marker of ["ytInitialPlayerResponse = ", "var ytInitialPlayerResponse = "]) {
-    const markerStart = html.indexOf(marker), start = html.indexOf("{", markerStart + marker.length);
-    if (markerStart < 0 || start < 0) continue;
-    let depth = 0, quoted = false, escaped = false;
-    for (let index = start; index < html.length; index++) {
-      const character = html[index];
-      if (quoted) { if (escaped) escaped = false; else if (character === "\\") escaped = true; else if (character === '"') quoted = false; continue; }
-      if (character === '"') quoted = true;
-      else if (character === "{") depth++;
-      else if (character === "}" && --depth === 0) return JSON.parse(html.slice(start, index + 1));
+    let searchFrom = 0;
+    while (searchFrom < html.length) {
+      const markerStart = html.indexOf(marker, searchFrom);
+      if (markerStart < 0) break;
+      const start = html.indexOf("{", markerStart + marker.length);
+      if (start < 0) break;
+      let depth = 0, quoted = false, escaped = false;
+      for (let index = start; index < html.length; index++) {
+        const character = html[index];
+        if (quoted) { if (escaped) escaped = false; else if (character === "\\") escaped = true; else if (character === '"') quoted = false; continue; }
+        if (character === '"') quoted = true;
+        else if (character === "{") depth++;
+        else if (character === "}" && --depth === 0) {
+          const candidate = JSON.parse(html.slice(start, index + 1));
+          if (candidate?.videoDetails?.videoId === expectedVideoId) return candidate;
+          fallback ??= candidate;
+          searchFrom = index + 1;
+          break;
+        }
+      }
     }
   }
+  if (fallback) return fallback;
   throw new Error("Player data was not found.");
 }
 
@@ -35,7 +48,7 @@ export async function POST(request: Request) {
   try {
     const watch = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { signal: AbortSignal.timeout(10000), headers: { "User-Agent": "Mozilla/5.0 (compatible; ALOreille/1.0)" } });
     if (!watch.ok) throw new Error();
-    const player = parsePlayerResponse(await watch.text());
+    const player = parsePlayerResponse(await watch.text(), videoId);
     const durationSeconds = Number(player?.videoDetails?.lengthSeconds ?? 0) || null;
     const tracks: CaptionTrack[] = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
     const frenchTracks = tracks.filter(track => track.languageCode?.toLowerCase().startsWith("fr"));

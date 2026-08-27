@@ -77,6 +77,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(transcriptRoute, /does not expose captions/);
   assert.match(transcriptRoute, /fmt=json3/);
   assert.match(transcriptRoute, /videoDetails/);
+  assert.match(transcriptRoute, /videoDetails\?\.videoId === expectedVideoId/);
   assert.match(transcriptRoute, /"automatic" : "manual"/);
   assert.match(appAuth, /oai-authenticated-user-id/);
   assert.match(progressRoute, /onConflictDoUpdate/);
