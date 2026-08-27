@@ -4,6 +4,44 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
+test("request status survives progress saves and acknowledgement is user/version scoped", async () => {
+  const { DatabaseSync } = await import("node:sqlite");
+  const db = new DatabaseSync(":memory:");
+  try {
+    db.exec(await readFile(new URL("drizzle/0001_secret_human_cannonball.sql", root), "utf8"));
+    const upsert = db.prepare("INSERT INTO feedback_resolutions VALUES (?,?,?,?,?,?,?) ON CONFLICT(user_id,note_id) DO UPDATE SET handled=excluded.handled,message=excluded.message,updated_at=excluded.updated_at,seen_at=NULL WHERE feedback_resolutions.handled != excluded.handled");
+    upsert.run("nikki", "shadow", 1, "Show transcript", "Implemented", 100, null);
+    const ack = db.prepare("UPDATE feedback_resolutions SET seen_at=? WHERE user_id=? AND note_id=? AND updated_at=?");
+    assert.equal(ack.run(150, "other", "shadow", 100).changes, 0);
+    assert.equal(ack.run(150, "nikki", "shadow", 99).changes, 0);
+    assert.equal(ack.run(150, "nikki", "shadow", 100).changes, 1);
+    upsert.run("nikki", "shadow", 1, "Show transcript", "Implemented", 200, null);
+    assert.equal(db.prepare("SELECT seen_at FROM feedback_resolutions").get().seen_at, 150);
+    upsert.run("nikki", "shadow", 0, "Show transcript", "Reopened", 300, null);
+    upsert.run("nikki", "shadow", 1, "Show transcript", "Fixed again", 400, null);
+    assert.equal(ack.run(500, "nikki", "shadow", 100).changes, 0);
+    assert.equal(db.prepare("SELECT seen_at FROM feedback_resolutions").get().seen_at, null);
+  } finally { db.close(); }
+  const route = await readFile(new URL("app/api/feedback-updates/route.ts", root), "utf8");
+  assert.match(route, /eq\(feedbackResolutions.userId, auth.identity.userId\)/);
+  assert.match(route, /eq\(feedbackResolutions.updatedAt, body.updatedAt\)/);
+});
+
+test("Paris progress uses bounded practice milestones, not a B2 proficiency score", async () => {
+  const ts = await import("typescript");
+  const source = await readFile(new URL("app/progress-journey.tsx", root), "utf8");
+  const calculation = source.slice(source.indexOf("const PRACTICE_GOAL"), source.indexOf("export default"));
+  const js = ts.transpileModule(calculation, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
+  const { practiceMilestone } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+  assert.deepEqual(practiceMilestone(-1), { total: 0, percent: 0, remaining: 5000 });
+  assert.equal(practiceMilestone(2500).percent, 50);
+  assert.equal(practiceMilestone(6000).percent, 100);
+  assert.equal(practiceMilestone(Infinity).total, 0);
+  assert.match(source, /not a fluency estimate/);
+  assert.match(source, /🥐.*☕.*🧸/);
+  assert.match(await readFile(new URL("app/progress-journey.css", root), "utf8"), /prefers-reduced-motion/);
+});
+
 async function render() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
@@ -46,7 +84,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Today’s review/);
   assert.match(page, /Your earprint/);
   assert.match(page, /Again.*Hard.*Good.*Easy/s);
-  assert.match(page, /\[\"today\",\"library\",\"studio\",\"about\"\]/);
+  assert.match(page, /\[\"today\",\"library\",\"studio\",\"progress\",\"about\"\]/);
   assert.doesNotMatch(page, /\[\"home\",\"practice\",\"library\",\"studio\",\"progress\"\]/);
   assert.match(page, /function SelectionSaver/);
   assert.match(page, /Save phrase/);
@@ -66,7 +104,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /function FeedbackNotebook/);
   assert.match(page, /Nikki’s notebook/);
   assert.match(page, /feedbackNotes/);
-  assert.match(page, /Mark handled/);
+  assert.match(page, /Awaiting review/);
   assert.match(page, /function AccessGate/);
   assert.match(page, /Continue with ChatGPT/);
   assert.match(appAuth, /ALLOWED_USER_EMAILS/);
@@ -141,6 +179,11 @@ test("feedback inbox rejects non-owners and exposes owner navigation only to the
     assert.equal(denied.status, 403);
     assert.match(denied.headers.get("cache-control"), /no-store/);
     assert.equal((await denied.json()).notes, undefined);
+    const patchRequest = new Request("https://example.com/api/feedback-inbox", { method: "PATCH", headers: { "oai-authenticated-user-id": "learner", "oai-authenticated-user-email": "learner@example.com", "Content-Type": "application/json" }, body: JSON.stringify({ handled: true }) });
+    assert.equal((await worker.fetch(patchRequest, env, ctx)).status, 403);
+    assert.equal((await worker.fetch(request("/api/feedback-updates", null), env, ctx)).status, 401);
+    const crossOrigin = new Request("https://example.com/api/feedback-inbox", { method: "PATCH", headers: { "oai-authenticated-user-id": "owner", "oai-authenticated-user-email": "owner@example.com", Origin: "https://other.example" }, body: "{}" });
+    assert.equal((await worker.fetch(crossOrigin, env, ctx)).status, 403);
     const owner = await worker.fetch(request("/api/session", "owner@example.com"), env, ctx);
     assert.equal((await owner.json()).isOwner, true);
     const learner = await worker.fetch(request("/api/session", "learner@example.com"), env, ctx);

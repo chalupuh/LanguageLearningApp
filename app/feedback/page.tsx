@@ -13,6 +13,19 @@ export default function FeedbackInbox() {
   const [state, setState] = useState("all");
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState("");
+  const [editing, setEditing] = useState<InboxNote | null>(null), [message, setMessage] = useState(""), [saving, setSaving] = useState(false), [saveError, setSaveError] = useState("");
+  const changeStatus = async () => {
+    if (!editing) return;
+    setSaving(true); setSaveError("");
+    try {
+      const response = await fetch("/api/feedback-inbox", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: editing.userId, noteId: editing.id, handled: !editing.resolved, message }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not update request.");
+      setEditing(null); setRevision(value => value + 1);
+    } catch (error) { setSaveError(error instanceof Error ? error.message : "Could not update request."); }
+    finally { setSaving(false); }
+  };
+  useEffect(() => { if (editing) document.getElementById("implementation-message")?.focus(); }, [editing]);
   useEffect(() => {
     const controller = new AbortController();
     setStatus("loading"); setError(""); setCopied(""); setNotes([]); setWarning(false);
@@ -48,9 +61,10 @@ export default function FeedbackInbox() {
       <div className="inbox-filters"><label>Search notes<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search wording or author…"/></label><label>Type<select value={kind} onChange={event => setKind(event.target.value)}><option value="all">All types</option><option value="bug">Bug reports</option><option value="idea">Feature requests</option></select></label><label>Status<select value={state} onChange={event => setState(event.target.value)}><option value="all">Open and handled</option><option value="open">Open</option><option value="handled">Handled</option></select></label></div>
       <div className="inbox-results"><span>{visible.length} of {notes.length} notes · newest first</span><button onClick={copy} disabled={!visible.length}>Copy visible notes</button></div>
       {copied && <p role="status">{copied}</p>}
-      <section className="inbox-notes" aria-label="Submitted feedback">{visible.map((note, index) => <article key={`${note.submittedBy}-${note.id}-${index}`} className={`inbox-note ${note.kind}`}><header><span className="inbox-kind">{note.kind === "bug" ? "Bug report" : "Feature request"}</span><span>{note.resolved ? "Handled" : "Open"}</span></header><p className="inbox-note-text">{note.text}</p><footer><span>{note.submittedBy || "Unknown author"}</span><time dateTime={note.createdAt}>{Number.isNaN(Date.parse(note.createdAt)) ? "Date unavailable" : new Date(note.createdAt).toLocaleString()}</time></footer></article>)}</section>
+      <section className="inbox-notes" aria-label="Submitted feedback">{visible.map((note, index) => <article key={`${note.submittedBy}-${note.id}-${index}`} className={`inbox-note ${note.kind}`}><header><span className="inbox-kind">{note.kind === "bug" ? "Bug report" : "Feature request"}</span><span>{note.resolved ? "Handled" : "Open"}</span></header><p className="inbox-note-text">{note.text}</p>{note.implementationMessage && <p><b>Implementation update:</b> {note.implementationMessage}</p>}<footer><span>{note.submittedBy || "Unknown author"}</span><time dateTime={note.createdAt}>{Number.isNaN(Date.parse(note.createdAt)) ? "Date unavailable" : new Date(note.createdAt).toLocaleString()}</time><button disabled={!note.userId || saving} onClick={() => { setEditing(note); setMessage(note.resolved ? "" : "Your request has been implemented. Thanks for helping improve the app!"); setSaveError(""); }}>{note.resolved ? "Reopen request" : "Mark handled & notify"}</button></footer></article>)}</section>
+      {editing && <section className="inbox-message" aria-label="Confirm request update"><h2>{editing.resolved ? "Reopen this request?" : "Tell Nikki what’s been implemented."}</h2><blockquote>{editing.text}</blockquote><label htmlFor="implementation-message">{editing.resolved ? "Optional explanation" : "Message Nikki will see"}</label><textarea id="implementation-message" value={message} onChange={event => setMessage(event.target.value)} maxLength={600}/><p>{editing.resolved ? "The request will be open again." : "This marks the request handled and creates an in-app notification for its author. No email is sent."}</p>{saveError && <p role="alert">{saveError}</p>}<button onClick={changeStatus} disabled={saving || (!editing.resolved && !message.trim())}>{saving ? "Saving…" : editing.resolved ? "Confirm reopen" : "Confirm handled & notify"}</button> <button disabled={saving} onClick={() => setEditing(null)}>Cancel</button></section>}
       {!visible.length && <div className="inbox-message"><h2>{notes.length ? "No notes match these filters." : "No submitted feedback yet."}</h2><p>{notes.length ? "Try another search or choose All types and Open and handled." : "Notes saved and synced from Nikki’s N menu will appear here. Use Refresh to check again."}</p></div>}
-      <p className="inbox-footnote">This view reads the original synced notebooks. Reading it does not mark notes handled or change anyone’s progress.</p>
+      <p className="inbox-footnote">Reading notes does not change them. Mark handled & notify sends the author an in-app update, stored separately from lesson progress.</p>
     </>}
   </main>;
 }
