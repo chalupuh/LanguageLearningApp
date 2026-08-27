@@ -5,6 +5,17 @@ import {DatabaseSync} from "node:sqlite";
 import ts from "typescript";
 import {drizzle} from "drizzle-orm/d1";
 const root=new URL("../",import.meta.url);
+
+test("cosmetics are reachable from profile, header, and Progress collection",async()=>{
+ const page=await readFile(new URL("app/page.tsx",root),"utf8"),hub=await readFile(new URL("app/journey-hub.tsx",root),"utf8");
+ assert.match(page,/My cosmetics →/);
+ assert.match(page,/onCosmetics=\{openCollection\}/);
+ assert.match(page,/onClick=\{openCollection\}>My collection/);
+ assert.match(page,/setCollectionVisit\(n=>n\+1\)/);
+ assert.match(page,/setOpen\(false\);onCosmetics\(\)/);
+ assert.match(hub,/"journey","growth","collection"/);
+ assert.match(hub,/Equipped/);assert.match(hub,/Reset \{category\}/);
+});
 const dataUrl=js=>"data:text/javascript;base64,"+Buffer.from(js).toString("base64");
 const moduleUrls=new Map();
 async function moduleUrl(path){
