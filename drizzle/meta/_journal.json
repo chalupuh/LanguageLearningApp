@@ -15,6 +15,13 @@
       "when": 1787854734990,
       "tag": "0001_secret_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787855866479,
+      "tag": "0002_smart_marrow",
+      "breakpoints": true
     }
   ]
 }

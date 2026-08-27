@@ -1,0 +1,18 @@
+// Authored practice checks, not a validated CEFR examination. Keep answers server-side.
+export const checkpoints = [
+  { id: "library-hours", title: "A change at the library", level: "B1 practice", text: "À partir de lundi, la bibliothèque du quartier ouvrira à dix heures au lieu de neuf heures, car des travaux auront lieu le matin. Elle restera cependant ouverte jusqu'à vingt heures le mercredi. Pour rendre un livre avant l'ouverture, on pourra utiliser la boîte située près de l'entrée. La responsable précise que ce changement est provisoire : les horaires habituels reprendront dans trois semaines.", questions: [
+    { skill: "Main idea", prompt: "What is the announcement about?", options: ["A temporary timetable change", "A permanent closure", "A new library"], answer: 0 },
+    { skill: "Details", prompt: "When will the usual timetable return?", options: ["Next Monday", "In three weeks", "On Wednesday"], answer: 1 },
+    { skill: "Practical meaning", prompt: "How can someone return a book before opening?", options: ["Wait until Wednesday", "Send it by post", "Use the box near the entrance"], answer: 2 },
+  ]},
+  { id: "town-transport", title: "A town transport proposal", level: "B2-oriented practice", text: "La mairie envisage de supprimer le stationnement sur la place centrale pour y créer une zone piétonne. Certains commerçants craignent de perdre les clients qui viennent en voiture. Pourtant, une libraire estime que la mesure pourrait leur être favorable, à condition que les bus soient plus fréquents. Selon elle, rendre la place agréable ne suffit pas : il faut aussi permettre aux habitants des villages voisins de s'y rendre facilement. Elle propose donc une période d'essai de six mois avant de prendre une décision définitive.", questions: [
+    { skill: "Main idea", prompt: "What proposal is being discussed?", options: ["Closing village bus routes", "Making the central square pedestrian-only", "Moving the bookshop"], answer: 1 },
+    { skill: "Details", prompt: "How long is the suggested trial?", options: ["Six weeks", "One year", "Six months"], answer: 2 },
+    { skill: "Viewpoint", prompt: "What is the bookseller's position?", options: ["Support depends on better transport access", "She rejects any change", "An attractive square alone is sufficient"], answer: 0 },
+  ]},
+  { id: "repair-cafe", title: "The repair workshop", level: "B2-oriented practice", text: "Depuis l'ouverture de l'atelier de réparation, les habitants apportent surtout de petits appareils électriques. Le coordinateur se réjouit de voir moins d'objets jetés, mais il souligne que l'objectif n'est pas de proposer un service gratuit à des clients passifs. Chaque personne doit participer à la réparation pour apprendre à se débrouiller. Comme les bénévoles ne peuvent pas garantir le résultat, ils demandent de ne pas acheter de pièces avant le premier rendez-vous. L'atelier est complet ce mois-ci ; de nouvelles places seront proposées le premier mardi du mois prochain.", questions: [
+    { skill: "Main idea", prompt: "What is the workshop's main approach?", options: ["Selling replacement appliances", "Teaching people through participation", "Repairing everything without the owner"], answer: 1 },
+    { skill: "Details", prompt: "What should visitors avoid doing beforehand?", options: ["Buying replacement parts", "Making an appointment", "Bringing small appliances"], answer: 0 },
+    { skill: "Viewpoint", prompt: "Why must owners participate?", options: ["There are no volunteers", "Every repair is guaranteed", "Learning independence is part of the purpose"], answer: 2 },
+  ]},
+];
