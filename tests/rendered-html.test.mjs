@@ -59,6 +59,8 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /function StudioView/);
   assert.match(page, /function ClipTimeline/);
   assert.match(page, /Selected passage/);
+  assert.match(page, /Move selected passage/);
+  assert.match(page, /Drag the pink passage to move it/);
   assert.match(page, /function FeedbackNotebook/);
   assert.match(page, /Nikki’s notebook/);
   assert.match(page, /feedbackNotes/);
