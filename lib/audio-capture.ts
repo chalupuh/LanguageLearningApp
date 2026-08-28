@@ -15,19 +15,39 @@ export function recordingError(error: unknown): string {
 
 export function audioFilename(type:string){return type.includes("mp4")?"recording.m4a":type.includes("ogg")?"recording.ogg":"recording.webm"}
 
-export function createAudioCapture(callbacks:{onState:(state:"idle"|"starting"|"recording")=>void;onAudio:(blob:Blob)=>void;onError:(message:string)=>void}){
+export type CaptureMode = "clean" | "browser";
+export function captureConstraints(deviceId:string,mode:CaptureMode):MediaStreamConstraints {
+  const audio:MediaTrackConstraints=deviceId?{deviceId:{exact:deviceId}}:{};
+  if(mode==="clean")Object.assign(audio,{autoGainControl:false,noiseSuppression:false,echoCancellation:false});
+  return {audio:Object.keys(audio).length?audio:true};
+}
+export const CAPTURE_PLAYBACK_EVENT="a-loreille-capture-playback";
+let playbackLocks=0;
+export const captureActive=()=>playbackLocks>0;
+export function holdAppPlayback(){
+  playbackLocks++;
+  const pause=(event:Event)=>{const media=event.target as HTMLMediaElement;if(typeof media?.pause==="function")media.pause()};
+  document.querySelectorAll<HTMLMediaElement>("audio,video").forEach(media=>media.pause());
+  document.addEventListener("play",pause,true);
+  window.dispatchEvent(new Event(CAPTURE_PLAYBACK_EVENT));
+  let released=false;
+  return()=>{if(released)return;released=true;playbackLocks--;document.removeEventListener("play",pause,true)};
+}
+
+export function createAudioCapture(callbacks:{onState:(state:"idle"|"starting"|"recording")=>void;onAudio:(blob:Blob)=>void;onError:(message:string)=>void;onSettings?:(settings:MediaTrackSettings)=>void}){
   let version=0, busy=false, stream:MediaStream|null=null, recorder:MediaRecorder|null=null, timer:ReturnType<typeof setTimeout>|null=null;
   const release=()=>{if(timer)clearTimeout(timer);timer=null;stream?.getTracks().forEach(t=>t.stop());stream=null;recorder=null;busy=false};
   const cancel=()=>{version++;const old=recorder;if(old){old.onstop=null;old.onerror=null;old.ondataavailable=null;try{if(old.state!=="inactive")old.stop()}catch{}}release();callbacks.onState("idle")};
-  const start=async(deviceId="")=>{
+  const start=async(deviceId="",mode:CaptureMode="browser")=>{
     if(busy)return;busy=true;const attempt=++version;callbacks.onState("starting");
     try{
       const policy=(document as Document & {permissionsPolicy?:{allowsFeature:(feature:string)=>boolean};featurePolicy?:{allowsFeature:(feature:string)=>boolean}});
       if(!window.isSecureContext||!(policy.permissionsPolicy||policy.featurePolicy)?.allowsFeature?.("microphone") && (policy.permissionsPolicy||policy.featurePolicy))throw new DOMException("Microphone blocked by page policy","SecurityError");
       if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==="undefined")throw new DOMException("Recording unavailable","NotSupportedError");
-      const acquired=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true});
+      const acquired=await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId,mode));
       if(attempt!==version){acquired.getTracks().forEach(t=>t.stop());return}stream=acquired;
       if(!acquired.getAudioTracks().some(t=>t.readyState==="live"))throw new DOMException("No live input","NotFoundError");
+      callbacks.onSettings?.(acquired.getAudioTracks()[0]?.getSettings?.()||{});
       const candidates=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg;codecs=opus"].filter(t=>MediaRecorder.isTypeSupported?.(t));
       // Retry format selection, never retry permission prompts automatically.
       for(const mimeType of [...candidates,""]){try{recorder=new MediaRecorder(acquired,mimeType?{mimeType}:undefined);break}catch(error){if((error as Error).name!=="NotSupportedError")throw error}}
