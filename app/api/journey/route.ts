@@ -33,6 +33,11 @@ export async function POST(request: Request) {
   try {
     const userId=auth.identity.userId, c=await context(userId), now=Date.now(), day=new Date(now).toISOString().slice(0,10);
     let kind=body.kind, xp=0, id="", data:Record<string,unknown>={};
+    const confirmUsage=async()=>{
+      if(typeof body.usageSessionId!=="string"||!/^[-\w]{36}$/.test(body.usageSessionId))return;
+      // Analytics must not prevent saving the learning loop if its storage is unavailable.
+      try{await c.db.insert(c.schema.usageSessions).values({userId,id:body.usageSessionId,email:auth.identity!.email,source:body.source,startedAt:now,lastActiveAt:now,stage:3,completedAt:now}).onConflictDoUpdate({target:[c.schema.usageSessions.userId,c.schema.usageSessions.id],set:{completedAt:now,lastActiveAt:now,stage:3},setWhere:c.ops.and(c.ops.eq(c.schema.usageSessions.source,body.source),c.ops.isNull(c.schema.usageSessions.completedAt))})}catch{}
+    };
     if(kind==="release-seen"){
       const index=releases.findIndex(r=>r.id===body.source);
       if(index<0)return reply({error:"Unknown update."},400);
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
       if (prior || legacyDone || kind==="review") {
         kind="review";
         const due=passage?Date.parse(c.legacy.reviews?.[passage.id]||""):prior?prior.createdAt+86400000:NaN;
-        if (!Number.isFinite(due)||due>now || c.events.some(e=>e.source===body.source&&(e.kind==="loop"||e.kind==="review")&&e.createdAt>now-86400000)) return reply({awarded:0,message:"Practice saved in your lesson. XP returns when this passage is due for review."});
+        if (!Number.isFinite(due)||due>now || c.events.some(e=>e.source===body.source&&(e.kind==="loop"||e.kind==="review")&&e.createdAt>now-86400000)) { await confirmUsage(); return reply({awarded:0,message:"Practice saved in your lesson. XP returns when this passage is due for review."}); }
         xp=20; id="review:"+body.source+":"+day;
       } else { xp=40; id="loop:"+body.source; }
       data={speaker:passage?.speaker.name||"Studio",topic:passage?.topic||"Personal video",level:passage?.level||"Uncalibrated Studio",day};
@@ -93,6 +98,7 @@ export async function POST(request: Request) {
     data.weeklyGoal=c.profile.weeklyGoal;
     const inserted=await c.db.insert(c.schema.journeyEvents).values({userId,id,kind,source:body.source,xp,createdAt:now,details:JSON.stringify(data)}).onConflictDoNothing().returning();
     let awarded=inserted.length?xp:0;
+    if(kind==="loop"||kind==="review")await confirmUsage();
     if(kind==="phrase"){
       const bonus=await c.db.insert(c.schema.journeyEvents).values({userId,id:"phrase-set:"+day,kind:"phrase-set",source:day,xp:10,createdAt:now,details:JSON.stringify({day,weeklyGoal:c.profile.weeklyGoal})}).onConflictDoNothing().returning();
       awarded=bonus.length?10:0;

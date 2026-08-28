@@ -22,6 +22,13 @@
       "when": 1787855866479,
       "tag": "0002_smart_marrow",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1787883789442,
+      "tag": "0003_white_moon_knight",
+      "breakpoints": true
     }
   ]
 }

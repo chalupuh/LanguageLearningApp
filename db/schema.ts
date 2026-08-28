@@ -1,4 +1,15 @@
-import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, primaryKey, index } from "drizzle-orm/sqlite-core";
+
+export const usageSessions = sqliteTable("usage_sessions", {
+  userId: text("user_id").notNull(), id: text("id").notNull(), email: text("email"),
+  source: text("source").notNull(), startedAt: integer("started_at").notNull(),
+  lastActiveAt: integer("last_active_at").notNull(), stage: integer("stage").notNull(),
+  completedAt: integer("completed_at"),
+}, table => [primaryKey({ columns: [table.userId, table.id] }), index("idx_usage_sessions_email_active").on(table.email, table.lastActiveAt)]);
+export const usageSamples = sqliteTable("usage_samples", {
+  userId: text("user_id").notNull(), sessionId: text("session_id").notNull(), seq: integer("seq").notNull(),
+  start: integer("start").notNull(), end: integer("end").notNull(),
+}, table => [primaryKey({ columns: [table.userId, table.sessionId, table.seq] }), index("idx_usage_samples_user_end").on(table.userId, table.end)]);
 
 export const journeyEvents = sqliteTable("journey_events", {
   userId: text("user_id").notNull(), id: text("id").notNull(), kind: text("kind").notNull(),

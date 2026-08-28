@@ -12,5 +12,5 @@ export default function OwnerFeedbackLink() {
       .catch(() => {});
     return () => { active = false; };
   }, []);
-  return isOwner ? <div className="owner-feedback-entry"><span>Owner tools</span><a href="/feedback">Nikki’s feedback inbox →</a></div> : null;
+  return isOwner ? <div className="owner-feedback-entry"><span>Owner tools</span><a href="/usage">Usage dashboard →</a><a href="/feedback">Nikki’s feedback inbox →</a></div> : null;
 }
