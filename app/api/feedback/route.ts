@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if (audio.size > 8 * 1024 * 1024) return Response.json({ error: "Keep recordings under 8 MB." }, { status: 413 });
 
   const transcriptionForm = new FormData();
-  transcriptionForm.append("file", audio, "recording.webm");
+  transcriptionForm.append("file", audio, audio.type.includes("mp4") ? "recording.m4a" : audio.type.includes("ogg") ? "recording.ogg" : "recording.webm");
   transcriptionForm.append("model", "gpt-transcribe");
   transcriptionForm.append("language", "fr");
   const transcriptionResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: transcriptionForm });

@@ -4,6 +4,41 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
+test("audio capture handles permission/device failures, cleanup, cancellation and repeated clicks", async () => {
+  const ts=await import("typescript");
+  const source=await readFile(new URL("lib/audio-capture.ts",root),"utf8");
+  const js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+  const {createAudioCapture,recordingError,audioFilename}=await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+  assert.match(recordingError({name:"NotReadableError"}),/even if permission is allowed/);
+  assert.match(recordingError({name:"NotFoundError"}),/No microphone/);
+  assert.equal(audioFilename("audio/mp4"),"recording.m4a");
+  const names=["window","document","navigator","MediaRecorder"],original=new Map(names.map(n=>[n,Object.getOwnPropertyDescriptor(globalThis,n)]));
+  let calls=0,releases=0,instance,failStart=false,failFormat=false,deny=false,pending;
+  const stream={getTracks:()=>[{stop:()=>releases++}],getAudioTracks:()=>[{readyState:"live"}]};
+  const states=[],errors=[],audio=[];
+  class Recorder {
+    static isTypeSupported(type){return type.includes("webm")}
+    constructor(_stream,options){if(failFormat&&options)throw new DOMException("Unsupported format","NotSupportedError");this.mimeType="audio/webm";this.state="inactive";instance=this}
+    start(){if(failStart)throw new DOMException("Device busy","NotReadableError");this.state="recording"}
+    stop(){this.state="inactive";this.ondataavailable?.({data:new Blob(["audio"])});this.onstop?.()}
+  }
+  Object.defineProperty(globalThis,"window",{configurable:true,value:{isSecureContext:true}});
+  Object.defineProperty(globalThis,"document",{configurable:true,value:{}});
+  Object.defineProperty(globalThis,"navigator",{configurable:true,value:{mediaDevices:{getUserMedia:async()=>{calls++;if(deny)throw new DOMException("Denied","NotAllowedError");if(pending)return pending;return stream}}}});
+  Object.defineProperty(globalThis,"MediaRecorder",{configurable:true,value:Recorder});
+  const capture=createAudioCapture({onState:s=>states.push(s),onError:e=>errors.push(e),onAudio:b=>audio.push(b)});
+  try{
+    await Promise.all([capture.start(),capture.start()]);assert.equal(calls,1);assert.equal(states.at(-1),"recording");
+    capture.stop();assert.equal(releases,1);assert.equal(audio.length,1);assert.equal(states.at(-1),"idle");
+    failStart=true;await capture.start();assert.equal(releases,2);assert.match(errors.at(-1),/NotReadableError/);
+    failStart=false;deny=true;await capture.start();assert.match(errors.at(-1),/NotAllowedError/);deny=false;
+    failFormat=true;await capture.start();assert.equal(states.at(-1),"recording");capture.cancel();assert.equal(audio.length,1);failFormat=false;
+    let resolve;pending=new Promise(r=>resolve=r);const waiting=capture.start();capture.cancel();resolve(stream);await waiting;assert.equal(states.at(-1),"idle");assert.equal(audio.length,1);pending=null;
+    await capture.start();instance.onerror({error:new DOMException("Lost input","AbortError")});assert.match(errors.at(-1),/AbortError/);assert.equal(states.at(-1),"idle");
+    globalThis.document.permissionsPolicy={allowsFeature:()=>false};const before=calls;await capture.start();assert.equal(calls,before);assert.match(errors.at(-1),/SecurityError/);
+  } finally {capture.cancel();for(const name of names){const descriptor=original.get(name);if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name]}}
+});
+
 test("request status survives progress saves and acknowledgement is user/version scoped", async () => {
   const { DatabaseSync } = await import("node:sqlite");
   const db = new DatabaseSync(":memory:");
