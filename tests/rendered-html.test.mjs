@@ -5,13 +5,15 @@ import "./seasonal-theme.test.mjs";
 
 const root = new URL("../", import.meta.url);
 
-test("seasonal themes are selectable, accessible, and account synced",async()=>{
+test("seasonal themes are selectable, visible, accessible, and account synced",async()=>{
  const page=await readFile(new URL("app/page.tsx",root),"utf8"),css=await readFile(new URL("app/globals.css",root),"utf8");
- for(const theme of ["classic","autumn","halloween","winter","valentine","spring"])assert.match(page,new RegExp(`id:\"${theme}\"`));
+ for(const theme of ["classic","autumn","halloween","winter","valentine","spring","summer"]){assert.match(page,new RegExp(`id:\"${theme}\"`));assert.match(css,new RegExp(`data-holiday-theme=\"${theme}\"`))}
  assert.match(page,/aria-label="Website theme"/);assert.match(page,/aria-pressed=\{theme===option\.id\}/);
  assert.match(page,/holidayTheme,lastSeenUpdateId/);assert.match(page,/setHolidayTheme\(data\.holidayTheme\)/);
  assert.match(page,/a-loreille-theme-change/);assert.match(css,/data-holiday-theme="halloween"/);
- assert.match(css,/👻/);assert.match(css,/🎃/);assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(page,/SeasonalDecor/);assert.match(page,/theme-option-motifs/);assert.match(css,/seasonal-wallpaper/);
+ for(const motif of ["🌹","🍂","👻","🎃","❄️","💌","🌸","🦋","☀️","🍋"])assert.match(page,new RegExp(motif));
+ assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
 test("clean capture requests disabled processing and silence locks pause app media",async()=>{
@@ -146,7 +148,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.doesNotMatch(page, /\[\"home\",\"practice\",\"library\",\"studio\",\"progress\"\]/);
   assert.match(page, /function SelectionSaver/);
   assert.match(page, /Save phrase/);
-  assert.match(page, /Already in your notebook/);
+  assert.match(page, /Saved phrase context updated/);
   assert.match(page, /p\.text\.includes\(phrase\)/);
   assert.match(page, /function PhraseReviewDeck/);
   assert.match(page, /function SpeakingHistory/);

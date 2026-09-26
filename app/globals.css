@@ -46,6 +46,20 @@ nav a{color:#8b7b85;font-family:Georgia,serif;font-weight:400}nav a.active{color
 .capture-options{border:1px solid #dec5d1;border-radius:12px;padding:14px;margin-bottom:14px;text-align:left;display:grid;gap:10px}.capture-options legend{font-weight:600}.capture-options label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.capture-options select{max-width:100%;padding:8px;border:1px solid #dec5d1;border-radius:6px;background:#fff6fa;color:#344c3e}.capture-options p,.capture-settings{font-size:12px;line-height:1.5;margin:0}.capture-settings{margin:12px 0;overflow-wrap:anywhere}.capture-options :focus-visible{outline:2px solid #a95f85;outline-offset:3px}
 
 /* Nikki's account-synced seasonal room. */
+/* Saved phrase context stays readable in the notebook and during recall. */
+.phrase-library article{grid-template-columns:minmax(0,1fr) auto;align-items:start;padding:17px 18px}
+.phrase-library article>div{min-width:0;display:grid;gap:7px}
+.phrase-library article strong{font:17px/1.45 Georgia,serif;overflow-wrap:anywhere}
+.phrase-library article span{font-size:12px;color:#6d7c72}
+.phrase-library article p{margin:2px 0 0;font:italic 14px/1.55 Georgia,serif;color:#40584a;overflow-wrap:anywhere}
+.phrase-library article a,.phrase-context a{width:max-content;color:#855a74;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.phrase-library article button{grid-column:2;grid-row:1}
+.phrase-context{display:grid;gap:8px;margin-bottom:16px}
+.phrase-context>span{font-size:12px;font-weight:700;color:#47614f}
+.phrase-context>p{margin:0;font:italic 17px/1.55 Georgia,serif;color:#33483b;overflow-wrap:anywhere}
+.phrase-context>button{width:max-content;border:1px solid #b9d2be;border-radius:999px;padding:8px 12px;background:#fff;color:#456650;font-size:12px;cursor:pointer}
+.phrase-context>button:disabled,.phrase-review-head>button:disabled{opacity:.55;cursor:wait}
+.phrase-library a:focus-visible,.phrase-context a:focus-visible,.phrase-context button:focus-visible{outline:3px solid #bd7d9c;outline-offset:3px}
 html[data-holiday-theme="summer"]{--paper:#eff8fc;--card:#fffdf5;--ink:#29434c;--muted:#657b83;--line:#c8dfe6;--line-strong:#9ec6d3;--coral:#c38027}
 html[data-holiday-theme="summer"] .app-shell{background-image:radial-gradient(circle at 12% 24%,rgba(246,197,69,.16),transparent 24%),radial-gradient(circle at 88% 70%,rgba(79,167,193,.13),transparent 27%)}
 html[data-holiday-theme="summer"] .app-shell:before{content:"☀  ·  ✦  ☀  ·  ✦  ☀  ·  ✦"}
@@ -58,3 +72,45 @@ html[data-holiday-theme="winter"]{--paper:#f1f6f8;--card:#fbfdfe;--ink:#263b4b;-
 html[data-holiday-theme="valentine"]{--paper:#fff3f5;--card:#fffafb;--ink:#482d37;--muted:#856d76;--line:#e7ccd4;--line-strong:#d5a5b5;--coral:#c64f70}html[data-holiday-theme="valentine"] .app-shell{background-image:radial-gradient(circle at 12% 26%,rgba(219,105,137,.13),transparent 23%),radial-gradient(circle at 88% 72%,rgba(169,51,82,.09),transparent 26%)}html[data-holiday-theme="valentine"] .app-shell:before{content:"♥  ·  ♡  ✦  ♥  ·  ♡  ✦  ♥"}
 html[data-holiday-theme="spring"]{--paper:#f5f7ef;--card:#fffdf8;--ink:#2f4138;--muted:#718076;--line:#d2ddcf;--line-strong:#b3c9b0;--coral:#b76f9d}html[data-holiday-theme="spring"] .app-shell{background-image:radial-gradient(circle at 11% 28%,rgba(172,126,185,.12),transparent 23%),radial-gradient(circle at 90% 70%,rgba(110,168,125,.12),transparent 27%)}html[data-holiday-theme="spring"] .app-shell:before{content:"✿  ·  ❀  ✦  ✿  ·  ❀  ✦  ✿"}
 @keyframes seasonal-drift{from{transform:translateX(-1.5vw)}to{transform:translateX(1.5vw)}}@media(prefers-reduced-motion:reduce){html[data-holiday-theme] body,html[data-holiday-theme] .app-shell{transition:none}html[data-holiday-theme] .app-shell:before{animation:none}}@media(max-width:620px){.theme-options{grid-template-columns:1fr}.theme-picker>div:first-child{align-items:flex-start;flex-direction:column}.feedback-notebook{max-height:calc(100vh - 94px)}html[data-holiday-theme] .app-shell:before{font-size:18px;letter-spacing:2vw}}
+
+/* Visible seasonal pin clusters replace the old hidden wallpaper glyph layer. */
+html[data-holiday-theme="classic"]{--season-accent:#bd7394;--season-soft:#fff0f6}
+html[data-holiday-theme="autumn"]{--season-accent:#a95735;--season-soft:#fff0d9}
+html[data-holiday-theme="halloween"]{--season-accent:#77468a;--season-soft:#fff0df}
+html[data-holiday-theme="winter"]{--season-accent:#62879a;--season-soft:#edf8ff}
+html[data-holiday-theme="valentine"]{--season-accent:#c64f70;--season-soft:#fff0f4}
+html[data-holiday-theme="spring"]{--season-accent:#8c67a2;--season-soft:#f4f8e9}
+html[data-holiday-theme="summer"]{--season-accent:#267f9a;--season-soft:#fff8d9}
+html[data-holiday-theme] .app-shell:before{display:none}
+.theme-motifs{display:inline-flex;align-items:center}
+.theme-motif-set{display:none;align-items:center;justify-content:center}
+html[data-holiday-theme="classic"] .theme-motif-set[data-theme="classic"],
+html[data-holiday-theme="autumn"] .theme-motif-set[data-theme="autumn"],
+html[data-holiday-theme="halloween"] .theme-motif-set[data-theme="halloween"],
+html[data-holiday-theme="winter"] .theme-motif-set[data-theme="winter"],
+html[data-holiday-theme="valentine"] .theme-motif-set[data-theme="valentine"],
+html[data-holiday-theme="spring"] .theme-motif-set[data-theme="spring"],
+html[data-holiday-theme="summer"] .theme-motif-set[data-theme="summer"]{display:flex}
+.brand-seasonal-motifs{margin-left:2px}
+.brand-seasonal-motifs .theme-motif-set{gap:1px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--season-accent) 38%,white);border-radius:999px;background:color-mix(in srgb,var(--season-soft) 88%,white);box-shadow:0 3px 10px color-mix(in srgb,var(--season-accent) 13%,transparent)}
+.brand-seasonal-motifs .theme-motif-set>span{font:normal 13px/1 "Segoe UI Emoji","Apple Color Emoji",sans-serif;filter:drop-shadow(0 1px 0 white)}
+.brand-seasonal-motifs .theme-motif-set>span:nth-child(2){font-size:15px;transform:translateY(-1px)}
+.seasonal-wallpaper{position:fixed;z-index:1;inset:94px 14px auto;pointer-events:none}
+.seasonal-cluster{position:absolute;top:0}
+.seasonal-cluster-left{left:0;transform:rotate(-5deg)}
+.seasonal-cluster-right{right:0;transform:rotate(5deg)}
+.seasonal-cluster .theme-motif-set{position:relative;gap:2px;padding:9px 10px;border:1px solid color-mix(in srgb,var(--season-accent) 32%,white);border-radius:18px;background:color-mix(in srgb,var(--season-soft) 86%,white);box-shadow:0 9px 24px color-mix(in srgb,var(--season-accent) 16%,transparent);animation:seasonal-pin-float 5s ease-in-out infinite}
+.seasonal-cluster-right .theme-motif-set{animation-delay:-2.5s}
+.seasonal-cluster .theme-motif-set:after{content:"";position:absolute;left:50%;top:-5px;width:8px;height:8px;border:2px solid white;border-radius:50%;background:var(--season-accent);box-shadow:0 1px 4px rgba(49,38,44,.18);transform:translateX(-50%)}
+.seasonal-cluster .theme-motif-set>span{font:normal 22px/1 "Segoe UI Emoji","Apple Color Emoji",sans-serif;filter:drop-shadow(0 2px 1px rgba(44,37,41,.12))}
+.seasonal-cluster .theme-motif-set>span:nth-child(1){transform:rotate(-8deg)}
+.seasonal-cluster .theme-motif-set>span:nth-child(2){font-size:27px;transform:translateY(-3px)}
+.seasonal-cluster .theme-motif-set>span:nth-child(3){transform:rotate(8deg)}
+.theme-options button{grid-template-columns:58px 1fr auto}
+.theme-options i.theme-option-motifs{width:58px;height:34px;display:flex;align-items:center;justify-content:center;padding-left:5px;border-radius:12px;background:linear-gradient(145deg,#fff,var(--season-soft,#f3ecef));font-style:normal}
+.theme-option-motifs>span{width:25px;height:25px;display:grid;place-items:center;margin-left:-6px;border:1px solid rgba(255,255,255,.92);border-radius:50%;background:#fff;font:normal 14px/1 "Segoe UI Emoji","Apple Color Emoji",sans-serif;box-shadow:0 2px 6px rgba(55,42,49,.11)}
+.theme-option-motifs>span:first-child{margin-left:0}.theme-option-motifs>span:nth-child(2){z-index:1;transform:translateY(-2px)}
+@keyframes seasonal-pin-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(5px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.seasonal-cluster .theme-motif-set{animation:none}}
+@media(max-width:1120px){.seasonal-wallpaper{display:none}}
+@media(max-width:620px){.brand-seasonal-motifs .theme-motif-set{padding:4px}.brand-seasonal-motifs .theme-motif-set>span:not(:first-child){display:none}.theme-options button{grid-template-columns:58px 1fr auto}}

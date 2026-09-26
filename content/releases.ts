@@ -14,6 +14,10 @@ export const releases = [
   {mark:"02",title:"Seasonal themes",body:"Open N → Seasonal look. Automatic follows the seasons, or choose a favorite look to keep year-round."},
   {mark:"03",title:"Extra practice can earn XP",body:"Finish two rehearsal activities to record extra practice, with the same fair daily XP limit as before."},
  ]},
+ {id:"2026-09-26-phrase-context",date:"September 26, 2026",title:"Your saved French now comes with its story",summary:"A saved phrase brings its sentence and source back when you review it.",items:[
+  {mark:"01",title:"Keep the surrounding sentence",body:"Highlights from lessons and Studio now remember the sentence they came from."},
+  {mark:"02",title:"Hear it in context",body:"Reveal a saved phrase to replay its sentence and return to its lesson or video."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
