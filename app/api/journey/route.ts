@@ -60,7 +60,8 @@ export async function POST(request: Request) {
     const passage=passages.find(p=>"library:"+p.id===body.source);
     const studio=/^studio:[\w-]{11}:\d+:\d+$/.test(body.source);
     if (kind==="loop" || kind==="review") {
-      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<15 || body.summary.length>1000 || typeof body.retell!=="string" || body.retell.trim().length<15 || body.retell.length>10000 || body.decoded!==true || body.shadowed!==true) return reply({error:"Complete your summary, decode reflection, shadowing, and retell first."},400);
+      // Accept earlier clients/drafts during rollout; new sessions use rehearsed.
+      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<15 || body.summary.length>1000 || typeof body.retell!=="string" || body.retell.trim().length<15 || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, decode reflection, rehearsal, and retell first."},400);
       const prior=c.events.find(e=>e.source===body.source&&(e.kind==="loop"||e.kind==="review"));
       const legacyDone=passage&&c.legacy.completed?.includes(passage.id);
       if (prior || legacyDone || kind==="review") {
@@ -77,8 +78,9 @@ export async function POST(request: Request) {
       id="phrase:"+body.source+":"+day; data={rating:body.rating,day};
       // One review-set award per UTC day, independent of how many phrases it contains.
       xp=0;
-    } else if (kind==="shadow") {
+    } else if (kind==="shadow" || kind==="rehearse") {
       if ((!passage&&!studio)||body.repeated!==true) return reply({error:"Complete a listen-and-repeat retry first."},400);
+      // Share the historical daily key so renamed activities cannot double XP.
       id="shadow:"+body.source+":"+day; xp=10; data={day};
     } else if (kind==="observation") {
       if ((!passage&&!studio)||!Number.isFinite(body.score)||body.score<0||body.score>100||!["first","replay","familiar","unknown"].includes(body.condition)) return reply({error:"Invalid listening observation."},400);

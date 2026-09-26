@@ -1,0 +1,13 @@
+.rehearse-card{padding:1.5rem;border:1px solid var(--line-strong);border-radius:20px;background:var(--paper,transparent);font-size:1rem;line-height:1.6}
+.rehearse-card button{font:inherit;min-height:44px;padding:.6rem .9rem;border:1px solid var(--line-strong);border-radius:12px;cursor:pointer;color:inherit;background:transparent}
+.rehearse-card button:disabled{opacity:.5;cursor:default}.rehearse-card button:focus-visible,.rehearse-card select:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.rehearse-modes,.rehearse-audio,.rehearse-pieces,.rehearse-answer{display:flex;flex-wrap:wrap;gap:.6rem;margin:.9rem 0}
+.rehearse-card button[aria-pressed=true]{background:var(--ink);color:var(--paper,#fff)}
+.rehearse-quiet{display:flex;align-items:center;gap:.7rem;margin-top:1rem}.rehearse-credit,.rehearse-card small{font-size:.875rem}
+.rehearse-card select{display:block;max-width:100%;width:100%;padding:.65rem;font:inherit;color:inherit;background:transparent;border:1px solid var(--line-strong);border-radius:8px}
+.rehearse-french{font-family:inherit;font-size:1.5rem;line-height:1.6;padding:1rem 0;overflow-wrap:anywhere}
+.rehearse-answer{min-height:68px;padding:1rem;border:1px dashed var(--line-strong);border-radius:12px;align-items:center}.rehearse-answer span{font-size:.875rem}
+.rehearse-finish{margin:1.5rem 0}.rehearse-card .primary{background:var(--ink);color:var(--paper,#fff)}
+.rehearse-build>button{margin-right:.6rem;margin-bottom:.6rem}
+.rehearse-card .effort-check{font-size:1rem}.rehearse-card details{margin:1rem 0}.rehearse-card summary{cursor:pointer}
+@media(max-width:600px){.rehearse-card{padding:1rem}.rehearse-modes{flex-direction:column}.rehearse-french{font-size:1.25rem}}

@@ -1,8 +1,18 @@
 import assert from "node:assert/strict";
 import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
+import "./seasonal-theme.test.mjs";
 
 const root = new URL("../", import.meta.url);
+
+test("seasonal themes are selectable, accessible, and account synced",async()=>{
+ const page=await readFile(new URL("app/page.tsx",root),"utf8"),css=await readFile(new URL("app/globals.css",root),"utf8");
+ for(const theme of ["classic","autumn","halloween","winter","valentine","spring"])assert.match(page,new RegExp(`id:\"${theme}\"`));
+ assert.match(page,/aria-label="Website theme"/);assert.match(page,/aria-pressed=\{theme===option\.id\}/);
+ assert.match(page,/holidayTheme,lastSeenUpdateId/);assert.match(page,/setHolidayTheme\(data\.holidayTheme\)/);
+ assert.match(page,/a-loreille-theme-change/);assert.match(css,/data-holiday-theme="halloween"/);
+ assert.match(css,/👻/);assert.match(css,/🎃/);assert.match(css,/prefers-reduced-motion:reduce/);
+});
 
 test("clean capture requests disabled processing and silence locks pause app media",async()=>{
  const ts=await import("typescript"),source=await readFile(new URL("lib/audio-capture.ts",root),"utf8");
@@ -126,7 +136,8 @@ test("keeps the learning loop and AI routes honest", async () => {
   ]);
   assert.match(page, /Check my understanding/);
   assert.match(page, /Reveal full transcript/);
-  assert.match(page, /without pretending to score individual sounds/);
+  const rehearsal = await readFile(new URL("app/rehearse.tsx", root), "utf8");
+  assert.match(rehearsal, /it is not a pronunciation score/);
   assert.match(page, /Bring your own French/);
   assert.match(page, /Today’s review/);
   assert.match(page, /Your earprint/);
@@ -157,7 +168,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(appAuth, /ALLOWED_USER_EMAILS/);
   assert.match(appAuth, /status: 403/);
   assert.match(sessionRoute, /authorized: true/);
-  assert.match(page, /Studio shadowing/);
+  assert.match(page, /Studio rehearsal/);
   assert.match(transcriptRoute, /captionTracks/);
   assert.match(transcriptRoute, /does not expose captions/);
   assert.match(transcriptRoute, /fmt=json3/);
@@ -174,7 +185,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(feedback, /word_accuracy/);
   assert.match(feedback, /liaison_practice/);
   assert.match(feedback, /replay_drill/);
-  assert.match(page, /French reference · follow along/);
+  assert.match(rehearsal, /lang="fr">\{phrase\}/);
   assert.match(page, /measureSpeechTiming/);
   assert.match(page, /Liaison to practise/);
   assert.match(page, /function NewUpdates/);

@@ -5,7 +5,7 @@ import "./session-recovery.css";
 
 type Draft = { version: number; title: string; step: number; done: boolean; [key: string]: any };
 type Saved = { source: string; state: Draft; revision: number; updatedAt: number };
-const stages = ["First listen", "Decode", "Shadow", "Retell"];
+const stages = ["First listen", "Decode", "Rehearse", "Retell"];
 const cacheKey = (user: string, source: string) => `a-loreille-draft:${user}:${source}`;
 
 export function useSessionDraft(source: string | null, state: Draft, restore: (draft: Draft | null) => void) {

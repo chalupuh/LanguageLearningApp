@@ -9,6 +9,11 @@ export const releases = [
   {mark:"03",title:"Listening growth, not a fluency score",body:"See your listening history and try three practice checks with fixed answer keys. XP and these checks do not certify B2."},
   {mark:"04",title:"Your feedback comes back to you",body:"When a request is marked implemented, its update appears in your app."},
  ]},
+ {id:"2026-09-26-rehearsal-seasons",date:"September 26, 2026",title:"A new way to rehearse — and a room for every season",summary:"Practice one French phrase at a time, then make the app feel like the season you’re in.",items:[
+  {mark:"01",title:"Rehearse your way",body:"Choose Listen then echo, Build the phrase, or Notice the rhythm. Speaking and recording are always optional."},
+  {mark:"02",title:"Seasonal themes",body:"Open N → Seasonal look. Automatic follows the seasons, or choose a favorite look to keep year-round."},
+  {mark:"03",title:"Extra practice can earn XP",body:"Finish two rehearsal activities to record extra practice, with the same fair daily XP limit as before."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

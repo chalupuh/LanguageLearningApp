@@ -158,10 +158,10 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.releases.length,2);
+  assert.equal(state.releases.length,3);
   assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
-  assert.equal((await post({kind:"release-seen",source:"2026-08-27-progress-collection"})).status,200);
-  assert.equal((await post({kind:"release-seen",source:"2026-08-27-progress-collection"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-09-26-rehearsal-seasons"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-09-26-rehearsal-seasons"})).status,200);
   state=await (await GET(request())).json();
   assert.equal(state.releases.length,0);
   assert.equal(state.historicalXp,825);assert.equal(state.events.filter(e=>e.xp>0).length,0);
@@ -174,6 +174,10 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await post(loop)).awarded,0);
   assert.equal((await post({kind:"shadow",source:"library:cafe",repeated:true})).awarded,10);
   assert.equal((await post({kind:"shadow",source:"library:cafe",repeated:true})).awarded,0);
+  assert.equal((await post({kind:"rehearse",source:"library:cafe",repeated:true})).awarded,0,"renaming cannot double the daily reward");
+  assert.equal((await post({...loop,rehearsed:false})).status,400,"explicit incomplete rehearsal cannot fall back to legacy completion");
+  assert.equal((await post({...loop,shadowed:undefined,rehearsed:true})).status,200,"no microphone or shadowing required");
+  assert.equal((await post({...loop,shadowed:undefined,rehearsed:false})).status,400);
   const phrases=await Promise.all([post({kind:"phrase",source:"bonjour",rating:"Good"}),post({kind:"phrase",source:"merci",rating:"Again"})]);
   assert.equal(phrases.reduce((sum,r)=>sum+r.awarded,0),10);
   assert.equal((await post({kind:"phrase",source:"bonjour",rating:"Good"})).awarded,0);
@@ -182,7 +186,8 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal(checkpoint.awarded,25);assert.equal(checkpoint.result.score,100);
   assert.equal((await post({kind:"checkpoint",source:"library-hours",answers:[1,0,0],listens:1})).result.score,100);
   assert.equal((await post({kind:"checkpoint",source:"town-transport",answers:[1,2,0],listens:1})).status,409);
-  await post({...loop,source:"studio:Zpcrn1b6baQ:0:60"});
+  assert.equal((await post({...loop,source:"studio:Zpcrn1b6baQ:0:60",shadowed:undefined,rehearsed:true})).awarded,40);
+  assert.equal((await post({kind:"rehearse",source:"studio:Zpcrn1b6baQ:0:60",repeated:false})).status,400);
   assert.equal((await post({kind:"equip",source:"croissant",category:"avatar"})).status,200);
   assert.equal((await post({kind:"equip",source:"bear",category:"avatar"})).status,403);
   assert.equal((await post({kind:"goal",source:"weekly",goal:8})).status,400);
@@ -197,6 +202,8 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await post({kind:"shadow",source:"library:cafe",repeated:true})).awarded,10);
   assert.equal((await post({...loop,kind:"review"})).awarded,20);
   assert.equal((await post({...loop,kind:"review"})).awarded,0);
+  assert.equal((await post({kind:"rehearse",source:"studio:Zpcrn1b6baQ:0:60",repeated:true})).awarded,10);
+  assert.equal((await post({kind:"shadow",source:"studio:Zpcrn1b6baQ:0:60",repeated:true})).awarded,0);
   clock+=6*86400000;
   const later=await post({kind:"checkpoint",source:"town-transport",answers:[0,0,0],listens:2});
   assert.equal(later.awarded,25);assert.equal(later.result.condition,"replay");assert.equal(later.result.score,33);
@@ -222,9 +229,9 @@ test("listening comparisons separate conditions and require evidence",async()=>{
 });
 test("release history shows only unseen updates and tolerates unknown legacy IDs",async()=>{
  const {releases,unseenReleases}=await import(await moduleUrl("content/releases.ts"));
- assert.equal(unseenReleases([]).length,2);
- assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),[releases[1].id]);
- assert.equal(unseenReleases([],"unrecognized-old-version").length,2);
+ assert.equal(unseenReleases([]).length,3);
+ assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),releases.slice(1).map(r=>r.id));
+ assert.equal(unseenReleases([],"unrecognized-old-version").length,3);
  assert.equal(unseenReleases(releases.map(r=>({kind:"release-seen",source:r.id}))).length,0);
 });
 test("loop drafts and review saves remain independent",async()=>{

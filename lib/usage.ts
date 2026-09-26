@@ -1,6 +1,6 @@
 export const USAGE_IDLE_MS = 60_000;
 export const USAGE_TIMEZONE = "America/New_York";
-export const usageStages = ["First listen", "Decode", "Shadow", "Retell"];
+export const usageStages = ["First listen", "Decode", "Rehearse", "Retell"];
 export type UsageSession = { id: string; source: string; startedAt: number; lastActiveAt: number; stage: number; completedAt: number | null };
 export type UsageSample = { sessionId: string; start: number; end: number };
 

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "À l’Oreille — French that finally clicks",
-  description: "Train your ear for real French through listening, decoding, shadowing, and retelling.",
+  description: "Train your ear for real French through listening, decoding, rehearsal, and retelling.",
   openGraph: {
     title: "À l’Oreille",
     description: "French that finally clicks.",
