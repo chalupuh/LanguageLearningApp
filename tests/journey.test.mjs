@@ -46,6 +46,13 @@ test("language progress is isolated, appearance shared, and announcement XP is i
   const event=sqlite.prepare("select details from journey_events where user_id='nikki' and kind='announcement'").get();
   assert.equal(JSON.parse(event.details).score,100);assert.equal(JSON.parse(event.details).condition,"first");
   assert.deepEqual((await(await ann.GET(req("announcements?language=sv"))).json()).completed,[]);
+  await ann.POST(req("announcements?language=sv","POST",{id:"sv-butik",answers:[0,1,2],listens:1}));
+  const journey=await import(await moduleUrl("app/api/journey/route.ts"));
+  const frenchJourney=await(await journey.GET(req("journey"))).json(),swedishJourney=await(await journey.GET(req("journey?language=sv"))).json();
+  assert.equal(frenchJourney.collectionXp,50);assert.equal(swedishJourney.collectionXp,50);
+  assert.equal(frenchJourney.events.reduce((sum,e)=>sum+e.xp,0),25);
+  assert.equal(swedishJourney.events.reduce((sum,e)=>sum+e.xp,0),25);
+  assert.equal(frenchJourney.events[0].source,"mall-closing");assert.equal(swedishJourney.events[0].source,"sv-butik");
  }finally{if(previous===undefined)delete process.env.ALLOWED_USER_EMAILS;else process.env.ALLOWED_USER_EMAILS=previous;delete globalThis.__journeyTestDb;sqlite.close()}
 });
 

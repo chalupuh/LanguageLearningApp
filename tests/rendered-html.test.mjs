@@ -97,6 +97,18 @@ test("Paris progress uses bounded practice milestones, not a B2 proficiency scor
   assert.equal(practiceMilestone(6000).percent, 100);
   assert.equal(practiceMilestone(Infinity).total, 0);
   assert.match(source, /not a fluency estimate/);
+  assert.doesNotMatch(source, /B2 listening independence|What B2 listening would feel like/);
+  const renderSource=source.replace('import "./progress-journey.css";','').replace('import {rewards} from "../lib/journey";','const rewards=[{xp:100},{xp:5000}];');
+  const renderedJs=ts.transpileModule(renderSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}}).outputText.replaceAll('"react/jsx-runtime"',JSON.stringify(import.meta.resolve("react/jsx-runtime")));
+  const {default:ProgressJourney}=await import(`data:text/javascript;base64,${Buffer.from(renderedJs).toString("base64")}`);
+  const {createElement}=await import("react"),{renderToStaticMarkup}=await import("react-dom/server");
+  for(const language of ["fr","sv"]){
+    const html=renderToStaticMarkup(createElement(ProgressJourney,{language,xp:2500,completed:1,saved:1,days:1,speaking:1,onPractice:()=>{}}));
+    assert.match(html,/aria-valuenow="2500"/);assert.match(html,/--tower-fill:50%/);
+    assert.match(html,language==="sv"?/class="swedish-fish"/:/class="eiffel-tower"/);
+    assert.doesNotMatch(html,language==="sv"?/class="eiffel-tower"/:/class="swedish-fish"/);
+    assert.match(html,/French \+ Swedish XP/);
+  }
   assert.match(source, /🥐.*☕.*🧸/);
   assert.match(await readFile(new URL("app/progress-journey.css", root), "utf8"), /prefers-reduced-motion/);
 });
