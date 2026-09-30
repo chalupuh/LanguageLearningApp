@@ -8,7 +8,7 @@ type Saved = { source: string; state: Draft; revision: number; updatedAt: number
 const stages = ["First listen", "Decode", "Rehearse", "Retell"];
 const cacheKey = (user: string, source: string) => `a-loreille-draft:${user}:${source}`;
 
-export function useSessionDraft(source: string | null, state: Draft, restore: (draft: Draft | null) => void) {
+export function useSessionDraft(source: string | null, state: Draft, restore: (draft: Draft | null) => void, language:"fr"|"sv"="fr") {
   const [readySource, setReadySource] = useState<string | null>(null), [status, setStatus] = useState("Restoring your session…"), [reload, setReload] = useState(0);
   const [loadError, setLoadError] = useState("");
   const restoreRef = useRef(restore); restoreRef.current = restore;
@@ -22,7 +22,7 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
     const controller = new AbortController();
     const loadTimer = window.setTimeout(() => controller.abort(), 12000);
     setStatus("Restoring your session…");
-    fetch("/api/session-drafts?source=" + encodeURIComponent(source), { cache: "no-store", signal: controller.signal }).then(async r => {
+    fetch("/api/session-drafts?source=" + encodeURIComponent(source)+(language==="sv"?"&language=sv":""), { cache: "no-store", signal: controller.signal }).then(async r => {
       if (!r.ok) {
         const message = r.status === 401 || r.status === 403 ? "Your sign-in needs refreshing. Return to Today and reload the app." : "Saved-session storage is unavailable. Retry loading or return to Today. Your saved work has not been replaced.";
         throw Error(message);
@@ -52,7 +52,7 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
         entry.saving = true; entry.inFlight = snapshot; cache();
         try {
           const body = JSON.stringify({ source, state: entry.latest, revision: entry.revision });
-          const r = await fetch("/api/session-drafts", { method: "PUT", headers: { "Content-Type": "application/json" }, body, keepalive: new TextEncoder().encode(body).length < 60000 });
+          const r = await fetch("/api/session-drafts"+(language==="sv"?"?language=sv":""), { method: "PUT", headers: { "Content-Type": "application/json" }, body, keepalive: new TextEncoder().encode(body).length < 60000 });
           const result = await r.json();
           if (!r.ok) { entry.conflict = r.status === 409; throw Error(result.error || "Waiting to sync"); }
           entry.revision = result.revision; entry.sent = snapshot; entry.inFlight = ""; cache();
@@ -70,7 +70,7 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
     const timer = window.setInterval(flush, 3000);
     window.addEventListener("pagehide", flush); window.addEventListener("online", flush); document.addEventListener("visibilitychange", flush);
     return () => { cancelled = true; controller.abort(); window.clearTimeout(loadTimer); window.clearInterval(timer); window.removeEventListener("pagehide", flush); window.removeEventListener("online", flush); document.removeEventListener("visibilitychange", flush); const entry = current.current; if (entry?.source === source) { entry.closed = true; void entry.flush(); current.current = null; } };
-  }, [source, reload]);
+  }, [source, reload, language]);
   useEffect(() => {
     const entry = current.current;
     if (!source || readySource !== source || entry?.source !== source) return;
@@ -99,11 +99,11 @@ export function SessionRecoveryGate({ recovery, onLeave }: { recovery: ReturnTyp
   </section>;
 }
 
-export function ContinueSessions({ onContinue }: { onContinue: (source: string) => void }) {
+export function ContinueSessions({ onContinue, language="fr" }: { onContinue: (source: string) => void; language?:"fr"|"sv" }) {
   const [drafts, setDrafts] = useState<Saved[]>([]), [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    const load = () => fetch("/api/session-drafts", { cache: "no-store" }).then(async r => { if (!r.ok) throw Error(); return r.json(); }).then(data => { if (!active) return; const rows: Saved[] = data.drafts; try { const prefix = `a-loreille-draft:${data.userId}:`; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i)!; if (!key.startsWith(prefix)) continue; const source = key.slice(prefix.length), local = JSON.parse(localStorage.getItem(key)!); if (!validDraftSource(source) || !validDraft(local?.state)) continue; const index = rows.findIndex(r => r.source === source); if (local.revision === (rows[index]?.revision ?? 0)) { const row = { source, state: local.state, revision: local.revision, updatedAt: rows[index]?.updatedAt ?? Date.now() }; if (index < 0) rows.unshift(row); else rows[index] = row; } } } catch {} setDrafts(rows.filter(r => !r.state.done)); setError(""); }).catch(() => { if (active) setError("Saved sessions could not be loaded yet."); });
+    const load = () => fetch("/api/session-drafts"+(language==="sv"?"?language=sv":""), { cache: "no-store" }).then(async r => { if (!r.ok) throw Error(); return r.json(); }).then(data => { if (!active) return; const rows: Saved[] = data.drafts; try { const prefix = `a-loreille-draft:${data.userId}:`; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i)!; if (!key.startsWith(prefix)) continue; const source = key.slice(prefix.length), local = JSON.parse(localStorage.getItem(key)!); if (!validDraftSource(source) || !validDraft(local?.state)) continue; const index = rows.findIndex(r => r.source === source); if (local.revision === (rows[index]?.revision ?? 0)) { const row = { source, state: local.state, revision: local.revision, updatedAt: rows[index]?.updatedAt ?? Date.now() }; if (index < 0) rows.unshift(row); else rows[index] = row; } } } catch {} setDrafts(rows.filter(r => !r.state.done)); setError(""); }).catch(() => { if (active) setError("Saved sessions could not be loaded yet."); });
     void load(); const timer = window.setInterval(load, 5000); window.addEventListener("focus", load);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", load); };
   }, []);

@@ -24,11 +24,12 @@ test("draft API saves through real SQLite, enforces account ownership and reject
     }; return statement;
   } });
   try {
-    const auth = moduleUrl(await readFile(new URL("app/api/app-auth.ts", root), "utf8"));
+    const baseAuth = moduleUrl(await readFile(new URL("app/api/app-auth.ts", root), "utf8"));
+    const auth = moduleUrl((await readFile(new URL("app/api/learning-track.ts",root),"utf8")).replace('"./app-auth"',JSON.stringify(baseAuth)));
     const schema = moduleUrl((await readFile(new URL("db/schema.ts", root), "utf8")).replace('"drizzle-orm/sqlite-core"', JSON.stringify(import.meta.resolve("drizzle-orm/sqlite-core"))));
     const db = moduleUrl("export const getDb = () => globalThis.__sessionDraftDb");
     let source = await readFile(new URL("app/api/session-drafts/route.ts", root), "utf8");
-    for (const [specifier, url] of Object.entries({ "../app-auth": auth, "../../../lib/session-drafts": moduleUrl(validation), "../../../db": db, "../../../db/schema": schema, "drizzle-orm": import.meta.resolve("drizzle-orm") })) source = source.replaceAll(JSON.stringify(specifier), JSON.stringify(url));
+    for (const [specifier, url] of Object.entries({ "../learning-track": auth, "../../../lib/session-drafts": moduleUrl(validation), "../../../db": db, "../../../db/schema": schema, "drizzle-orm": import.meta.resolve("drizzle-orm") })) source = source.replaceAll(JSON.stringify(specifier), JSON.stringify(url));
     const { GET, PUT } = await import(moduleUrl(source));
     const request = (body, user = "nikki", origin = "https://app.test") => new Request("https://app.test/api/session-drafts", { method: body ? "PUT" : "GET", headers: { "oai-authenticated-user-id": user, "oai-authenticated-user-email": user + "@example.com", origin }, ...(body ? { body: JSON.stringify(body) } : {}) });
     assert.equal((await GET(new Request("https://app.test/api/session-drafts"))).status, 401);

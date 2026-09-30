@@ -1,11 +1,11 @@
-import { authorizeAppRequest } from "../app-auth";
+import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
 import { earnedXp, rewards } from "../../../lib/journey";
 import { passages } from "../../../content/passages";
 import { checkpoints } from "../../../content/checkpoints";
 import { releases, unseenReleases } from "../../../content/releases";
 const headers = { "Cache-Control": "private, no-store" };
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers });
-async function context(userId: string) {
+async function context(userId: string, accountUserId=userId) {
   const [{ getDb }, schema, ops] = await Promise.all([import("../../../db"), import("../../../db/schema"), import("drizzle-orm")]);
   const db = getDb();
   const [old] = await db.select().from(schema.learnerProgress).where(ops.eq(schema.learnerProgress.userId,userId));
@@ -13,16 +13,20 @@ async function context(userId: string) {
   await db.insert(schema.journeyProfiles).values({userId,historicalXp:Math.max(0,Number.isFinite(legacy.xp)?legacy.xp:0)}).onConflictDoNothing();
   const events = await db.select().from(schema.journeyEvents).where(ops.eq(schema.journeyEvents.userId,userId));
   const [profile] = await db.select().from(schema.journeyProfiles).where(ops.eq(schema.journeyProfiles.userId,userId));
-  return {db,schema,ops,events,profile,legacy};
+  await db.insert(schema.journeyProfiles).values({userId:accountUserId,historicalXp:0}).onConflictDoNothing();
+  const [appearance]=await db.select().from(schema.journeyProfiles).where(ops.eq(schema.journeyProfiles.userId,accountUserId));
+  const combined=await db.select().from(schema.journeyEvents).where(ops.or(ops.eq(schema.journeyEvents.userId,accountUserId),ops.eq(schema.journeyEvents.userId,`track:sv:${accountUserId}`)));
+  const collectionXp=earnedXp(combined);
+  return {db,schema,ops,events,profile:{...profile,avatar:appearance.avatar,frame:appearance.frame,background:appearance.background},legacy,collectionXp};
 }
 export async function GET(request: Request) {
   const auth = authorizeAppRequest(request); if (!auth.identity) return reply({error:"Sign in to see your journey."},auth.status);
   try {
-    const {events,profile,legacy} = await context(auth.identity.userId);
+    const {events,profile,legacy,collectionXp} = await context(auth.identity.userId,auth.accountUserId);
     const used = new Set(events.filter(e=>e.kind==="checkpoint").map(e=>e.source));
-    const next = checkpoints.find(c=>!used.has(c.id));
+    const next = auth.language==="sv"?undefined:checkpoints.find(c=>!used.has(c.id));
     const last = Math.max(0,...events.filter(e=>e.kind==="checkpoint").map(e=>e.createdAt));
-    return reply({...profile,userId:undefined,releases:unseenReleases(events,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
+    return reply({...profile,collectionXp,userId:undefined,releases:unseenReleases(events,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
   } catch { return reply({error:"Your journey could not be loaded. Please retry."},503); }
 }
 export async function POST(request: Request) {
@@ -31,12 +35,12 @@ export async function POST(request: Request) {
   const body = await request.json().catch(()=>null);
   if (!body || typeof body.kind!=="string" || typeof body.source!=="string" || !body.source || body.source.length>240) return reply({error:"Invalid activity."},400);
   try {
-    const userId=auth.identity.userId, c=await context(userId), now=Date.now(), day=new Date(now).toISOString().slice(0,10);
+    const userId=auth.identity.userId, c=await context(userId,auth.accountUserId), now=Date.now(), day=new Date(now).toISOString().slice(0,10);
     let kind=body.kind, xp=0, id="", data:Record<string,unknown>={};
     const confirmUsage=async()=>{
       if(typeof body.usageSessionId!=="string"||!/^[-\w]{36}$/.test(body.usageSessionId))return;
       // Analytics must not prevent saving the learning loop if its storage is unavailable.
-      try{await c.db.insert(c.schema.usageSessions).values({userId,id:body.usageSessionId,email:auth.identity!.email,source:body.source,startedAt:now,lastActiveAt:now,stage:3,completedAt:now}).onConflictDoUpdate({target:[c.schema.usageSessions.userId,c.schema.usageSessions.id],set:{completedAt:now,lastActiveAt:now,stage:3},setWhere:c.ops.and(c.ops.eq(c.schema.usageSessions.source,body.source),c.ops.isNull(c.schema.usageSessions.completedAt))})}catch{}
+      try{await c.db.insert(c.schema.usageSessions).values({userId:auth.accountUserId!,id:body.usageSessionId,email:auth.identity!.email,source:body.source,startedAt:now,lastActiveAt:now,stage:3,completedAt:now}).onConflictDoUpdate({target:[c.schema.usageSessions.userId,c.schema.usageSessions.id],set:{completedAt:now,lastActiveAt:now,stage:3},setWhere:c.ops.and(c.ops.eq(c.schema.usageSessions.source,body.source),c.ops.isNull(c.schema.usageSessions.completedAt))})}catch{}
     };
     if(kind==="release-seen"){
       const index=releases.findIndex(r=>r.id===body.source);
@@ -48,8 +52,8 @@ export async function POST(request: Request) {
       const category=body.category;
       if (!["avatar","background","frame"].includes(category)) return reply({error:"Unknown cosmetic type."},400);
       const reward=rewards.find(r=>r.id===body.source&&r.kind===category);
-      if (body.source!=="default" && (!reward || earnedXp(c.events)<reward.xp)) return reply({error:"This item has not been unlocked yet."},403);
-      await c.db.update(c.schema.journeyProfiles).set({[category]:body.source}).where(c.ops.eq(c.schema.journeyProfiles.userId,userId));
+      if (body.source!=="default" && (!reward || c.collectionXp<reward.xp)) return reply({error:"This item has not been unlocked yet."},403);
+      await c.db.update(c.schema.journeyProfiles).set({[category]:body.source}).where(c.ops.eq(c.schema.journeyProfiles.userId,auth.accountUserId!));
       return reply({saved:true});
     }
     if (body.kind==="goal") {
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
       await c.db.update(c.schema.journeyProfiles).set({weeklyGoal:body.goal}).where(c.ops.eq(c.schema.journeyProfiles.userId,userId));
       return reply({saved:true});
     }
-    const passage=passages.find(p=>"library:"+p.id===body.source);
+    const passage=passages.find(p=>"library:"+p.id===body.source&&(p.language||"fr")===auth.language);
     const studio=/^studio:[\w-]{11}:\d+:\d+$/.test(body.source);
     if (kind==="loop" || kind==="review") {
       // Accept earlier clients/drafts during rollout; new sessions use rehearsed.
@@ -87,7 +91,7 @@ export async function POST(request: Request) {
       const familiar=c.events.some(e=>e.source===body.source&&(e.kind==="observation"||e.kind==="loop"||e.kind==="review"))||(passage&&c.legacy.completed?.includes(passage.id));
       id="observation:"+body.source+":"+day; data={score:body.score,condition:familiar?"familiar":body.condition,level:passage?.level||"Uncalibrated Studio",topic:passage?.topic||"Personal video",day};
     } else if (kind==="checkpoint") {
-      const check=checkpoints.find(c=>c.id===body.source);
+      const check=auth.language==="sv"?undefined:checkpoints.find(c=>c.id===body.source);
       if (!check||!Array.isArray(body.answers)||body.answers.length!==check.questions.length||body.answers.some((a:unknown)=>!Number.isInteger(a)||Number(a)<0||Number(a)>2)||!Number.isInteger(body.listens)||body.listens<1||body.listens>100) return reply({error:"Listen and answer all checkpoint questions."},400);
       const previous=c.events.find(e=>e.kind==="checkpoint"&&e.source===check.id);
       if(previous)return reply({awarded:0,result:JSON.parse(previous.details),message:"Already recorded — no duplicate XP."});

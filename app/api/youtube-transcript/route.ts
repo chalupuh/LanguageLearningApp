@@ -43,7 +43,7 @@ function makeTranscript(cues: CaptionCue[]) {
 }
 
 export async function POST(request: Request) {
-  const { videoId } = await request.json().catch(() => ({ videoId: "" }));
+  const { videoId, language } = await request.json().catch(() => ({ videoId: "" }));
   if (!VIDEO_ID.test(videoId)) return Response.json({ error: "Invalid YouTube video." }, { status: 400 });
   try {
     const watch = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { signal: AbortSignal.timeout(10000), headers: { "User-Agent": "Mozilla/5.0 (compatible; ALOreille/1.0)" } });
@@ -51,9 +51,9 @@ export async function POST(request: Request) {
     const player = parsePlayerResponse(await watch.text(), videoId);
     const durationSeconds = Number(player?.videoDetails?.lengthSeconds ?? 0) || null;
     const tracks: CaptionTrack[] = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
-    const frenchTracks = tracks.filter(track => track.languageCode?.toLowerCase().startsWith("fr"));
+    const frenchTracks = tracks.filter(track => track.languageCode?.toLowerCase().startsWith(language==="sv"?"sv":"fr"));
     const track = frenchTracks.sort((a, b) => Number(a.kind === "asr") - Number(b.kind === "asr"))[0];
-    if (!track?.baseUrl) return Response.json({ transcript: null, durationSeconds, reason: tracks.length ? "This video has captions, but no French caption track." : "This video does not expose captions.", availableLanguages: [...new Set(tracks.map(item => item.languageCode).filter(Boolean))] });
+    if (!track?.baseUrl) return Response.json({ transcript: null, durationSeconds, reason: tracks.length ? `This video has captions, but no ${language==="sv"?"Swedish":"French"} caption track.` : "This video does not expose captions.", availableLanguages: [...new Set(tracks.map(item => item.languageCode).filter(Boolean))] });
     const captions = await fetch(`${track.baseUrl}${track.baseUrl.includes("?") ? "&" : "?"}fmt=json3`, { signal: AbortSignal.timeout(10000) });
     if (!captions.ok) throw new Error();
     const data = await captions.json();
@@ -62,6 +62,6 @@ export async function POST(request: Request) {
     const trackName = track.name?.simpleText ?? track.name?.runs?.map(run => run.text ?? "").join("") ?? track.languageCode;
     return Response.json({ transcript: transcript || null, cues, durationSeconds, language: track.languageCode, source: track.kind === "asr" ? "automatic" : "manual", trackName });
   } catch {
-    return Response.json({ transcript: null, reason: "Captions could not be retrieved. Paste the French transcript to continue." });
+    return Response.json({ transcript: null, reason: "Captions could not be retrieved. Paste a transcript in your learning language to continue." });
   }
 }

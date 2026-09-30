@@ -33,7 +33,7 @@ export function achievements(events: Activity[]) {
   ];
 }
 export function listeningSummary(events: Activity[]){
-  const checks=events.filter(e=>e.kind==="checkpoint");
+  const checks=events.filter(e=>(e.kind==="checkpoint"||e.kind==="announcement"));
   const skills=new Map<string,{correct:number;total:number}>();
   checks.forEach(e=>(details(e).skills||[]).forEach((s:{skill:string;correct:boolean})=>{const old=skills.get(s.skill)||{correct:0,total:0};skills.set(s.skill,{correct:old.correct+Number(s.correct),total:old.total+1})}));
   const groups=new Map<string,Activity[]>();

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { learnerProgress } from "../../../db/schema";
-import { authorizeAppRequest } from "../app-auth";
+import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
 
 export async function GET(request: Request) {
   const auth = authorizeAppRequest(request);
@@ -9,7 +9,13 @@ export async function GET(request: Request) {
   if (!user) return Response.json({ error: auth.status === 403 ? "This account is not invited." : "Sign in to sync progress." }, { status: auth.status });
   try {
     const [record] = await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId, user.userId)).limit(1);
-    return Response.json({ state: record ? JSON.parse(record.state) : null, userId:user.userId, syncedAt: record?.updatedAt ?? null }, {headers:{"Cache-Control":"private, no-store"}});
+    let state=record?JSON.parse(record.state):null;
+    if(auth.language==="sv"){
+      const [base]=await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId,auth.accountUserId!)).limit(1);
+      const theme=base?JSON.parse(base.state).holidayTheme:undefined;
+      if(theme)state={...(state||{}),holidayTheme:theme};
+    }
+    return Response.json({ state, userId:user.userId, syncedAt: record?.updatedAt ?? null }, {headers:{"Cache-Control":"private, no-store"}});
   } catch {
     return Response.json({ state: null, syncUnavailable: true }, {status:503,headers:{"Cache-Control":"private, no-store"}});
   }
@@ -19,6 +25,7 @@ export async function PUT(request: Request) {
   const auth = authorizeAppRequest(request);
   const user = auth.identity;
   if (!user) return Response.json({ error: auth.status === 403 ? "This account is not invited." : "Sign in to sync progress." }, { status: auth.status });
+  if(request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return Response.json({error:"Invalid origin."},{status:403});
   const state = await request.json().catch(() => null);
   if (!state || typeof state !== "object") return Response.json({ error: "Invalid progress data." }, { status: 400 });
   const serialized = JSON.stringify(state);
@@ -27,6 +34,10 @@ export async function PUT(request: Request) {
     const updatedAt = Date.now();
     await getDb().insert(learnerProgress).values({ userId: user.userId, email: user.email, state: serialized, updatedAt })
       .onConflictDoUpdate({ target: learnerProgress.userId, set: { email: user.email, state: serialized, updatedAt } });
+    if(auth.language==="sv"&&["auto","classic","autumn","halloween","winter","valentine","spring","summer"].includes(state.holidayTheme)){
+      // Update only the shared appearance preference, never the French lessons.
+      await getDb().insert(learnerProgress).values({userId:auth.accountUserId!,email:user.email,state:JSON.stringify({holidayTheme:state.holidayTheme}),updatedAt}).onConflictDoUpdate({target:learnerProgress.userId,set:{state:sql`json_set(${learnerProgress.state}, '$.holidayTheme', ${state.holidayTheme})`,updatedAt}});
+    }
     return Response.json({ syncedAt: updatedAt });
   } catch {
     return Response.json({ savedLocally: true, syncUnavailable: true }, { status: 202 });

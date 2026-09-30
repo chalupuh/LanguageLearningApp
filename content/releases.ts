@@ -18,6 +18,12 @@ export const releases = [
   {mark:"01",title:"Keep the surrounding sentence",body:"Highlights from lessons and Studio now remember the sentence they came from."},
   {mark:"02",title:"Hear it in context",body:"Reveal a saved phrase to replay its sentence and return to its lesson or video."},
  ]},
+ {id:"2026-09-30-two-languages",date:"September 30, 2026",title:"New stories, poetry, and a Swedish beginning",summary:"More to hear, with the same four-step learning loop.",items:[
+  {mark:"01",title:"French for real situations",body:"Twelve new café, breakfast, and dinner exchanges cover substitutions, changing tables, and payment surprises."},
+  {mark:"02",title:"Poetry and announcements",body:"Explore six classic poems, save their vocabulary, and try twelve everyday announcement checks in Library → Category."},
+  {mark:"03",title:"Find your next lesson",body:"Filter by category and completion status, or sort by newest, difficulty, and title."},
+  {mark:"04",title:"Switch to Swedish A1",body:"Open your profile to choose Swedish: twelve beginner lessons and three announcements, with separate progress and shared appearance."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

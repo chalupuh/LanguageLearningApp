@@ -2,12 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import "./feedback.css";
 type Update = { noteId: string; noteText: string; handled: boolean; message: string; updatedAt: number; seenAt: number | null };
-export default function RequestUpdates({ onUpdates }: { onUpdates?: (updates: Update[]) => void }) {
+export default function RequestUpdates({ onUpdates,language="fr" }: { language?:"fr"|"sv";onUpdates?: (updates: Update[]) => void }) {
   const callback = useRef(onUpdates); callback.current = onUpdates;
   const [updates, setUpdates] = useState<Update[]>([]), [error, setError] = useState(""), [pending, setPending] = useState("");
   useEffect(() => {
     let active = true;
-    const load = () => fetch("/api/feedback-updates", { cache: "no-store" }).then(async response => { if (!response.ok) throw new Error(); return response.json(); }).then(data => { if (active) { setUpdates(data.updates || []); setError(""); } }).catch(() => { if (active) setError("Request updates could not be loaded. They’ll be checked again when you return to the app."); });
+    const load = () => fetch("/api/feedback-updates"+(language==="sv"?"?language=sv":""), { cache: "no-store" }).then(async response => { if (!response.ok) throw new Error(); return response.json(); }).then(data => { if (active) { setUpdates(data.updates || []); setError(""); } }).catch(() => { if (active) setError("Request updates could not be loaded. They’ll be checked again when you return to the app."); });
     void load();
     const focus = () => { void load(); };
     window.addEventListener("focus", focus);
@@ -17,7 +17,7 @@ export default function RequestUpdates({ onUpdates }: { onUpdates?: (updates: Up
   const acknowledge = async (update: Update) => {
     setPending(update.noteId);
     try {
-      const response = await fetch("/api/feedback-updates", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ noteId: update.noteId, updatedAt: update.updatedAt }) });
+      const response = await fetch("/api/feedback-updates"+(language==="sv"?"?language=sv":""), { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ noteId: update.noteId, updatedAt: update.updatedAt }) });
       if (!response.ok) throw new Error();
       setUpdates(items => items.map(item => item.noteId === update.noteId && item.updatedAt === update.updatedAt ? { ...item, seenAt: Date.now() } : item)); setError("");
     } catch { setError("Could not save your acknowledgement. Please try again."); }

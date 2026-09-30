@@ -6,6 +6,49 @@ import ts from "typescript";
 import {drizzle} from "drizzle-orm/d1";
 const root=new URL("../",import.meta.url);
 
+test("new library content, filters and recorded audio are complete",async()=>{
+ const {passages}=await import(await moduleUrl("content/passages.ts"));
+ const {selectLessons,lessonStatus}=await import(await moduleUrl("lib/library.ts"));
+ const french=passages.filter(p=>(p.language||"fr")==="fr"),swedish=passages.filter(p=>p.language==="sv");
+ assert.equal(new Set(passages.map(p=>p.id)).size,passages.length);
+ assert.equal(swedish.length,12);assert.ok(swedish.every(p=>p.level==="A1"));
+ assert.equal(french.filter(p=>p.category==="poetry").length,6);
+ const options={category:"poetry",status:"all",sort:"title",completed:[],started:[],reviews:{}};
+ assert.equal(selectLessons(french,options).length,6);
+ assert.equal(selectLessons(french,{...options,status:"completed",completed:["poeme-demain"]})[0].id,"poeme-demain");
+ assert.equal(lessonStatus("cafe",["cafe"],["cafe"]),"completed");
+ assert.equal(lessonStatus("cafe",[],["cafe"]),"in-progress");
+ for(const p of passages.filter(p=>p.releasedAt==="2026-09-30")){
+  assert.ok(p.text.length>40);assert.ok(p.phrase);assert.ok(p.audioFile);
+  assert.ok((await readFile(new URL("public"+p.audioFile,root))).length>1000,p.id);
+ }
+});
+
+test("language progress is isolated, appearance shared, and announcement XP is idempotent",async()=>{
+ const sqlite=new DatabaseSync(":memory:");
+ for(const migration of ["0000_greedy_darkstar.sql","0001_secret_human_cannonball.sql","0002_smart_marrow.sql"])sqlite.exec(await readFile(new URL("drizzle/"+migration,root),"utf8"));
+ globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
+ const previous=process.env.ALLOWED_USER_EMAILS;process.env.ALLOWED_USER_EMAILS="nikki@example.com";
+ const req=(path,method="GET",body)=>new Request("https://example.com/api/"+path,{method,headers:{"oai-authenticated-user-id":"nikki","oai-authenticated-user-email":"nikki@example.com",origin:"https://example.com","Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+ try{
+  const progress=await import(await moduleUrl("app/api/progress/route.ts")),ann=await import(await moduleUrl("app/api/announcements/route.ts"));
+  assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe"],holidayTheme:"classic"}))).status,200);
+  assert.equal((await progress.PUT(req("progress?language=sv","PUT",{completed:["sv-hej"],holidayTheme:"winter"}))).status,200);
+  const fr=await(await progress.GET(req("progress"))).json(),sv=await(await progress.GET(req("progress?language=sv"))).json();
+  assert.deepEqual(fr.state.completed,["cafe"]);assert.deepEqual(sv.state.completed,["sv-hej"]);assert.equal(fr.state.holidayTheme,"winter");
+  assert.equal((await ann.GET(new Request("https://example.com/api/announcements"))).status,401);
+  const catalog=await(await ann.GET(req("announcements"))).json();assert.equal(catalog.items.length,12);assert.ok(catalog.items.every(a=>a.questions.every(q=>!("answer"in q))));
+  assert.equal((await(await ann.GET(req("announcements?language=sv"))).json()).items.length,3);
+  const body={id:"mall-closing",answers:[1,0,2],listens:1};
+  assert.equal((await(await ann.POST(req("announcements","POST",body))).json()).awarded,25);
+  assert.equal((await(await ann.POST(req("announcements","POST",{...body,answers:[0,0,0],listens:2}))).json()).awarded,0);
+  assert.equal((await ann.POST(req("announcements?language=sv","POST",body))).status,400);
+  const event=sqlite.prepare("select details from journey_events where user_id='nikki' and kind='announcement'").get();
+  assert.equal(JSON.parse(event.details).score,100);assert.equal(JSON.parse(event.details).condition,"first");
+  assert.deepEqual((await(await ann.GET(req("announcements?language=sv"))).json()).completed,[]);
+ }finally{if(previous===undefined)delete process.env.ALLOWED_USER_EMAILS;else process.env.ALLOWED_USER_EMAILS=previous;delete globalThis.__journeyTestDb;sqlite.close()}
+});
+
 test("usage timing excludes idle, hidden, unfocused and suspended tabs; overlaps count once",async()=>{
  const {activeSlice,unionMs,summarizeUsage,usageDay,weekStartDay}=await import(await moduleUrl("lib/usage.ts"));
  assert.equal(activeSlice(1000,6000,1000,true,true,false),5000);
@@ -122,9 +165,11 @@ async function moduleUrl(path){
  if(moduleUrls.has(path))return moduleUrls.get(path);
  let source=await readFile(new URL(path,root),"utf8");
  const replacements={
+  "./service-passages.ts":"content/service-passages.ts", "./poetry-passages.ts":"content/poetry-passages.ts", "./swedish-passages.ts":"content/swedish-passages.ts", "../learning-track":"app/api/learning-track.ts", "./app-auth":"app/api/app-auth.ts",
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
   "../../../content/releases":"content/releases.ts",
+  "../../../content/announcements":"content/announcements.ts",
   "../../../db/schema":"db/schema.ts",
  };
  for(const [specifier,target]of Object.entries(replacements))if(source.includes('"'+specifier+'"'))source=source.replaceAll('"'+specifier+'"',JSON.stringify(await moduleUrl(target)));
@@ -158,10 +203,10 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.releases.length,4);
+  assert.equal(state.releases.length,5);
   assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
-  assert.equal((await post({kind:"release-seen",source:"2026-09-26-phrase-context"})).status,200);
-  assert.equal((await post({kind:"release-seen",source:"2026-09-26-phrase-context"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-09-30-two-languages"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-09-30-two-languages"})).status,200);
   state=await (await GET(request())).json();
   assert.equal(state.releases.length,0);
   assert.equal(state.historicalXp,825);assert.equal(state.events.filter(e=>e.xp>0).length,0);
@@ -229,9 +274,9 @@ test("listening comparisons separate conditions and require evidence",async()=>{
 });
 test("release history shows only unseen updates and tolerates unknown legacy IDs",async()=>{
  const {releases,unseenReleases}=await import(await moduleUrl("content/releases.ts"));
- assert.equal(unseenReleases([]).length,4);
+ assert.equal(unseenReleases([]).length,5);
  assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),releases.slice(1).map(r=>r.id));
- assert.equal(unseenReleases([],"unrecognized-old-version").length,4);
+ assert.equal(unseenReleases([],"unrecognized-old-version").length,5);
  assert.equal(unseenReleases(releases.map(r=>({kind:"release-seen",source:r.id}))).length,0);
 });
 test("loop drafts and review saves remain independent",async()=>{

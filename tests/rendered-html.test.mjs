@@ -140,7 +140,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Reveal full transcript/);
   const rehearsal = await readFile(new URL("app/rehearse.tsx", root), "utf8");
   assert.match(rehearsal, /it is not a pronunciation score/);
-  assert.match(page, /Bring your own French/);
+  assert.match(page, /Bring your own \{languageName\(language\)\}/);
   assert.match(page, /Today’s review/);
   assert.match(page, /Your earprint/);
   assert.match(page, /Again.*Hard.*Good.*Easy/s);
@@ -187,7 +187,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(feedback, /word_accuracy/);
   assert.match(feedback, /liaison_practice/);
   assert.match(feedback, /replay_drill/);
-  assert.match(rehearsal, /lang="fr">\{phrase\}/);
+  assert.match(rehearsal, /lang=\{language\}>\{phrase\}/);
   assert.match(page, /measureSpeechTiming/);
   assert.match(page, /Liaison to practise/);
   assert.match(page, /function NewUpdates/);

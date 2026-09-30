@@ -1,3 +1,6 @@
+import { servicePassages } from "./service-passages.ts";
+import { poetryPassages } from "./poetry-passages.ts";
+import { swedishPassages } from "./swedish-passages.ts";
 export type Speaker = {
   name: string;
   age: number;
@@ -8,7 +11,8 @@ export type Speaker = {
 
 export type Passage = {
   id: string;
-  level: "B1" | "B1+" | "B2" | "B2+";
+  level: "A1" | "B1" | "B1+" | "B2" | "B2+";
+  language?: "fr" | "sv";
   title: string;
   topic: string;
   xp: number;
@@ -21,6 +25,10 @@ export type Passage = {
   audioFile?: string;
   challenges: string[];
   comprehensionPoints: string[];
+  category?: "everyday" | "poetry";
+  releasedAt?: string;
+  dialogue?: { role: string; text: string; voice: string }[];
+  poem?: { author:string; year:number; source:string; notes:string; vocabulary:{word:string;meaning:string}[] };
 };
 
 const lea: Speaker = { name: "Léa", age: 29, location: "Paris", voice: "marin", initials: "L" };
@@ -29,6 +37,9 @@ const ines: Speaker = { name: "Inès", age: 26, location: "Lille", voice: "coral
 const malik: Speaker = { name: "Malik", age: 38, location: "Nantes", voice: "onyx", initials: "M" };
 
 export const passages: Passage[] = [
+  ...servicePassages,
+  ...poetryPassages,
+  ...swedishPassages,
   {
     id: "cafe", level: "B1", title: "Un café à emporter", topic: "Daily life", xp: 30, speaker: lea,
     audioFile: "/audio/passages/cafe.mp3",

@@ -1,4 +1,4 @@
-import { authorizeAppRequest } from "../app-auth";
+import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
 import { validDraft, validDraftSource } from "../../../lib/session-drafts";
 const headers = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request) {
