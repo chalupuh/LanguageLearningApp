@@ -24,6 +24,12 @@ export const releases = [
   {mark:"03",title:"Find your next lesson",body:"Filter by category and completion status, or sort by newest, difficulty, and title."},
   {mark:"04",title:"Switch to Swedish A1",body:"Open your profile to choose Swedish: twelve beginner lessons and three announcements, with separate progress and shared appearance."},
  ]},
+ {id:"2026-10-01-swedish-lab",date:"October 1, 2026",title:"Your Swedish beginning has room to grow",summary:"A new A1 Lab turns short beginner practice into things you can say, hear, build, and use.",items:[
+  {mark:"01",title:"A clear foundations path",body:"Seven can-do stages connect every Swedish lesson, with a one-minute Swedish activity waiting each day."},
+  {mark:"02",title:"Build words into Swedish",body:"Practise verb-second sentence order and collect en/ett nouns with their definite and plural forms."},
+  {mark:"03",title:"Hear the details",body:"Compare Swedish sounds, reveal transcripts in steps, and use dictation that treats missing Å, Ä, or Ö differently from a listening mistake."},
+  {mark:"04",title:"Try a real-life mission",body:"Order a fika, find the station, pay at a shop, or ask someone to repeat—one useful choice at a time."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
