@@ -9,7 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/journey.test.mjs tests/session-recovery.test.mjs tests/rehearsal.test.mjs tests/phrase-context.test.mjs",
+    "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/journey.test.mjs tests/session-recovery.test.mjs tests/rehearsal.test.mjs tests/phrase-context.test.mjs tests/swedish-lab.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "audio:generate": "node --experimental-strip-types scripts/generate-passage-audio.mjs",
     "db:generate": "drizzle-kit generate"

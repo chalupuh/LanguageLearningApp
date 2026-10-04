@@ -276,7 +276,7 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.releases.length,6);
+  assert.equal(state.releases.length,7);
   assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
   assert.equal((await post({kind:"release-seen",source:"2026-10-03-practice-that-fits"})).status,200);
   assert.equal((await post({kind:"release-seen",source:"2026-10-03-practice-that-fits"})).status,200);
@@ -347,9 +347,9 @@ test("listening comparisons separate conditions and require evidence",async()=>{
 });
 test("release history shows only unseen updates and tolerates unknown legacy IDs",async()=>{
  const {releases,unseenReleases}=await import(await moduleUrl("content/releases.ts"));
- assert.equal(unseenReleases([]).length,6);
+ assert.equal(unseenReleases([]).length,7);
  assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),releases.slice(1).map(r=>r.id));
- assert.equal(unseenReleases([],"unrecognized-old-version").length,6);
+ assert.equal(unseenReleases([],"unrecognized-old-version").length,7);
  assert.equal(unseenReleases(releases.map(r=>({kind:"release-seen",source:r.id}))).length,0);
 });
 test("loop drafts and review saves remain independent",async()=>{
