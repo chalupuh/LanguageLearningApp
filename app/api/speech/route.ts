@@ -13,8 +13,9 @@ async function speechCacheKey(request: Request, text: string, voice: string, lan
 }
 
 export async function POST(request: Request) {
-  const denied = guardAiRequest(request);
+  const denied = await guardAiRequest(request);
   if (denied) return denied;
+  try {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI voice is not configured." }, { status: 503 });
   const { text, voice: requestedVoice, language: requestedLanguage } = await request.json() as { text?: string; voice?: string; language?: string };
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     headers.set("X-Voice-Cache", "HIT");
     return new Response(cached.body, { status: cached.status, headers });
   }
-  const response = await fetch("https://api.openai.com/v1/audio/speech", {
+  const response = await fetchAi("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ model: "gpt-4o-mini-tts", voice, input: normalizedText, instructions: `Speak natural contemporary ${language} with a native ${language} accent. ${language==="Swedish"?"Clear, unhurried A1 beginner-friendly pacing, without unnatural syllable breaks.":"Warm, realistic conversational pacing."} No English accent or theatrical delivery.`, response_format: "mp3" }),
@@ -46,5 +47,6 @@ export async function POST(request: Request) {
   });
   if (edgeCache) await edgeCache.put(cacheKey, generated.clone()).catch(() => undefined);
   return generated;
+  } catch { return Response.json({error:"Audio could not be prepared. Please retry."},{status:502}); }
 }
-import { guardAiRequest } from "../ai-guard";
+import { guardAiRequest, fetchAi } from "../ai-guard";

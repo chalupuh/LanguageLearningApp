@@ -1,8 +1,9 @@
-import { guardAiRequest } from "../ai-guard";
+import { guardAiRequest, fetchAi } from "../ai-guard";
 
 export async function POST(request: Request) {
-  const denied = guardAiRequest(request);
+  const denied = await guardAiRequest(request);
   if (denied) return denied;
+  try {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI coaching is not configured." }, { status: 503 });
 
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "A short summary and passage are required." }, { status: 400 });
   }
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetchAi("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -38,4 +39,5 @@ export async function POST(request: Request) {
   const output = result.output?.flatMap(item => item.content || []).find(item => item.type === "output_text")?.text;
   if (!output) return Response.json({ error: "Comprehension feedback was empty." }, { status: 502 });
   return Response.json(JSON.parse(output));
+  } catch { return Response.json({error:"Coaching could not finish. Your summary is kept; please retry."},{status:502}); }
 }

@@ -1,5 +1,5 @@
 type Question={skill:string;prompt:string;options:string[];answer:number};
-export type Announcement={id:string;title:string;level:string;text:string;questions:Question[];language?:"fr"|"sv"};
+export type Announcement={id:string;title:string;level:string;text:string;questions:Question[];language?:"fr"|"sv";category?:"situations"};
 const q=(skill:string,prompt:string,options:string[],answer:number):Question=>({skill,prompt,options,answer});
 export const announcements:Announcement[]=[
  {id:"sv-butik",language:"sv",title:"The shop is closing",level:"A1",text:"Butiken stänger om fem minuter. Gå till kassan, tack. Utgången är till höger.",questions:[q("Details","When does the shop close?",["In five minutes","In fifteen minutes","At five"],0),q("Action","Where should you go?",["Home immediately","To the checkout","To the café"],1),q("Details","Where is the exit?",["Upstairs","Left","Right"],2)]},

@@ -6,6 +6,71 @@ import ts from "typescript";
 import {drizzle} from "drizzle-orm/d1";
 const root=new URL("../",import.meta.url);
 
+test("progress merges preserve independent edits, intentional removals and cumulative reflections",async()=>{
+ const {mergeProgress}=await import(await moduleUrl("lib/progress-sync.ts"));
+ const base={completed:["cafe"],savedPhrases:["bonjour"],reviews:{cafe:"old"},listeningPatterns:{Numbers:1}};
+ const local={...base,completed:["cafe","train"],savedPhrases:[],listeningPatterns:{Numbers:2}};
+ const remote={...base,completed:["cafe","marche"],savedPhrases:["bonjour","merci"],reviews:{cafe:"new"},listeningPatterns:{Numbers:3}};
+ const merged=mergeProgress(base,local,remote);
+ assert.deepEqual(new Set(merged.completed),new Set(["cafe","train","marche"]));assert.deepEqual(merged.savedPhrases,["merci"]);
+ assert.equal(merged.reviews.cafe,"new");assert.equal(merged.listeningPatterns.Numbers,4);
+ assert.deepEqual(mergeProgress(base,base,remote),remote);
+});
+
+test("new persistent APIs protect revisions, quotas, request ownership, release acknowledgements and retry history",async()=>{
+ const sqlite=new DatabaseSync(":memory:");const {readdir}=await import("node:fs/promises");
+ for(const name of (await readdir(new URL("drizzle/",root))).filter(n=>n.endsWith(".sql")).sort())sqlite.exec(await readFile(new URL("drizzle/"+name,root),"utf8"));
+ globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
+ const oldAllowed=process.env.ALLOWED_USER_EMAILS,oldOwner=process.env.OWNER_EMAIL;process.env.ALLOWED_USER_EMAILS="nikki@example.com,owner@example.com";process.env.OWNER_EMAIL="owner@example.com";
+ const req=(path,method="GET",body,user="nikki",revision)=>new Request("https://example.com/api/"+path,{method,headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin:"https://example.com","Content-Type":"application/json",...(revision!==undefined?{"If-Match":String(revision)}:{})},...(body?{body:JSON.stringify(body)}:{})});
+ try{
+  const progress=await import(await moduleUrl("app/api/progress/route.ts"));
+  assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe"]}))).status,428);
+  const saved=await progress.PUT(req("progress","PUT",{completed:["cafe"]},"nikki",0));assert.equal(saved.status,200);const rev=(await saved.json()).syncedAt;
+  assert.equal((await progress.PUT(req("progress","PUT",{completed:[]},"nikki",0))).status,409);
+  assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe","train"]},"nikki",rev))).status,200);
+  assert.equal((await progress.PUT(req("progress","PUT",{completed:[]},"nikki",rev))).status,409);
+  assert.deepEqual((await(await progress.GET(req("progress"))).json()).state.completed,["cafe","train"]);
+  const guard=await import(await moduleUrl("app/api/ai-guard.ts"));
+  for(let i=0;i<60;i++)assert.equal(await guard.guardAiRequest(req("speech","POST",{})),null);
+  assert.equal((await guard.guardAiRequest(req("speech?language=sv","POST",{}))).status,429);
+  assert.equal(await guard.guardAiRequest(req("speech","POST",{},"owner")),null);
+  const requests=await import(await moduleUrl("app/api/requests/route.ts"));
+  const note={id:"request-test-000000001",text:"More café surprises",kind:"idea",language:"both"};
+  assert.equal((await requests.POST(req("requests","POST",note))).status,200);
+  assert.equal((await requests.POST(req("requests","POST",note))).status,200);
+  assert.equal((await(await requests.GET(req("requests?language=sv"))).json()).requests.length,1);
+  assert.equal((await requests.GET(req("requests?owner=1"))).status,403);
+  const update={id:note.id,userId:"nikki",status:"planned",message:"Next up"};
+  assert.equal((await requests.PATCH(req("requests","PATCH",update))).status,403);
+  assert.equal((await requests.PATCH(req("requests","PATCH",update,"owner"))).status,200);
+  const releaseId="2026-09-30-two-languages";
+  assert.equal((await requests.PATCH(req("requests","PATCH",{...update,status:"shipped",releaseId,message:"Ready in Library"},"owner"))).status,200);
+  const updates=await import(await moduleUrl("app/api/feedback-updates/route.ts"));
+  const notice=(await(await updates.GET(req("feedback-updates?language=sv"))).json()).updates[0];assert.equal(notice.handled,true);
+  await updates.PATCH(req("feedback-updates?language=sv","PATCH",{noteId:notice.noteId,updatedAt:notice.updatedAt}));
+  assert.ok((await(await updates.GET(req("feedback-updates"))).json()).updates[0].seenAt);
+  const journey=await import(await moduleUrl("app/api/journey/route.ts"));
+  await journey.POST(req("journey?language=sv","POST",{kind:"release-seen",source:releaseId}));
+  assert.ok(!(await(await journey.GET(req("journey"))).json()).releases.some(r=>r.id===releaseId));
+  const ann=await import(await moduleUrl("app/api/announcements/route.ts"));
+  const answer={id:"mall-closing",answers:[1,0,2],listens:1,attemptId:"attempt-00000000001"};
+  assert.equal((await(await ann.POST(req("announcements","POST",answer))).json()).awarded,25);
+  assert.equal((await(await ann.POST(req("announcements","POST",answer))).json()).awarded,0);
+  await ann.POST(req("announcements","POST",{...answer,listens:2,answers:[0,0,0],attemptId:"attempt-00000000002"}));
+  const history=(await(await ann.GET(req("announcements"))).json()).attempts;assert.equal(history.length,2);assert.deepEqual(new Set(history.map(a=>a.score)),new Set([100,33]));
+  assert.equal((await(await ann.GET(req("announcements?category=situations"))).json()).items.length,8);
+  assert.equal((await(await ann.GET(req("announcements?language=sv&category=situations"))).json()).items.length,6);
+ }finally{for(const [key,value]of [["ALLOWED_USER_EMAILS",oldAllowed],["OWNER_EMAIL",oldOwner]])if(value===undefined)delete process.env[key];else process.env[key]=value;delete globalThis.__journeyTestDb;sqlite.close();}
+});
+
+test("daily mix prioritizes due reviews and selects within the active language",async()=>{
+ const {dailyPractice}=await import(await moduleUrl("lib/daily-practice.ts")),{passages}=await import(await moduleUrl("content/passages.ts"));
+ const catalog=passages.filter(p=>p.language==="sv"),plan=dailyPractice(catalog,["sv-hej"],{"sv-hej":"2020-01-01"},{},Date.parse("2026-09-30"));
+ assert.equal(plan.review.id,"sv-hej");assert.equal(plan.lesson.language,"sv");assert.notEqual(plan.lesson.id,"sv-hej");
+ assert.ok(["announcements","situations"].includes(plan.quick));
+});
+
 test("new library content, filters and recorded audio are complete",async()=>{
  const {passages}=await import(await moduleUrl("content/passages.ts"));
  const {selectLessons,lessonStatus}=await import(await moduleUrl("lib/library.ts"));
@@ -29,7 +94,7 @@ test("language progress is isolated, appearance shared, and announcement XP is i
  for(const migration of ["0000_greedy_darkstar.sql","0001_secret_human_cannonball.sql","0002_smart_marrow.sql"])sqlite.exec(await readFile(new URL("drizzle/"+migration,root),"utf8"));
  globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
  const previous=process.env.ALLOWED_USER_EMAILS;process.env.ALLOWED_USER_EMAILS="nikki@example.com";
- const req=(path,method="GET",body)=>new Request("https://example.com/api/"+path,{method,headers:{"oai-authenticated-user-id":"nikki","oai-authenticated-user-email":"nikki@example.com",origin:"https://example.com","Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+ const req=(path,method="GET",body)=>new Request("https://example.com/api/"+path,{method,headers:{"oai-authenticated-user-id":"nikki","oai-authenticated-user-email":"nikki@example.com",origin:"https://example.com","Content-Type":"application/json","If-Match":"0"},...(body?{body:JSON.stringify(body)}:{})});
  try{
   const progress=await import(await moduleUrl("app/api/progress/route.ts")),ann=await import(await moduleUrl("app/api/announcements/route.ts"));
   assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe"],holidayTheme:"classic"}))).status,200);
@@ -87,7 +152,7 @@ test("owner usage API denies learners, saves idempotent intervals, and confirms 
  globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
  try{
   const telemetry=await import(await moduleUrl("app/api/usage/route.ts")),dashboard=await import(await moduleUrl("app/api/owner-usage/route.ts")),journey=await import(await moduleUrl("app/api/journey/route.ts"));
-  const req=(path,user="nikki",body,origin="https://example.com")=>new Request("https://example.com/api/"+path,{method:body?"POST":"GET",headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin,"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+  const req=(path,user="nikki",body,origin="https://example.com")=>new Request("https://example.com/api/"+path,{method:body?"POST":"GET",headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin,"Content-Type":"application/json","If-Match":"0"},...(body?{body:JSON.stringify(body)}:{})});
   assert.equal((await dashboard.GET(new Request("https://example.com/api/owner-usage"))).status,401);
   assert.equal((await dashboard.GET(req("owner-usage"))).status,403);
   assert.equal((await dashboard.GET(req("owner-usage","outsider"))).status,403);
@@ -176,10 +241,11 @@ async function moduleUrl(path){
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
   "../../../content/releases":"content/releases.ts",
-  "../../../content/announcements":"content/announcements.ts",
+  "../../../content/announcements":"content/announcements.ts", "../../../content/situations":"content/situations.ts", "../../../lib/feedback-notes":"lib/feedback-notes.ts", "../../db/schema":"db/schema.ts",
   "../../../db/schema":"db/schema.ts",
  };
  for(const [specifier,target]of Object.entries(replacements))if(source.includes('"'+specifier+'"'))source=source.replaceAll('"'+specifier+'"',JSON.stringify(await moduleUrl(target)));
+ source=source.replaceAll('"../../db"',JSON.stringify(dataUrl("export const getDb=()=>globalThis.__journeyTestDb")));
  source=source.replaceAll('"../../../db"',JSON.stringify(dataUrl("export const getDb=()=>globalThis.__journeyTestDb")));
  for(const specifier of ["drizzle-orm","drizzle-orm/sqlite-core"])source=source.replaceAll('"'+specifier+'"',JSON.stringify(import.meta.resolve(specifier)));
  const url=dataUrl(ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText);
@@ -204,16 +270,16 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
  globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
  try{
   const {GET,POST}=await import(await moduleUrl("app/api/journey/route.ts"));
-  const request=(body,user="nikki",origin="https://example.com")=>new Request("https://example.com/api/journey",{method:body?"POST":"GET",headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin,"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+  const request=(body,user="nikki",origin="https://example.com")=>new Request("https://example.com/api/journey",{method:body?"POST":"GET",headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin,"Content-Type":"application/json","If-Match":"0"},...(body?{body:JSON.stringify(body)}:{})});
   const post=async(body,user)=>{const response=await POST(request(body,user));return {status:response.status,...await response.json()}};
   assert.equal((await GET(new Request("https://example.com/api/journey"))).status,401);
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.releases.length,5);
+  assert.equal(state.releases.length,6);
   assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
-  assert.equal((await post({kind:"release-seen",source:"2026-09-30-two-languages"})).status,200);
-  assert.equal((await post({kind:"release-seen",source:"2026-09-30-two-languages"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-10-03-practice-that-fits"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-10-03-practice-that-fits"})).status,200);
   state=await (await GET(request())).json();
   assert.equal(state.releases.length,0);
   assert.equal(state.historicalXp,825);assert.equal(state.events.filter(e=>e.xp>0).length,0);
@@ -281,9 +347,9 @@ test("listening comparisons separate conditions and require evidence",async()=>{
 });
 test("release history shows only unseen updates and tolerates unknown legacy IDs",async()=>{
  const {releases,unseenReleases}=await import(await moduleUrl("content/releases.ts"));
- assert.equal(unseenReleases([]).length,5);
+ assert.equal(unseenReleases([]).length,6);
  assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),releases.slice(1).map(r=>r.id));
- assert.equal(unseenReleases([],"unrecognized-old-version").length,5);
+ assert.equal(unseenReleases([],"unrecognized-old-version").length,6);
  assert.equal(unseenReleases(releases.map(r=>({kind:"release-seen",source:r.id}))).length,0);
 });
 test("loop drafts and review saves remain independent",async()=>{
@@ -293,6 +359,7 @@ test("loop drafts and review saves remain independent",async()=>{
  assert.match(page,/text=\{retell\} setText=\{setRetell\}/);
  assert.match(page,/text=\{studioRetell\} setText=\{setStudioRetell\}/);
  assert.match(page,/if\(await onRate\(phrase,rating\)\)/);
- assert.match(page,/response.status===200/);
+ const sync=await readFile(new URL("app/use-progress-sync.ts",root),"utf8");
+ assert.match(sync,/put.status===202/);assert.match(sync,/If-Match/);
  assert.doesNotMatch(page,/localStorage.getItem\(PROGRESS_KEY\)/);
 });

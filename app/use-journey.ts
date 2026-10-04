@@ -2,7 +2,7 @@
 import {useCallback,useEffect,useRef,useState} from "react";
 import {emptyJourney,type Journey} from "../lib/journey";
 import type {Release} from "../content/releases";
-export type JourneyState=Journey & {collectionXp?:number;releases?:Release[];checkpoint?:{id:string;title:string;level:string;text:string;questions:{skill:string;prompt:string;options:string[]}[]}|null;checkpointAvailableAt?:number};
+export type JourneyState=Journey & {collectionXp?:number;frenchXp?:number;swedishXp?:number;releases?:Release[];checkpoint?:{id:string;title:string;level:string;text:string;questions:{skill:string;prompt:string;options:string[]}[]}|null;checkpointAvailableAt?:number};
 export function useJourney(language:"fr"|"sv"="fr"){
  const [journey,setJourney]=useState<JourneyState>(emptyJourney),[notice,setNotice]=useState(""),[error,setError]=useState(""),[loaded,setLoaded]=useState(false),[pending,setPending]=useState(false);
  const failed=useRef<Record<string,unknown>|null>(null);

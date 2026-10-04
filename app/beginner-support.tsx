@@ -1,0 +1,6 @@
+"use client";
+import {useState} from "react";
+export default function BeginnerSupport({phase,onUse}:{phase:"listen"|"retell";onUse:(value:string)=>void}){
+ const [open,setOpen]=useState(false),[choice,setChoice]=useState("");
+ return <section className="beginner-support"><button aria-expanded={open} onClick={()=>setOpen(!open)}>{open?"Hide beginner help":"Need a little A1 support?"}</button>{open&&<><p>{phase==="listen"?"A few words are enough. Which situation did you hear? These are optional prompts, not an answer key.":"One simple Swedish sentence is enough. Choose a starter and finish it in your own words."}</p>{phase==="listen"?<><div className="tool-row">{["☕ Food or coffee","🚌 Travel or directions","🛍 Shopping or payment","👋 Meeting or daily plans"].map(label=><button aria-pressed={choice===label} key={label} onClick={()=>setChoice(label)}>{label}</button>)}</div>{choice&&<button onClick={()=>onUse(`I heard a conversation about ${choice.slice(3).toLowerCase()}. `)}>Use this starting point</button>}</>:<div className="tool-row">{["De vill ha …","Det kostar …","Hon säger …","Han frågar …","Jag hör …"].map(value=><button key={value} onClick={()=>onUse(value.replace("…",""))}>{value}</button>)}</div>}<small>Keep going in your own words; using these prompts does not change XP.</small></>}</section>;
+}

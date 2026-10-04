@@ -1,8 +1,9 @@
-import { guardAiRequest } from "../ai-guard";
+import { guardAiRequest, fetchAi } from "../ai-guard";
 
 export async function POST(request: Request) {
-  const denied = guardAiRequest(request);
+  const denied = await guardAiRequest(request);
   if (denied) return denied;
+  try {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI feedback is not configured." }, { status: 503 });
   const form = await request.formData();
@@ -19,11 +20,11 @@ export async function POST(request: Request) {
   transcriptionForm.append("file", audio, audio.type.includes("mp4") ? "recording.m4a" : audio.type.includes("ogg") ? "recording.ogg" : "recording.webm");
   transcriptionForm.append("model", "gpt-transcribe");
   transcriptionForm.append("language", language);
-  const transcriptionResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: transcriptionForm });
+  const transcriptionResponse = await fetchAi("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: transcriptionForm });
   if (!transcriptionResponse.ok) return Response.json({ error: "The recording could not be transcribed." }, { status: transcriptionResponse.status });
   const transcription = await transcriptionResponse.json() as { text: string };
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetchAi("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -38,4 +39,5 @@ export async function POST(request: Request) {
   const outputText = result.output?.flatMap(item => item.content || []).find(item => item.type === "output_text")?.text;
   if (!outputText) return Response.json({ error: "AI feedback was empty." }, { status: 502 });
   return Response.json({ transcript: transcription.text, feedback: JSON.parse(outputText) });
+  } catch { return Response.json({error:"Coaching could not finish. Your recording remains available here; please retry."},{status:502}); }
 }

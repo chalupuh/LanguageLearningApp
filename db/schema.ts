@@ -1,5 +1,15 @@
 import { sqliteTable, text, integer, primaryKey, index } from "drizzle-orm/sqlite-core";
 
+export const aiQuota=sqliteTable("ai_quota",{
+ userId:text("user_id").primaryKey(),windowStart:integer("window_start").notNull(),count:integer("count").notNull(),
+});
+export const featureRequests=sqliteTable("feature_requests",{
+ userId:text("user_id").notNull(),id:text("id").notNull(),email:text("email"),
+ kind:text("kind").notNull(),language:text("language").notNull(),text:text("text").notNull(),
+ status:text("status").notNull().default("submitted"),message:text("message").notNull().default(""),releaseId:text("release_id"),
+ createdAt:integer("created_at").notNull(),updatedAt:integer("updated_at").notNull(),seenAt:integer("seen_at"),
+},table=>[primaryKey({columns:[table.userId,table.id]})]);
+
 export const sessionDrafts = sqliteTable("session_drafts", {
   userId: text("user_id").notNull(), source: text("source").notNull(),
   state: text("state").notNull(), revision: integer("revision").notNull(),

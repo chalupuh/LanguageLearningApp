@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import type { InboxNote } from "../../lib/feedback-notes";
 import "./feedback.css";
+import RequestCenter from "../request-center";
 
 export default function FeedbackInbox() {
   const [notes, setNotes] = useState<InboxNote[]>([]);
@@ -52,7 +53,8 @@ export default function FeedbackInbox() {
   };
   return <main className="owner-inbox">
     <a className="inbox-back" href="/">← Back to À l’Oreille</a>
-    <header className="inbox-heading"><div><p className="eyebrow">Owner’s notebook · private to you</p><h1>Nikki’s feedback.</h1><p>Her words, in full. A shared starting point for the next improvement.</p></div><button onClick={() => setRevision(value => value + 1)} disabled={status === "loading"}>Refresh</button></header>
+    <RequestCenter owner/>
+    <details><summary>Legacy feedback inbox</summary><header className="inbox-heading"><div><p className="eyebrow">Owner’s notebook · private to you</p><h1>Nikki’s feedback.</h1><p>Her words, in full. A shared starting point for the next improvement.</p></div><button onClick={() => setRevision(value => value + 1)} disabled={status === "loading"}>Refresh</button></header>
     {status === "loading" && <p role="status" className="inbox-message">Opening the feedback notebook…</p>}
     {status !== "loading" && status !== "ready" && <section className="inbox-message" role="alert"><h2>We couldn’t open the inbox.</h2><p>{error}</p>{status === "signed-out" && <a href="/signin-with-chatgpt?return_to=%2Ffeedback">Sign in with ChatGPT →</a>}{status === "denied" && <a href="/signout-with-chatgpt?return_to=%2Ffeedback">Switch ChatGPT account →</a>}<p>No feedback has been changed.</p></section>}
     {status === "ready" && <>
@@ -66,5 +68,5 @@ export default function FeedbackInbox() {
       {!visible.length && <div className="inbox-message"><h2>{notes.length ? "No notes match these filters." : "No submitted feedback yet."}</h2><p>{notes.length ? "Try another search or choose All types and Open and handled." : "Notes saved and synced from Nikki’s N menu will appear here. Use Refresh to check again."}</p></div>}
       <p className="inbox-footnote">Reading notes does not change them. Mark handled & notify sends the author an in-app update, stored separately from lesson progress.</p>
     </>}
-  </main>;
+  </details></main>;
 }

@@ -17,16 +17,18 @@ async function context(userId: string, accountUserId=userId) {
   const [appearance]=await db.select().from(schema.journeyProfiles).where(ops.eq(schema.journeyProfiles.userId,accountUserId));
   const combined=await db.select().from(schema.journeyEvents).where(ops.or(ops.eq(schema.journeyEvents.userId,accountUserId),ops.eq(schema.journeyEvents.userId,`track:sv:${accountUserId}`)));
   const collectionXp=earnedXp(combined);
-  return {db,schema,ops,events,profile:{...profile,avatar:appearance.avatar,frame:appearance.frame,background:appearance.background},legacy,collectionXp};
+  const frenchXp=earnedXp(combined.filter(event=>event.userId===accountUserId));
+  const swedishXp=earnedXp(combined.filter(event=>event.userId===`track:sv:${accountUserId}`));
+  return {db,schema,ops,events,accountEvents:combined,profile:{...profile,avatar:appearance.avatar,frame:appearance.frame,background:appearance.background},legacy,collectionXp,frenchXp,swedishXp};
 }
 export async function GET(request: Request) {
   const auth = authorizeAppRequest(request); if (!auth.identity) return reply({error:"Sign in to see your journey."},auth.status);
   try {
-    const {events,profile,legacy,collectionXp} = await context(auth.identity.userId,auth.accountUserId);
+    const {events,profile,legacy,collectionXp,frenchXp,swedishXp,accountEvents} = await context(auth.identity.userId,auth.accountUserId);
     const used = new Set(events.filter(e=>e.kind==="checkpoint").map(e=>e.source));
     const next = auth.language==="sv"?undefined:checkpoints.find(c=>!used.has(c.id));
     const last = Math.max(0,...events.filter(e=>e.kind==="checkpoint").map(e=>e.createdAt));
-    return reply({...profile,collectionXp,userId:undefined,releases:unseenReleases(events,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
+    return reply({...profile,collectionXp,frenchXp,swedishXp,userId:undefined,releases:unseenReleases(accountEvents,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
   } catch { return reply({error:"Your journey could not be loaded. Please retry."},503); }
 }
 export async function POST(request: Request) {
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
     if(kind==="release-seen"){
       const index=releases.findIndex(r=>r.id===body.source);
       if(index<0)return reply({error:"Unknown update."},400);
-      await c.db.insert(c.schema.journeyEvents).values(releases.slice(0,index+1).map(r=>({userId,id:"release-seen:"+r.id,kind,source:r.id,xp:0,createdAt:now,details:"{}"}))).onConflictDoNothing();
+      await c.db.insert(c.schema.journeyEvents).values(releases.slice(0,index+1).map(r=>({userId:auth.accountUserId!,id:"release-seen:"+r.id,kind,source:r.id,xp:0,createdAt:now,details:"{}"}))).onConflictDoNothing();
       return reply({saved:true});
     }
     if (kind==="equip") {
@@ -65,7 +67,7 @@ export async function POST(request: Request) {
     const studio=/^studio:[\w-]{11}:\d+:\d+$/.test(body.source);
     if (kind==="loop" || kind==="review") {
       // Accept earlier clients/drafts during rollout; new sessions use rehearsed.
-      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<15 || body.summary.length>1000 || typeof body.retell!=="string" || body.retell.trim().length<15 || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, decode reflection, rehearsal, and retell first."},400);
+      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<(auth.language==="sv"?5:15) || body.summary.length>1000 || typeof body.retell!=="string" || body.retell.trim().length<(auth.language==="sv"?5:15) || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, decode reflection, rehearsal, and retell first."},400);
       const prior=c.events.find(e=>e.source===body.source&&(e.kind==="loop"||e.kind==="review"));
       const legacyDone=passage&&c.legacy.completed?.includes(passage.id);
       if (prior || legacyDone || kind==="review") {
@@ -87,7 +89,7 @@ export async function POST(request: Request) {
       // Share the historical daily key so renamed activities cannot double XP.
       id="shadow:"+body.source+":"+day; xp=10; data={day};
     } else if (kind==="observation") {
-      if ((!passage&&!studio)||!Number.isFinite(body.score)||body.score<0||body.score>100||!["first","replay","familiar","unknown"].includes(body.condition)) return reply({error:"Invalid listening observation."},400);
+      if ((!passage&&!studio)||!Number.isFinite(body.score)||body.score<0||body.score>100||!["first","replay","familiar","unknown","slowed","transcript"].includes(body.condition)) return reply({error:"Invalid listening observation."},400);
       const familiar=c.events.some(e=>e.source===body.source&&(e.kind==="observation"||e.kind==="loop"||e.kind==="review"))||(passage&&c.legacy.completed?.includes(passage.id));
       id="observation:"+body.source+":"+day; data={score:body.score,condition:familiar?"familiar":body.condition,level:passage?.level||"Uncalibrated Studio",topic:passage?.topic||"Personal video",day};
     } else if (kind==="checkpoint") {

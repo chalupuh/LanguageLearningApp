@@ -24,6 +24,13 @@ export const releases = [
   {mark:"03",title:"Find your next lesson",body:"Filter by category and completion status, or sort by newest, difficulty, and title."},
   {mark:"04",title:"Switch to Swedish A1",body:"Open your profile to choose Swedish: twelve beginner lessons and three announcements, with separate progress and shared appearance."},
  ]},
+ {id:"2026-10-03-practice-that-fits",date:"October 3, 2026",title:"Practice that fits your day",summary:"Safer syncing, useful replay tools, and more ways to handle real situations.",items:[
+  {mark:"01",title:"Your progress travels safely",body:"Changes from different devices are merged, with automatic retries when a connection returns. Collection rewards consistently use combined French and Swedish XP."},
+  {mark:"02",title:"Hear the difficult part again",body:"Decode now has phrase replay, a five-second rewind, and A–B looping. Listening history distinguishes slowed and transcript-assisted work."},
+  {mark:"03",title:"A daily mix and real-world practice",body:"Today combines due reviews, unseen passages, and quick listening practice. Library → Server situations adds alternative phrasings for everyday surprises; announcement attempts now keep a history."},
+  {mark:"04",title:"More support, clearer evidence",body:"Swedish has optional beginner prompts. Progress → Listening growth shows practice evidence for useful everyday abilities, without turning XP into language levels."},
+  {mark:"05",title:"One feature-request notebook",body:"Your profile now shows French and Swedish requests together: Submitted, Planned, In progress, or Shipped, with release links. Update acknowledgements work across languages."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

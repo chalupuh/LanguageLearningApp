@@ -36,6 +36,13 @@
       "when": 1787886034689,
       "tag": "0004_elite_wild_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790797010536,
+      "tag": "0005_clumsy_thena",
+      "breakpoints": true
     }
   ]
 }

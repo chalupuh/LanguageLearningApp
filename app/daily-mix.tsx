@@ -1,0 +1,7 @@
+"use client";
+import type {Passage} from "../content/passages";
+import {dailyPractice} from "../lib/daily-practice";
+export default function DailyMix({catalog,completed,reviews,patterns,onPractice}:{catalog:Passage[];completed:string[];reviews:Record<string,string>;patterns:Record<string,number>;onPractice:(id:string,review?:boolean)=>void}){
+ const plan=dailyPractice(catalog,completed,reviews,patterns);
+ return <section className="daily-mix"><p className="eyebrow">Your short daily mix</p><h2>A little recall, something new, then a real situation.</h2><div className="mix-grid"><article><h3>1 · Come back to it</h3>{plan.review?<><p>{plan.review.title}</p><p>Due for review. Try it without reading first.</p><button onClick={()=>onPractice(plan.review!.id,true)}>Review passage</button></>:<p>No passage is due. Try a saved phrase below, or begin with today’s new passage.</p>}</article><article><h3>2 · Stretch your ear</h3><p>{plan.lesson?.title}</p><p>{plan.reason}</p>{plan.lesson&&<button onClick={()=>onPractice(plan.lesson!.id)}>Listen to passage</button>}</article><article><h3>3 · Catch the useful detail</h3><p>{plan.quick==="situations"?"Hear what changed and choose a response to the server.":"Catch a time, place, or instruction in a short announcement."}</p><a href={`#library/${plan.quick}`}>Open {plan.quick==="situations"?"server situations":"announcements"}</a></article></div><small>This mix uses your due dates, completed lessons, and Decode reflections—not an inferred language level.</small></section>;
+}

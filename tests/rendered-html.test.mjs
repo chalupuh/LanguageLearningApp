@@ -82,7 +82,7 @@ test("request status survives progress saves and acknowledgement is user/version
     assert.equal(db.prepare("SELECT seen_at FROM feedback_resolutions").get().seen_at, null);
   } finally { db.close(); }
   const route = await readFile(new URL("app/api/feedback-updates/route.ts", root), "utf8");
-  assert.match(route, /eq\(feedbackResolutions.userId, auth.identity.userId\)/);
+  assert.match(route, /inArray\(feedbackResolutions.userId,ids\)/);
   assert.match(route, /eq\(feedbackResolutions.updatedAt, body.updatedAt\)/);
 });
 
@@ -176,7 +176,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /function FeedbackNotebook/);
   assert.match(page, /Nikki’s notebook/);
   assert.match(page, /feedbackNotes/);
-  assert.match(page, /Awaiting review/);
+  assert.match(page, /RequestCenter language=/);
   assert.match(page, /function AccessGate/);
   assert.match(page, /Continue with ChatGPT/);
   assert.match(appAuth, /ALLOWED_USER_EMAILS/);
