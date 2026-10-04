@@ -1,3 +1,4 @@
+import {authorizeAppRequest} from "../app-auth";
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 type CaptionTrack = { baseUrl?: string; languageCode?: string; kind?: string; name?: { simpleText?: string; runs?: Array<{ text?: string }> } };
 type CaptionCue = { start: number; duration: number; text: string };
@@ -11,6 +12,7 @@ function parsePlayerResponse(html: string, expectedVideoId: string) {
       if (markerStart < 0) break;
       const start = html.indexOf("{", markerStart + marker.length);
       if (start < 0) break;
+      searchFrom = html.length;
       let depth = 0, quoted = false, escaped = false;
       for (let index = start; index < html.length; index++) {
         const character = html[index];
@@ -43,6 +45,8 @@ function makeTranscript(cues: CaptionCue[]) {
 }
 
 export async function POST(request: Request) {
+  const auth=authorizeAppRequest(request);if(!auth.identity)return Response.json({error:"Sign in to import captions."},{status:auth.status});
+  if(request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return Response.json({error:"Invalid origin."},{status:403});
   const { videoId, language } = await request.json().catch(() => ({ videoId: "" }));
   if (!VIDEO_ID.test(videoId)) return Response.json({ error: "Invalid YouTube video." }, { status: 400 });
   try {
@@ -54,7 +58,10 @@ export async function POST(request: Request) {
     const frenchTracks = tracks.filter(track => track.languageCode?.toLowerCase().startsWith(language==="sv"?"sv":"fr"));
     const track = frenchTracks.sort((a, b) => Number(a.kind === "asr") - Number(b.kind === "asr"))[0];
     if (!track?.baseUrl) return Response.json({ transcript: null, durationSeconds, reason: tracks.length ? `This video has captions, but no ${language==="sv"?"Swedish":"French"} caption track.` : "This video does not expose captions.", availableLanguages: [...new Set(tracks.map(item => item.languageCode).filter(Boolean))] });
-    const captions = await fetch(`${track.baseUrl}${track.baseUrl.includes("?") ? "&" : "?"}fmt=json3`, { signal: AbortSignal.timeout(10000) });
+    const captionUrl=new URL(track.baseUrl);
+    if(captionUrl.protocol!=="https:"||!(captionUrl.hostname==="youtube.com"||captionUrl.hostname.endsWith(".youtube.com")))throw new Error("Unsupported captions host.");
+    captionUrl.searchParams.set("fmt","json3");
+    const captions = await fetch(captionUrl, { signal: AbortSignal.timeout(10000),redirect:"error" });
     if (!captions.ok) throw new Error();
     const data = await captions.json();
     const cues: CaptionCue[] = (data.events ?? []).map((event: any) => ({ start: Number(event.tStartMs ?? 0) / 1000, duration: Number(event.dDurationMs ?? 0) / 1000, text: cueText((event.segs ?? []).map((segment: any) => segment.utf8 ?? "").join("")) })).filter((cue: CaptionCue) => cue.text && !/^\[(music|musique)\]$/i.test(cue.text));

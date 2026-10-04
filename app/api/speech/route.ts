@@ -1,3 +1,4 @@
+import {authorizeAppRequest} from "../app-auth";
 const VOICE = "marin";
 const VOICE_VERSION = "multilingual-v2";
 const CACHE_SECONDS = 60 * 60 * 24 * 30;
@@ -13,8 +14,9 @@ async function speechCacheKey(request: Request, text: string, voice: string, lan
 }
 
 export async function POST(request: Request) {
-  const denied = await guardAiRequest(request);
-  if (denied) return denied;
+  const auth=authorizeAppRequest(request);
+  if(!auth.identity)return Response.json({error:"Sign in to listen."},{status:auth.status});
+  if(request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return Response.json({error:"Invalid origin."},{status:403});
   try {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI voice is not configured." }, { status: 503 });
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
     headers.set("X-Voice-Cache", "HIT");
     return new Response(cached.body, { status: cached.status, headers });
   }
+  const denied=await guardAiRequest(request);if(denied)return denied;
   const response = await fetchAi("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

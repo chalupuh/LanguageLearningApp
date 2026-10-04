@@ -6,6 +6,30 @@ import ts from "typescript";
 import {drizzle} from "drizzle-orm/d1";
 const root=new URL("../",import.meta.url);
 
+test("recording journal enforces consent, ownership, language isolation, idempotency, limits and deletion",async()=>{
+ const sqlite=new DatabaseSync(":memory:");sqlite.exec(await readFile(new URL("drizzle/0006_handy_black_bird.sql",root),"utf8"));globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
+ const objects=new Map();globalThis.__recordingEnv={BUCKET:{async put(key,stream){objects.set(key,await new Response(stream).arrayBuffer())},async get(key){const value=objects.get(key);return value?{body:value,size:value.byteLength}:null},async delete(key){objects.delete(key)}}};
+ const old=process.env.ALLOWED_USER_EMAILS;process.env.ALLOWED_USER_EMAILS="nikki@example.com,owner@example.com";
+ const headers=user=>({"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin:"https://example.com"});
+ const upload=(id,consent="save",language="fr")=>{const form=new FormData();form.append("id",id);form.append("audio",new Blob(["test audio"],{type:"audio/webm"}),"test.webm");form.append("source","library:cafe");form.append("task","Retell");form.append("consent",consent);return new Request("https://example.com/api/recordings?language="+language,{method:"POST",headers:headers("nikki"),body:form})};
+ try{
+ const route=await import(await moduleUrl("app/api/recordings/route.ts")),id=crypto.randomUUID();
+ assert.equal((await route.GET(new Request("https://example.com/api/recordings"))).status,401);
+ assert.equal((await route.POST(upload(id,""))).status,400);assert.equal(objects.size,0);
+ assert.equal((await route.POST(upload(id))).status,200);assert.equal((await route.POST(upload(id))).status,200);assert.equal(objects.size,1);
+ const get=(suffix="",user="nikki")=>route.GET(new Request("https://example.com/api/recordings"+suffix,{headers:headers(user)}));
+ assert.equal((await(await get()).json()).recordings.length,1);
+ assert.equal((await(await get("?language=sv")).json()).recordings.length,0);
+ assert.equal((await get("?id="+id,"owner")).status,404);assert.equal(await(await get("?id="+id)).text(),"test audio");
+ for(let i=1;i<20;i++)assert.equal((await route.POST(upload(crypto.randomUUID()))).status,200);
+ assert.equal((await route.POST(upload(crypto.randomUUID()))).status,409);assert.equal(objects.size,20);
+ assert.equal((await route.POST(upload(crypto.randomUUID(),"save","sv"))).status,200);
+ assert.equal((await route.DELETE(new Request("https://example.com/api/recordings?id="+id,{method:"DELETE",headers:headers("owner")}))).status,200);assert.equal(objects.size,21);
+ assert.equal((await route.DELETE(new Request("https://example.com/api/recordings?id="+id,{method:"DELETE",headers:headers("nikki")}))).status,200);assert.equal(objects.size,20);
+ assert.equal((await get("?id="+id)).status,404);
+ }finally{if(old===undefined)delete process.env.ALLOWED_USER_EMAILS;else process.env.ALLOWED_USER_EMAILS=old;delete globalThis.__journeyTestDb;delete globalThis.__recordingEnv;sqlite.close()}
+});
+
 test("progress merges preserve independent edits, intentional removals and cumulative reflections",async()=>{
  const {mergeProgress}=await import(await moduleUrl("lib/progress-sync.ts"));
  const base={completed:["cafe"],savedPhrases:["bonjour"],reviews:{cafe:"old"},listeningPatterns:{Numbers:1}};
@@ -56,9 +80,9 @@ test("new persistent APIs protect revisions, quotas, request ownership, release 
   const ann=await import(await moduleUrl("app/api/announcements/route.ts"));
   const answer={id:"mall-closing",answers:[1,0,2],listens:1,attemptId:"attempt-00000000001"};
   assert.equal((await(await ann.POST(req("announcements","POST",answer))).json()).awarded,25);
-  assert.equal((await(await ann.POST(req("announcements","POST",answer))).json()).awarded,0);
+  const duplicate=(await(await ann.POST(req("announcements","POST",answer))).json());assert.equal(duplicate.awarded,0);assert.equal(duplicate.result.condition,"first");
   await ann.POST(req("announcements","POST",{...answer,listens:2,answers:[0,0,0],attemptId:"attempt-00000000002"}));
-  const history=(await(await ann.GET(req("announcements"))).json()).attempts;assert.equal(history.length,2);assert.deepEqual(new Set(history.map(a=>a.score)),new Set([100,33]));
+  const history=(await(await ann.GET(req("announcements"))).json()).attempts;assert.equal(history.length,2);assert.equal(history.find(a=>a.score===33).condition,"familiar");assert.deepEqual(new Set(history.map(a=>a.score)),new Set([100,33]));
   assert.equal((await(await ann.GET(req("announcements?category=situations"))).json()).items.length,8);
   assert.equal((await(await ann.GET(req("announcements?language=sv&category=situations"))).json()).items.length,6);
  }finally{for(const [key,value]of [["ALLOWED_USER_EMAILS",oldAllowed],["OWNER_EMAIL",oldOwner]])if(value===undefined)delete process.env[key];else process.env[key]=value;delete globalThis.__journeyTestDb;sqlite.close();}
@@ -247,6 +271,7 @@ async function moduleUrl(path){
  for(const [specifier,target]of Object.entries(replacements))if(source.includes('"'+specifier+'"'))source=source.replaceAll('"'+specifier+'"',JSON.stringify(await moduleUrl(target)));
  source=source.replaceAll('"../../db"',JSON.stringify(dataUrl("export const getDb=()=>globalThis.__journeyTestDb")));
  source=source.replaceAll('"../../../db"',JSON.stringify(dataUrl("export const getDb=()=>globalThis.__journeyTestDb")));
+ source=source.replaceAll('"cloudflare:workers"',JSON.stringify(dataUrl("export const env=globalThis.__recordingEnv")));
  for(const specifier of ["drizzle-orm","drizzle-orm/sqlite-core"])source=source.replaceAll('"'+specifier+'"',JSON.stringify(import.meta.resolve(specifier)));
  const url=dataUrl(ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText);
  moduleUrls.set(path,url);return url;
@@ -276,10 +301,10 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.releases.length,7);
+  assert.equal(state.releases.length,8);
   assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
-  assert.equal((await post({kind:"release-seen",source:"2026-10-03-practice-that-fits"})).status,200);
-  assert.equal((await post({kind:"release-seen",source:"2026-10-03-practice-that-fits"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-10-04-listening-that-transfers"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:"2026-10-04-listening-that-transfers"})).status,200);
   state=await (await GET(request())).json();
   assert.equal(state.releases.length,0);
   assert.equal(state.historicalXp,825);assert.equal(state.events.filter(e=>e.xp>0).length,0);
@@ -347,9 +372,9 @@ test("listening comparisons separate conditions and require evidence",async()=>{
 });
 test("release history shows only unseen updates and tolerates unknown legacy IDs",async()=>{
  const {releases,unseenReleases}=await import(await moduleUrl("content/releases.ts"));
- assert.equal(unseenReleases([]).length,7);
+ assert.equal(unseenReleases([]).length,8);
  assert.deepEqual(unseenReleases([],releases[0].id).map(r=>r.id),releases.slice(1).map(r=>r.id));
- assert.equal(unseenReleases([],"unrecognized-old-version").length,7);
+ assert.equal(unseenReleases([],"unrecognized-old-version").length,8);
  assert.equal(unseenReleases(releases.map(r=>({kind:"release-seen",source:r.id}))).length,0);
 });
 test("loop drafts and review saves remain independent",async()=>{

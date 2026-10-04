@@ -37,6 +37,13 @@ export const releases = [
   {mark:"04",title:"More support, clearer evidence",body:"Swedish has optional beginner prompts. Progress → Listening growth shows practice evidence for useful everyday abilities, without turning XP into language levels."},
   {mark:"05",title:"One feature-request notebook",body:"Your profile now shows French and Swedish requests together: Submitted, Planned, In progress, or Shipped, with release links. Update acknowledgements work across languages."},
  ]},
+ {id:"2026-10-04-listening-that-transfers",date:"October 4, 2026",title:"Bring your listening into real life",summary:"More personal review, focused listening practice, and a private way to hear your progress.",items:[
+  {mark:"01",title:"Review that adapts",body:"Choose listening, meaning/context recall, or sentence gaps. Review intervals expand with successful recall and shorten when a phrase needs another look."},
+  {mark:"02",title:"Practice that fits you",body:"Today uses recent Decode reflections, listening results, interests and starting difficulty. French pathways organize practice goals without treating XP as a language level."},
+  {mark:"03",title:"A French listening lab",body:"Find eight short dictations and two multi-turn café/dinner missions in Library → French listening lab. Decode can now save exact A–B excerpts from the original lesson audio."},
+  {mark:"04",title:"Original voices and your own recordings",body:"Library → Original voices links to original publishers and saves your listening notes. Explicitly save recordings from rehearsal or retell, then compare or delete them in the private Recording journal."},
+  {mark:"05",title:"Clearer, safer progress",body:"First-listen evidence is separated from familiar retries. Speaking coaching does not claim a CEFR assessment, and French/Swedish progress remains separate."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

@@ -1,4 +1,10 @@
-import { sqliteTable, text, integer, primaryKey, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, primaryKey, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+
+export const savedRecordings=sqliteTable("saved_recordings",{
+ userId:text("user_id").notNull(),id:text("id").notNull(),slot:integer("slot").notNull(),
+ source:text("source").notNull(),task:text("task").notNull(),transcript:text("transcript").notNull(),
+ objectKey:text("object_key").notNull(),mime:text("mime").notNull(),createdAt:integer("created_at").notNull(),ready:integer("ready").notNull().default(0),
+},table=>[primaryKey({columns:[table.userId,table.id]}),uniqueIndex("recording_slot").on(table.userId,table.slot)]);
 
 export const aiQuota=sqliteTable("ai_quota",{
  userId:text("user_id").primaryKey(),windowStart:integer("window_start").notNull(),count:integer("count").notNull(),

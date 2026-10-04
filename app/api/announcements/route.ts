@@ -20,8 +20,12 @@ export async function POST(request:Request){
  const result={score:Math.round(item.questions.filter((q,i)=>q.answer===body.answers[i]).length/item.questions.length*100),skills:item.questions.map((q,i)=>({skill:q.skill,correct:q.answer===body.answers[i],answer:q.options[q.answer]})),condition:body.listens===1?"first":"replay",level:item.level};
  if(body.attemptId!==undefined&&(typeof body.attemptId!=="string"||!/^[-\w]{16,80}$/.test(body.attemptId)))return Response.json({error:"Invalid attempt."},{status:400,headers});
  try{const db=getDb(),createdAt=Date.now();
+ const prior=await db.select().from(journeyEvents).where(and(eq(journeyEvents.userId,auth.identity.userId),eq(journeyEvents.id,"announcement:"+item.id)));
+ if(prior.length)result.condition="familiar";
  const rows=await db.insert(journeyEvents).values({userId:auth.identity.userId,id:"announcement:"+item.id,kind:"announcement",source:item.id,xp:25,createdAt,details:JSON.stringify(result)}).onConflictDoNothing().returning();
+ if(!rows.length)result.condition="familiar";
  await db.insert(journeyEvents).values({userId:auth.identity.userId,id:`announcement-attempt:${item.id}:${body.attemptId||"legacy"}`,kind:"announcement-attempt",source:item.id,xp:0,createdAt,details:JSON.stringify({...result,reply:typeof body.reply==="string"?body.reply.slice(0,600):""})}).onConflictDoNothing();
- return Response.json({result,awarded:rows.length?25:0},{headers})}
+ const saved=await db.select().from(journeyEvents).where(and(eq(journeyEvents.userId,auth.identity.userId),eq(journeyEvents.id,`announcement-attempt:${item.id}:${body.attemptId||"legacy"}`)));
+ return Response.json({result:saved.length?JSON.parse(saved[0].details):result,awarded:rows.length?25:0},{headers})}
  catch{return Response.json({error:"Your result could not be saved. Retry safely; XP cannot be duplicated."},{status:503,headers})}
 }

@@ -9,7 +9,10 @@ const object=(v:any)=>v&&typeof v==="object"&&!Array.isArray(v);
 // Deletions are explicit, so stale tabs cannot resurrect removed vocabulary.
 export function mergeProgress(base:State,local:State,remote:State):State {
  const merge=(b:any,l:any,r:any,key:string):any=>{
-  if(same(b,l))return r;if(same(b,r))return l;
+  const history=key==="speakingAttempts"||key==="feedbackNotes"||key==="reflectionHistory";
+  const ordered=(v:any)=>history&&Array.isArray(v)?[...v].sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt)||String(a.id).localeCompare(String(b.id))):v;
+  if(same(b,l))return ordered(r);if(same(b,r))return ordered(l);
+  if(object(l)&&object(r)&&typeof l.reviewedAt==="string"&&typeof r.reviewedAt==="string")return Date.parse(l.reviewedAt)>Date.parse(r.reviewedAt)?l:r;
   if(Array.isArray(l)&&Array.isArray(r)){
    const identity=(v:any)=>object(v)&&v.id?String(v.id):JSON.stringify(v);
    const before=new Map((Array.isArray(b)?b:[]).map((v:any)=>[identity(v),v]));
@@ -17,7 +20,9 @@ export function mergeProgress(base:State,local:State,remote:State):State {
    const result=new Map(r.map(v=>[identity(v),v]));
    for(const id of before.keys())if(!current.has(id)&&key!=="completed"&&key!=="practiceDates")result.delete(id);
    for(const [id,v]of current)if(!before.has(id)||!same(before.get(id),v))result.set(id,v);
-   return [...result.values()];
+   const values=[...result.values()];
+   if(key==="speakingAttempts"||key==="feedbackNotes"||key==="reflectionHistory")values.sort((a:any,b:any)=>Date.parse(b.createdAt)-Date.parse(a.createdAt)||String(a.id).localeCompare(String(b.id)));
+   return values;
   }
   if(object(l)&&object(r)){
    const result={...r};for(const k of new Set([...Object.keys(b||{}),...Object.keys(l)])){

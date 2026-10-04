@@ -12,8 +12,10 @@ function addUnique(items:string[],item:string){return items.includes(item)?items
 function useLabAudio(loadAudio:(text:string)=>Promise<Blob>){
  const ref=useRef<HTMLAudioElement|null>(null),url=useRef("");const [active,setActive]=useState(""),[busy,setBusy]=useState(""),[error,setError]=useState("");
  useEffect(()=>()=>{ref.current?.pause();if(url.current)URL.revokeObjectURL(url.current)},[]);
- const stop=()=>{ref.current?.pause();setActive("")};
- const play=async(text:string,rate=.88)=>{if(active===text&&ref.current&&!ref.current.paused){stop();return}ref.current?.pause();setBusy(text);setError("");try{const blob=await loadAudio(text);if(url.current)URL.revokeObjectURL(url.current);url.current=URL.createObjectURL(blob);const audio=new Audio(url.current);ref.current=audio;audio.playbackRate=rate;audio.onended=()=>setActive("");audio.onerror=()=>{setActive("");setError("The Swedish voice is temporarily unavailable.")};await audio.play();setActive(text)}catch{setError("The Swedish voice is temporarily unavailable.")}finally{setBusy("")}};
+ const generation=useRef(0),alive=useRef(true);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;generation.current++;}},[]);
+ const stop=()=>{generation.current++;ref.current?.pause();setActive("");setBusy("")};
+ const play=async(text:string,rate=.88)=>{if(active===text&&ref.current&&!ref.current.paused){stop();return}stop();const attempt=generation.current;setBusy(text);setError("");try{const blob=await loadAudio(text);if(!alive.current||attempt!==generation.current)return;if(url.current)URL.revokeObjectURL(url.current);url.current=URL.createObjectURL(blob);const audio=new Audio(url.current);ref.current=audio;audio.playbackRate=rate;audio.onended=()=>setActive("");audio.onerror=()=>{setActive("");setError("The Swedish voice is temporarily unavailable.")};await audio.play();if(alive.current&&attempt===generation.current)setActive(text);else audio.pause()}catch{if(alive.current&&attempt===generation.current)setError("The Swedish voice is temporarily unavailable.")}finally{if(alive.current&&attempt===generation.current)setBusy("")}};
  return {play,stop,active,busy,error};
 }
 
