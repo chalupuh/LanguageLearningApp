@@ -27,7 +27,7 @@ export function achievements(events: Activity[]) {
   return [
     { name: "Back for more", description: "Complete 5 scheduled passage reviews", value: count("review"), target: 5, icon: "↶" },
     { name: "Different voices", description: "Finish lessons with 4 library speakers", value: speakers, target: 4, icon: "♫" },
-    { name: "Out in the world", description: "Finish a Studio learning loop", value: events.some(e => e.kind === "loop" && e.source.startsWith("studio:")) ? 1 : 0, target: 1, icon: "▶" },
+    { name: "Out in the world", description: "Studio milestone · temporarily paused (earned progress kept)", value: events.some(e => e.kind === "loop" && e.source.startsWith("studio:")) ? 1 : 0, target: 1, icon: "▶" },
     { name: "Making it stick", description: "Recall 10 phrases on separate review dates (self-rated)", value: retained, target: 10, icon: "✎" },
     { name: "A gentle rhythm", description: "Meet your weekly practice goal once", value: achievedWeeks.size, target: 1, icon: "♡" },
   ];

@@ -10,6 +10,34 @@ const {evidenceFor}=await load('lib/learning-evidence.ts');
 const {compareDictation}=await load('lib/listening-lab.ts');
 const {validExcerpts}=await load('lib/audio-excerpts.ts');
 const {frenchDictations,frenchMissions}=await load('content/french-lab.ts');
+test('paused Studio blocks imports without upstream requests and keeps authentication',async()=>{
+ const url=s=>'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64');
+ const auth=await readFile(new URL('../app/api/app-auth.ts',import.meta.url),'utf8');
+ const availability=await readFile(new URL('../lib/studio-availability.ts',import.meta.url),'utf8');
+ let source=await readFile(new URL('../app/api/youtube-transcript/route.ts',import.meta.url),'utf8');
+ source=source.replace('"../app-auth"',JSON.stringify(url(auth))).replace('"../../../lib/studio-availability"',JSON.stringify(url(availability)));
+ const {POST}=await import(url(source));const previous=globalThis.fetch;let calls=0;
+ globalThis.fetch=async()=>{calls++;throw Error('Unexpected upstream request')};
+ try{
+  assert.equal((await POST(new Request('https://example.com/api/youtube-transcript',{method:'POST'}))).status,401);
+  for(const language of ['fr','sv']){
+   const response=await POST(new Request('http://localhost/api/youtube-transcript',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({videoId:'MBK7K1Xw3Lc',language})}));
+   assert.equal(response.status,503);assert.equal(response.headers.get('Cache-Control'),'no-store');
+   const body=await response.json();assert.equal(body.code,'STUDIO_PAUSED');assert.equal(body.transcript,null);assert.match(body.reason,/temporarily unavailable/);
+  }
+  assert.equal(calls,0);
+ }finally{globalThis.fetch=previous}
+});
+test('Studio pause removes entry points and protects legacy deep links without deleting drafts',async()=>{
+ const page=await readFile(new URL('../app/page.tsx',import.meta.url),'utf8');
+ const nav=page.split('\n').find(line=>line.includes('const navigation='));
+ assert.doesNotMatch(nav.split(' as readonly')[0],/"studio"/);
+ assert.match(page,/view==="studio"&&!STUDIO_ENABLED\?<StudioUnavailable/);
+ assert.doesNotMatch(page,/Open Studio →/);
+ const native=await readFile(new URL('../app/native-listening.tsx',import.meta.url),'utf8');assert.doesNotMatch(native,/href="#studio"/);
+ const recovery=await readFile(new URL('../app/session-recovery.tsx',import.meta.url),'utf8');assert.match(recovery,/!r.source.startsWith\("studio:"\)/);
+ const availability=await load('lib/studio-availability.ts');assert.equal(availability.STUDIO_ENABLED,false);
+});
 test('French practice separates accents and preserves meaningful task structure',()=>{
  assert.equal(compareDictation('Ca coute douze euros.','Ça coûte douze euros.'),'marks');
  assert.equal(compareDictation('Ça coûte douze euros !','Ça coûte douze euros.'),'correct');

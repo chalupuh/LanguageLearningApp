@@ -1,4 +1,5 @@
 import {authorizeAppRequest} from "../app-auth";
+import {STUDIO_ENABLED, STUDIO_PAUSED_MESSAGE} from "../../../lib/studio-availability";
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 type CaptionTrack = { baseUrl?: string; languageCode?: string; kind?: string; name?: { simpleText?: string; runs?: Array<{ text?: string }> } };
 type CaptionCue = { start: number; duration: number; text: string };
@@ -47,6 +48,7 @@ function makeTranscript(cues: CaptionCue[]) {
 export async function POST(request: Request) {
   const auth=authorizeAppRequest(request);if(!auth.identity)return Response.json({error:"Sign in to import captions."},{status:auth.status});
   if(request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return Response.json({error:"Invalid origin."},{status:403});
+  if(!STUDIO_ENABLED)return Response.json({transcript:null,code:"STUDIO_PAUSED",error:STUDIO_PAUSED_MESSAGE,reason:STUDIO_PAUSED_MESSAGE},{status:503,headers:{"Cache-Control":"no-store"}});
   const { videoId, language } = await request.json().catch(() => ({ videoId: "" }));
   if (!VIDEO_ID.test(videoId)) return Response.json({ error: "Invalid YouTube video." }, { status: 400 });
   try {

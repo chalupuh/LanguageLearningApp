@@ -44,6 +44,10 @@ export const releases = [
   {mark:"04",title:"Original voices and your own recordings",body:"Library → Original voices links to original publishers and saves your listening notes. Explicitly save recordings from rehearsal or retell, then compare or delete them in the private Recording journal."},
   {mark:"05",title:"Clearer, safer progress",body:"First-listen evidence is separated from familiar retries. Speaking coaching does not claim a CEFR assessment, and French/Swedish progress remains separate."},
  ]},
+ {id:"2026-10-06-studio-paused",date:"October 6, 2026",title:"An honest pause for YouTube Studio",summary:"YouTube importing is unavailable while we resolve unreliable caption retrieval.",items:[
+  {mark:"01",title:"Studio is temporarily hidden",body:"Video links were not reliably producing transcripts. We have removed Studio from navigation instead of promising a working import. Existing links explain the pause."},
+  {mark:"02",title:"Your work is kept",body:"Saved Studio sessions, phrases, and earned XP are preserved. Library lessons, listening labs, and Original voices remain available."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

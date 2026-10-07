@@ -156,7 +156,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Today’s review/);
   assert.match(page, /Your earprint/);
   assert.match(page, /Again.*Hard.*Good.*Easy/s);
-  assert.match(page, /\[\"today\",\"library\",\"studio\",\"progress\",\"about\"\]/);
+  assert.match(page, /\[\"today\",\"library\",\"progress\",\"about\"\]/);
   assert.doesNotMatch(page, /\[\"home\",\"practice\",\"library\",\"studio\",\"progress\"\]/);
   assert.match(page, /function SelectionSaver/);
   assert.match(page, /Save phrase/);
