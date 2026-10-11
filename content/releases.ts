@@ -48,6 +48,10 @@ export const releases = [
   {mark:"01",title:"Studio is temporarily hidden",body:"Video links were not reliably producing transcripts. We have removed Studio from navigation instead of promising a working import. Existing links explain the pause."},
   {mark:"02",title:"Your work is kept",body:"Saved Studio sessions, phrases, and earned XP are preserved. Library lessons, listening labs, and Original voices remain available."},
  ]},
+ {id:"2026-10-10-listen-closer",date:"October 10, 2026",title:"A clearer purpose for your second listen",summary:"Decode becomes Listen closer: one phrase, one useful detail, then another listen.",items:[
+  {mark:"01",title:"Hear one detail",body:"Listen without the words, uncover a short phrase, pick a word, and hear it again. Still tricky counts too. Rehearse and Retell stay just as they are."},
+  {mark:"02",title:"Replay from anywhere",body:"Click or drag on a lesson’s audio track to play from that point. Keyboard arrows also move through the passage."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

@@ -45,7 +45,7 @@ export default function Rehearse({language="fr",text,source,completed,onComplete
   };
   const finish=()=>{if(!ready||finished.includes(key))return;setFinished(items=>[...items,key]);onComplete()};
   const retry=async()=>{if(saving||rewarded)return;setSaving(true);try{if(await onRetry())setRewarded(true)}finally{if(mounted.current)setSaving(false)}};
-  if(!phrases.length)return <div className="rehearse-card"><p>Add a transcript in Decode to begin rehearsal.</p></div>;
+  if(!phrases.length)return <div className="rehearse-card"><p>Add a transcript in Listen closer to begin rehearsal.</p></div>;
   return <section className="rehearse-card" aria-label={language==="sv"?"Rehearse Swedish":"Rehearse French"}>
     <p>Choose one short activity. Take your time; the voice always finishes before your turn.</p>
     <div className="rehearse-modes" role="group" aria-label="Rehearsal activity">{(Object.keys(names) as RehearsalMode[]).map(value=><button key={value} aria-pressed={mode===value} onClick={()=>{reset();setMode(value)}}>{names[value]}</button>)}</div>

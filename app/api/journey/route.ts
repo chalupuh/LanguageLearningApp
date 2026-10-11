@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     const studio=/^studio:[\w-]{11}:\d+:\d+$/.test(body.source);
     if (kind==="loop" || kind==="review") {
       // Accept earlier clients/drafts during rollout; new sessions use rehearsed.
-      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<(auth.language==="sv"?5:15) || body.summary.length>1000 || typeof body.retell!=="string" || body.retell.trim().length<(auth.language==="sv"?5:15) || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, decode reflection, rehearsal, and retell first."},400);
+      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<(auth.language==="sv"?5:15) || body.summary.length>1000 || typeof body.retell!=="string" || body.retell.trim().length<(auth.language==="sv"?5:15) || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, Listen closer activity, rehearsal, and retell first."},400);
       const prior=c.events.find(e=>e.source===body.source&&(e.kind==="loop"||e.kind==="review"));
       const legacyDone=passage&&c.legacy.completed?.includes(passage.id);
       if (prior || legacyDone || kind==="review") {

@@ -1,0 +1,32 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+import ts from "typescript";
+test("Listen closer requires completed listens and a detail, supports honest reflection, failure and cancellation",async()=>{
+ const compile=s=>ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ const data=s=>`data:text/javascript;base64,${Buffer.from(compile(s)).toString("base64")}`;
+ let code=await readFile(new URL("../app/listen-closer.tsx",import.meta.url),"utf8");
+ code=code.replace(/import \{useEffect[^\n]+from "react";/,'const {useEffect,useRef,useState}=globalThis.__closerHooks;').replace('import "./listen-closer.css";','');
+ for(const name of ["rehearsal","audio-capture"])code=code.replace(`"../lib/${name}"`,JSON.stringify(data(await readFile(new URL(`../lib/${name}.ts`,import.meta.url),"utf8"))));
+ const compiled=compile(code).replace('"react/jsx-runtime"',JSON.stringify(import.meta.resolve("react/jsx-runtime")));
+ const saved=Object.fromEntries(["__closerHooks","window","document","Audio"].map(k=>[k,globalThis[k]]));
+ let cells=[],cursor=0,effects=[],tree,media=[],fail=false,pending=null,results=[];
+ globalThis.__closerHooks={useState(initial){let id=cursor++;if(!(id in cells))cells[id]=typeof initial==="function"?initial():initial;return[cells[id],v=>{cells[id]=typeof v==="function"?v(cells[id]):v}]},useRef(v){let id=cursor++;return cells[id]??={current:v}},useEffect(fn){let id=cursor++;if(!cells[id]){cells[id]={};effects.push(()=>cells[id].cleanup=fn())}}};
+ globalThis.window=new EventTarget();globalThis.document=Object.assign(new EventTarget(),{querySelectorAll:()=>[]});globalThis.Audio=class{constructor(){media.push(this)}async play(){}pause(){this.paused=true}};
+ const props={text:"Bonjour Nikki. Je voudrais un café.",language:"fr",completed:false,onComplete:r=>results.push(r),loadAudio:async()=>{if(fail)throw Error("offline");return pending||new Blob(["audio"])}};
+ const Component=(await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`)).default;
+ const render=()=>{cursor=0;tree=Component(props);let tasks=effects;effects=[];tasks.forEach(f=>f())};
+ const nodes=(n=tree)=>Array.isArray(n)?n.flatMap(x=>nodes(x??null)):n&&typeof n==="object"?[n,...nodes(n.props?.children??null)]:[];
+ const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?text(n.props?.children):String(n??"");
+ const button=label=>nodes().find(n=>n.type==="button"&&text(n)===label);
+ const click=async label=>{let b=button(label);assert.ok(b,label);assert.ok(!b.props.disabled,label+" enabled");await b.props.onClick();await new Promise(r=>setImmediate(r));render()};
+ const ended=()=>{media.at(-1).onended();render()};
+ try{render();assert.equal(button("Uncover the words").props.disabled,true);assert.ok(!text(tree).includes("Bonjour Nikki."));
+  await click("Hear this phrase");assert.equal(button("Uncover the words").props.disabled,true);ended();await click("Uncover the words");await click("Nikki.");assert.equal(button("I can hear that detail now").props.disabled,true);
+  await click("Listen again");ended();await click("Still tricky — keep practising");assert.deepEqual(results,["Sounded different"]);
+  const select=nodes().find(n=>n.type==="select");select.props.onChange({target:{value:"1"}});render();assert.equal(button("Uncover the words").props.disabled,true);
+  fail=true;await click("Hear this phrase");assert.match(text(tree),/Audio is unavailable/);await click("Use text comparison instead (audio unavailable)");await click("café.");await click("I found a useful word");assert.equal(results.at(-1),"New expression");fail=false;
+  select.props.onChange({target:{value:"0"}});render();let resolve;pending=new Promise(r=>resolve=r);await click("Hear this phrase");await click("Stop");let count=media.length;resolve(new Blob(["late"]));await new Promise(r=>setImmediate(r));assert.equal(media.length,count);pending=null;
+  await click("Hear this phrase");const active=media.at(-1);window.dispatchEvent(new Event("a-loreille-capture-playback"));render();assert.equal(active.paused,true);assert.equal(button("Uncover the words").props.disabled,true);
+ }finally{cells.forEach(c=>c?.cleanup?.());for(const [k,v]of Object.entries(saved)){if(v===undefined)delete globalThis[k];else globalThis[k]=v}}
+});

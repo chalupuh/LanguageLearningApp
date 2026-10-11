@@ -295,16 +295,17 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
  globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
  try{
   const {GET,POST}=await import(await moduleUrl("app/api/journey/route.ts"));
+  const {releases}=await import(await moduleUrl("content/releases.ts"));
   const request=(body,user="nikki",origin="https://example.com")=>new Request("https://example.com/api/journey",{method:body?"POST":"GET",headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com",origin,"Content-Type":"application/json","If-Match":"0"},...(body?{body:JSON.stringify(body)}:{})});
   const post=async(body,user)=>{const response=await POST(request(body,user));return {status:response.status,...await response.json()}};
   assert.equal((await GET(new Request("https://example.com/api/journey"))).status,401);
   assert.equal((await POST(request({kind:"goal",source:"weekly",goal:3},"nikki","https://evil.example"))).status,403);
   sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,savedPhrases:["bonjour","merci"],completed:[],reviews:{},phraseReviews:{}}),clock);
   let state=await (await GET(request())).json();
-  assert.equal(state.releases.length,9);
+  assert.equal(state.releases.length,releases.length);
   assert.equal((await post({kind:"release-seen",source:"unknown"})).status,400);
-  assert.equal((await post({kind:"release-seen",source:"2026-10-06-studio-paused"})).status,200);
-  assert.equal((await post({kind:"release-seen",source:"2026-10-06-studio-paused"})).status,200);
+  assert.equal((await post({kind:"release-seen",source:releases.at(-1).id})).status,200);
+  assert.equal((await post({kind:"release-seen",source:releases.at(-1).id})).status,200);
   state=await (await GET(request())).json();
   assert.equal(state.releases.length,0);
   assert.equal(state.historicalXp,825);assert.equal(state.events.filter(e=>e.xp>0).length,0);
