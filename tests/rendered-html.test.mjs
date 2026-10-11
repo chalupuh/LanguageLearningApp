@@ -158,9 +158,9 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /Again.*Hard.*Good.*Easy/s);
   assert.match(page, /\[\"today\",\"library\",\"progress\",\"about\"\]/);
   assert.doesNotMatch(page, /\[\"home\",\"practice\",\"library\",\"studio\",\"progress\"\]/);
-  assert.match(page, /function SelectionSaver/);
+  assert.match(page, /<PhraseTools/);
   assert.match(page, /Save phrase/);
-  assert.match(page, /Saved phrase context updated/);
+  assert.match(await readFile(new URL("app/phrase-tools.tsx",root),"utf8"), /Saved with its sentence/);
   assert.match(page, /p\.text\.includes\(phrase\)/);
   assert.match(page, /function PhraseReviewDeck/);
   assert.match(page, /function SpeakingHistory/);

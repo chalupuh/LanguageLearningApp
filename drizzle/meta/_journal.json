@@ -50,6 +50,13 @@
       "when": 1791133332218,
       "tag": "0006_handy_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791685992290,
+      "tag": "0007_green_exodus",
+      "breakpoints": true
     }
   ]
 }

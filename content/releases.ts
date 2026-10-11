@@ -52,6 +52,12 @@ export const releases = [
   {mark:"01",title:"Hear one detail",body:"Listen without the words, uncover a short phrase, pick a word, and hear it again. Still tricky counts too. Rehearse and Retell stay just as they are."},
   {mark:"02",title:"Replay from anywhere",body:"Click or drag on a lesson’s audio track to play from that point. Keyboard arrows also move through the passage."},
  ]},
+ {id:"2026-10-10-personal-practice",date:"October 10, 2026",title:"Practice the part that matters to you",summary:"Help with selected phrases, gentler listening clues, and a smoother way to rehearse your own retell.",items:[
+  {mark:"01",title:"Select a phrase, get useful help",body:"Highlight transcript text to save its sentence, hear the phrase, or ask for its meaning, verb forms, and two everyday examples. The toolbar also works with mobile selection."},
+  {mark:"02",title:"Try a clue before the answer",body:"First-listen coaching keeps missed details behind Reveal. Ask for a small hint, listen again, and revise your summary before reading the explanation."},
+  {mark:"03",title:"Say it more smoothly",body:"Inside Rehearse, plan three ideas, notice where you searched for words, then use a linking phrase and try again. Speaking and recording are optional; pauses are not graded."},
+  {mark:"04",title:"Familiar situations, new surprises",body:"Library → Server situations now includes a duplicate charge on the bill and croissants that need a few more minutes. These are new recordings, not simply faster replays."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

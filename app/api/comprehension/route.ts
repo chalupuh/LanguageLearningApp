@@ -29,8 +29,9 @@ export async function POST(request: Request) {
           missed: { type: "array", items: { type: "string" }, maxItems: 3 },
           misconception: { type: ["string", "null"] },
           listening_target: { type: "string" },
+          hint: { type: "string", description:"One small English clue about the kind of detail to notice, without giving the missing answer or quoting the transcript." },
         },
-        required: ["score", "understood", "missed", "misconception", "listening_target"],
+        required: ["score", "understood", "missed", "misconception", "listening_target", "hint"],
       } } },
     }),
   });

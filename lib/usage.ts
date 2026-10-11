@@ -2,7 +2,8 @@ export const USAGE_IDLE_MS = 60_000;
 export const USAGE_TIMEZONE = "America/New_York";
 export const usageStages = ["First listen", "Listen closer", "Rehearse", "Retell"];
 export type UsageSession = { id: string; source: string; startedAt: number; lastActiveAt: number; stage: number; completedAt: number | null };
-export type UsageSample = { sessionId: string; start: number; end: number };
+export type UsageSample = { sessionId: string; start: number; end: number; stage?:number|null;feature?:string|null;language?:string|null };
+export const usageFeatures=["today","library","phrase-review","phrase-help","fluency","listening-lab","announcements","situations","recordings","original-voices","swedish-lab","progress","collection","about","studio","practice"] as const;
 
 // Discard suspended/throttled timer gaps, and never count a hidden or unfocused tab.
 export function activeSlice(previous: number, now: number, lastInput: number, visible: boolean, focused: boolean, media: boolean) {
@@ -38,6 +39,8 @@ export function summarizeUsage(sessions: UsageSession[], samples: UsageSample[],
     trackingSince:sessions.length?Math.min(...sessions.map(s=>s.startedAt)):null, practiceDaysThisWeek:practiceDays.size,
     activeMs:unionMs(practice,from,now), sources,
     stops:usageStages.map((name,stage)=>({name, library:rows.filter(s=>s.stage===stage&&s.status==="Unfinished"&&s.source.startsWith("library:")).length, studio:rows.filter(s=>s.stage===stage&&s.status==="Unfinished"&&s.source.startsWith("studio:")).length})),
+    features:usageFeatures.map(name=>({name,activeMs:unionMs(samples.filter(p=>p.feature===name&&byId.has(p.sessionId)),from,now)})).filter(r=>r.activeMs>0),
+    stageTimes:usageStages.map((name,stage)=>({name,activeMs:unionMs(practice.filter(p=>p.stage===stage),from,now)})),
     recent:rows.slice(0,50), recentTotal:rows.length,
   };
 }

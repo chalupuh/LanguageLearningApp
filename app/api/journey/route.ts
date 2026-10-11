@@ -40,9 +40,9 @@ export async function POST(request: Request) {
     const userId=auth.identity.userId, c=await context(userId,auth.accountUserId), now=Date.now(), day=new Date(now).toISOString().slice(0,10);
     let kind=body.kind, xp=0, id="", data:Record<string,unknown>={};
     const confirmUsage=async()=>{
-      if(typeof body.usageSessionId!=="string"||!/^[-\w]{36}$/.test(body.usageSessionId))return;
+      const usageId=typeof body.usageSessionId==="string"&&/^[-\w]{36}$/.test(body.usageSessionId)?body.usageSessionId:`confirmed:${auth.language}:${body.source}:${day}`;
       // Analytics must not prevent saving the learning loop if its storage is unavailable.
-      try{await c.db.insert(c.schema.usageSessions).values({userId:auth.accountUserId!,id:body.usageSessionId,email:auth.identity!.email,source:body.source,startedAt:now,lastActiveAt:now,stage:3,completedAt:now}).onConflictDoUpdate({target:[c.schema.usageSessions.userId,c.schema.usageSessions.id],set:{completedAt:now,lastActiveAt:now,stage:3},setWhere:c.ops.and(c.ops.eq(c.schema.usageSessions.source,body.source),c.ops.isNull(c.schema.usageSessions.completedAt))})}catch{}
+      try{await c.db.insert(c.schema.usageSessions).values({userId:auth.accountUserId!,id:usageId,email:auth.identity!.email,source:body.source,startedAt:now,lastActiveAt:now,stage:3,completedAt:now}).onConflictDoUpdate({target:[c.schema.usageSessions.userId,c.schema.usageSessions.id],set:{completedAt:now,lastActiveAt:now,stage:3},setWhere:c.ops.and(c.ops.eq(c.schema.usageSessions.source,body.source),c.ops.isNull(c.schema.usageSessions.completedAt))})}catch{}
     };
     if(kind==="release-seen"){
       const index=releases.findIndex(r=>r.id===body.source);

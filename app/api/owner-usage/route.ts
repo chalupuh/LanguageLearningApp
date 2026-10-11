@@ -17,13 +17,13 @@ export async function GET(request:Request){
     if(email&&!allowed.includes(email))return reply({error:"Choose an invited learner."},400);
     if(!email)return reply({learners:[],learner:null,usage:summarizeUsage([],[],now,days),learning:{skills:[],trends:[],checkpoints:[],phraseReviews:0},asOf:now});
     const sessions=await db.select().from(s.usageSessions).where(eq(s.usageSessions.email,email));
-    const records=await db.select({userId:s.learnerProgress.userId}).from(s.learnerProgress).where(eq(s.learnerProgress.email,email));
+    const records=await db.select({userId:s.learnerProgress.userId,updatedAt:s.learnerProgress.updatedAt}).from(s.learnerProgress).where(eq(s.learnerProgress.email,email));
     const userIds=[...new Set([...records.map(r=>r.userId),...sessions.map(r=>r.userId)])];
     const samples=userIds.length?await db.select().from(s.usageSamples).where(and(inArray(s.usageSamples.userId,userIds),gte(s.usageSamples.end,now-90*86400000))):[];
     const events=userIds.length?await db.select().from(s.journeyEvents).where(and(inArray(s.journeyEvents.userId,userIds),gte(s.journeyEvents.createdAt,now-days*86400000))):[];
     // Namespace ids across identities; do not send emails, summaries, phrases or recordings from the ledger.
     const usage=summarizeUsage(sessions.map(r=>({...r,id:r.userId+":"+r.id})),samples.map(r=>({...r,sessionId:r.userId+":"+r.sessionId})),now,days);
-    return reply({learners:allowed,learner:email,asOf:now,usage,
+    return reply({learners:allowed,learner:email,asOf:now,usage,tracking:{lastProgressSave:records.length?Math.max(...records.map(r=>r.updatedAt)):null,timedSamples:samples.length,warning:records.length&&!samples.length?"Saved learning progress exists, but no active-time samples have arrived. Missing timing is not zero usage. Ask the learner to reload; verify tracking on her next practice session.":null},
       learning:{...listeningSummary(events),checkpoints:events.filter(e=>e.kind==="checkpoint").map(e=>({date:e.createdAt,level:details(e).level,score:details(e).score,condition:details(e).condition})).sort((a,b)=>a.date-b.date),phraseReviews:events.filter(e=>e.kind==="phrase").length},
     });
   }catch{return reply({error:"Usage could not be loaded. No records have been changed. Please retry."},503)}

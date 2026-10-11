@@ -83,7 +83,7 @@ test("new persistent APIs protect revisions, quotas, request ownership, release 
   const duplicate=(await(await ann.POST(req("announcements","POST",answer))).json());assert.equal(duplicate.awarded,0);assert.equal(duplicate.result.condition,"first");
   await ann.POST(req("announcements","POST",{...answer,listens:2,answers:[0,0,0],attemptId:"attempt-00000000002"}));
   const history=(await(await ann.GET(req("announcements"))).json()).attempts;assert.equal(history.length,2);assert.equal(history.find(a=>a.score===33).condition,"familiar");assert.deepEqual(new Set(history.map(a=>a.score)),new Set([100,33]));
-  assert.equal((await(await ann.GET(req("announcements?category=situations"))).json()).items.length,8);
+  assert.equal((await(await ann.GET(req("announcements?category=situations"))).json()).items.length,12);
   assert.equal((await(await ann.GET(req("announcements?language=sv&category=situations"))).json()).items.length,6);
  }finally{for(const [key,value]of [["ALLOWED_USER_EMAILS",oldAllowed],["OWNER_EMAIL",oldOwner]])if(value===undefined)delete process.env[key];else process.env[key]=value;delete globalThis.__journeyTestDb;sqlite.close();}
 });
@@ -170,7 +170,7 @@ test("usage timing excludes idle, hidden, unfocused and suspended tabs; overlaps
 
 test("owner usage API denies learners, saves idempotent intervals, and confirms zero-XP loops",async()=>{
  const sqlite=new DatabaseSync(":memory:");
- for(const migration of ["0000_greedy_darkstar.sql","0001_secret_human_cannonball.sql","0002_smart_marrow.sql","0003_white_moon_knight.sql"])sqlite.exec(await readFile(new URL("drizzle/"+migration,root),"utf8"));
+ for(const migration of ["0000_greedy_darkstar.sql","0001_secret_human_cannonball.sql","0002_smart_marrow.sql","0003_white_moon_knight.sql","0007_green_exodus.sql"])sqlite.exec(await readFile(new URL("drizzle/"+migration,root),"utf8"));
  const allowed=process.env.ALLOWED_USER_EMAILS,owner=process.env.OWNER_EMAIL,realNow=Date.now;let clock=Date.parse("2026-08-27T16:00:00Z");
  process.env.ALLOWED_USER_EMAILS="nikki@example.com,owner@example.com";process.env.OWNER_EMAIL="owner@example.com";Date.now=()=>clock;
  globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
@@ -183,7 +183,9 @@ test("owner usage API denies learners, saves idempotent intervals, and confirms 
   assert.equal((await dashboard.GET(req("owner-usage?learner=outsider@example.com","owner"))).status,400);
   assert.equal((await dashboard.GET(req("owner-usage?days=200","owner"))).status,400);
   const id="11111111-1111-4111-8111-111111111111",id2="22222222-2222-4222-8222-222222222222";
-  const body={id,source:"library:cafe",stage:1,samples:[{seq:0,start:clock-5000,end:clock}]};
+  assert.equal((await telemetry.GET(new Request("https://example.com/api/usage"))).status,401);
+  assert.equal((await(await telemetry.GET(req("usage"))).json()).serverTime,clock);
+  const body={id,source:"library:cafe",stage:1,samples:[{seq:0,start:clock-5000,end:clock,stage:1,feature:"practice",language:"fr"}]};
   assert.equal((await telemetry.POST(new Request("https://example.com/api/usage",{method:"POST",body:JSON.stringify(body)}))).status,401);
   assert.equal((await telemetry.POST(req("usage","nikki",body,"https://evil.example"))).status,403);
   for(let i=0;i<2;i++)assert.equal((await telemetry.POST(req("usage","nikki",body))).status,200);
@@ -202,6 +204,7 @@ test("owner usage API denies learners, saves idempotent intervals, and confirms 
   let response=await dashboard.GET(req("owner-usage","owner"));assert.equal(response.status,200);assert.equal(response.headers.get("cache-control"),"private, no-store");
   const report=await response.json();assert.equal(report.usage.sources[0].completed,2);assert.equal(report.usage.activeMs,5000);assert.equal(report.usage.recent.length,2);
   assert.equal(report.usage.practiceDaysThisWeek,1);assert.equal(report.learning.checkpoints.length,0);
+  assert.equal(report.usage.stageTimes[1].activeMs,5000);assert.equal(report.usage.features.find(r=>r.name==="practice").activeMs,5000);
   assert.equal(JSON.stringify(report).includes("The speaker ordered"),false);
   // Invalid learning loops cannot mark a usage session complete.
   const id3="33333333-3333-4333-8333-333333333333";
@@ -225,21 +228,23 @@ test("cosmetics are reachable from profile, header, and Progress collection",asy
 const dataUrl=js=>"data:text/javascript;base64,"+Buffer.from(js).toString("base64");
 const moduleUrls=new Map();
 test("usage client stops on blur/hidden transitions and never retroactively counts an idle gap",async()=>{
- const previous={window:globalThis.window,document:globalThis.document,fetch:globalThis.fetch,now:Date.now};
+ const previous={window:globalThis.window,document:globalThis.document,fetch:globalThis.fetch,localStorage:globalThis.localStorage,now:Date.now};
  const performanceDescriptor=Object.getOwnPropertyDescriptor(globalThis,"performance");
  let time=0,visible=true,focused=true,interval;const effects=[],sent=[],listeners=new Map(),base=Date.parse("2026-08-27T16:00:00Z");
  const add=(name,fn)=>listeners.set(name,fn),remove=(name)=>listeners.delete(name);
  globalThis.__usageHooks={useRef:value=>({current:value}),useEffect:fn=>effects.push(fn)};
- globalThis.window={setInterval:fn=>{interval=fn;return 1},clearInterval:()=>{},addEventListener:add,removeEventListener:remove};
+ globalThis.window={setInterval:fn=>{interval=fn;return 1},clearInterval:()=>{},addEventListener:add,removeEventListener:remove,dispatchEvent:()=>{}};
  globalThis.document={get visibilityState(){return visible?"visible":"hidden"},hasFocus:()=>focused,querySelectorAll:()=>[],addEventListener:add,removeEventListener:remove};
- globalThis.fetch=async(_url,options)=>{sent.push(JSON.parse(options.body));return {ok:true}};
- Date.now=()=>base+time;Object.defineProperty(globalThis,"performance",{configurable:true,value:{now:()=>time}});
+ let blocked=false,offline=false;const storage=new Map();globalThis.localStorage={getItem:k=>{if(blocked)throw Error("Storage disabled");return storage.get(k)||null},setItem:(k,v)=>{if(blocked)throw Error("Storage disabled");storage.set(k,v)}};
+ globalThis.fetch=async(_url,options)=>{if(!options?.body)return {ok:true,json:async()=>({serverTime:base+time,userId:"nikki"})};if(offline)throw Error("Offline");sent.push(JSON.parse(options.body));return {ok:true}};
+ Date.now=()=>base+time+4*3600000;Object.defineProperty(globalThis,"performance",{configurable:true,value:{now:()=>time}});
  try{
   let source=await readFile(new URL("app/use-usage.ts",root),"utf8");
   source=source.replace('"react"',JSON.stringify(dataUrl("export const {useRef,useEffect}=globalThis.__usageHooks"))).replace('"../lib/usage"',JSON.stringify(await moduleUrl("lib/usage.ts")));
   const {useUsage}=await import(dataUrl(ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText));
   const tracker=useUsage("library:cafe",0,false);const cleanups=effects.map(fn=>fn());
-  const tick=async t=>{time=t;interval();await Promise.resolve()};
+  await new Promise(r=>setImmediate(r));
+  const tick=async t=>{time=t;interval();await new Promise(r=>setImmediate(r))};
   await tick(5000);assert.equal(sent[0].samples[0].end-sent[0].samples[0].start,5000);
   time=6000;visible=false;listeners.get("visibilitychange")();await Promise.resolve();
   await tick(10000);assert.equal(sent.length,1);
@@ -252,10 +257,13 @@ test("usage client stops on blur/hidden transitions and never retroactively coun
   const count=sent.length;await tick(95000);assert.equal(sent.length,count);
   time=97000;listeners.get("keydown")();await tick(100000);
   assert.equal(sent.at(-1).samples[0].start,base+97000);
+  blocked=true;offline=true;const beforeRetry=sent.length;await tick(105000);assert.equal(sent.length,beforeRetry);
+  offline=false;await tick(110000);assert.equal(sent.length,beforeRetry+1);assert.equal(sent.at(-1).samples.length,2,"Memory retry retains both intervals with storage disabled");
+  await tick(115000);assert.equal(sent.at(-1).samples.length,1,"Acknowledged samples are not resent");
   assert.ok(tracker.sessionId());
   for(const cleanup of cleanups)cleanup?.();
   assert.equal(listeners.size,0);
- }finally{for(const key of ["window","document","fetch"])if(previous[key]===undefined)delete globalThis[key];else globalThis[key]=previous[key];Date.now=previous.now;Object.defineProperty(globalThis,"performance",performanceDescriptor);delete globalThis.__usageHooks}
+ }finally{for(const key of ["window","document","fetch","localStorage"])if(previous[key]===undefined)delete globalThis[key];else globalThis[key]=previous[key];Date.now=previous.now;Object.defineProperty(globalThis,"performance",performanceDescriptor);delete globalThis.__usageHooks}
 });
 async function moduleUrl(path){
  if(moduleUrls.has(path))return moduleUrls.get(path);

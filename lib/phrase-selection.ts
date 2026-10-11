@@ -1,0 +1,3 @@
+export const phraseSurfaces=".listen-closer-text,.full-transcript,.poetry-notes strong,.phrase-note strong,.studio-transcript,.swedish-text,.minute-card h3,.mission-speaker blockquote,.foundation-path blockquote,.phrase-library strong,.phrase-library p,.phrase-context p,.phrase-review blockquote,.rehearse-french,.rehearse-build details p,.library-grid h2,.library-grid article>p,.daily-note h2,.passage strong,.session-rail h2,[data-study-text]";
+export function selectionText(value:string){return value.replace(/\s+/gu," ").trim().slice(0,221)}
+export function validSelectedPhrase(value:string){return value.length>=2&&value.length<=220&&/\p{L}/u.test(value)}

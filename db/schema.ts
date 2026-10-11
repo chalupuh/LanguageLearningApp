@@ -31,6 +31,7 @@ export const usageSessions = sqliteTable("usage_sessions", {
 export const usageSamples = sqliteTable("usage_samples", {
   userId: text("user_id").notNull(), sessionId: text("session_id").notNull(), seq: integer("seq").notNull(),
   start: integer("start").notNull(), end: integer("end").notNull(),
+  stage: integer("stage"), feature: text("feature"), language: text("language"),
 }, table => [primaryKey({ columns: [table.userId, table.sessionId, table.seq] }), index("idx_usage_samples_user_end").on(table.userId, table.end)]);
 
 export const journeyEvents = sqliteTable("journey_events", {
