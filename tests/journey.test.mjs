@@ -269,6 +269,7 @@ async function moduleUrl(path){
  if(moduleUrls.has(path))return moduleUrls.get(path);
  let source=await readFile(new URL(path,root),"utf8");
  const replacements={
+  "../lib/speech-policy.ts":"lib/speech-policy.ts",
   "./service-passages.ts":"content/service-passages.ts", "./poetry-passages.ts":"content/poetry-passages.ts", "./swedish-passages.ts":"content/swedish-passages.ts", "../learning-track":"app/api/learning-track.ts", "./app-auth":"app/api/app-auth.ts",
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",

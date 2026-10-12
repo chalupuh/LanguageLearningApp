@@ -58,6 +58,10 @@ export const releases = [
   {mark:"03",title:"Say it more smoothly",body:"Inside Rehearse, plan three ideas, notice where you searched for words, then use a linking phrase and try again. Speaking and recording are optional; pauses are not graded."},
   {mark:"04",title:"Familiar situations, new surprises",body:"Library → Server situations now includes a duplicate charge on the bill and croissants that need a few more minutes. These are new recordings, not simply faster replays."},
  ]},
+ {id:"2026-10-12-swedish-support",date:"October 12, 2026",title:"A little more help with Swedish",summary:"Refreshed Swedish audio and small word clues for your A1 practice.",items:[
+  {mark:"01",title:"Clearer Swedish playback",body:"Swedish speech now uses more specific pronunciation guidance, and all twelve Library lessons have fresh recordings. A1 Lab starts at normal speed, with a separate Listen slowly option."},
+  {mark:"02",title:"A few words when you need them",body:"In A1 Lab, open Help with a few words for up to three Swedish–English clues. Listen again before revealing the full meaning; clues do not complete the activity for you."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

@@ -1,9 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import {swedishWordClues} from "../content/swedish-word-help.ts";
+import {speechVersion,speechInstructions} from "../lib/speech-policy.ts";
+import {swedishPassages} from "../content/swedish-passages.ts";
 import {validSwedishLabState,normalizeSwedish,evaluateSwedishDictation,sentenceAnswerIsCorrect,dailySwedishIndex} from "../lib/swedish-lab.ts";
 
 const content=fs.readFileSync(new URL("../content/swedish-lab.ts",import.meta.url),"utf8");
+
+test("Swedish word clues are bounded, accent-aware and match whole words",()=>{
+ assert.deepEqual(swedishWordClues("TACK!"),[{word:"tack",meaning:"thank you / please"}]);
+ assert.equal(swedishWordClues("A\u0308R")[0].word,"är");
+ assert.deepEqual(swedishWordClues("stackars"),[]);
+ assert.equal(swedishWordClues("Hej jag vill ha kaffe med lite mjölk tack").length,3);
+});
+
+test("Swedish pronunciation changes invalidate Swedish caches without changing French",()=>{
+ assert.equal(speechVersion("fr"),"multilingual-v2");
+ assert.notEqual(speechVersion("sv"),speechVersion("fr"));
+ assert.match(speechInstructions("sv"),/t i tack/);
+ assert.match(speechInstructions("sv"),/ä-vokal/);
+});
+
+test("all Swedish lessons use complete versioned mono PCM recordings",()=>{
+ assert.equal(swedishPassages.length,12);
+ for(const passage of swedishPassages){
+  assert.ok(passage.audioFile.includes(speechVersion("sv")));
+  const audio=fs.readFileSync(new URL('../public'+passage.audioFile,import.meta.url));
+  assert.equal(audio.toString('ascii',0,4),'RIFF');
+  assert.equal(audio.toString('ascii',8,12),'WAVE');
+  assert.equal(audio.readUInt16LE(22),1);
+  assert.equal(audio.readUInt32LE(24),24000);
+  assert.equal(audio.readUInt16LE(34),16);
+  assert.equal(audio.readUInt32LE(40),audio.length-44);
+  assert.ok((audio.length-44)/48000>5,passage.id);
+ }
+});
 
 test("the Swedish lab has a complete beginner pathway",()=>{
   assert.match(content,/number:"07"/);

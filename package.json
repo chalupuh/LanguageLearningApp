@@ -12,6 +12,7 @@
     "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/journey.test.mjs tests/session-recovery.test.mjs tests/rehearsal.test.mjs tests/phrase-context.test.mjs tests/swedish-lab.test.mjs tests/learning-review.test.mjs tests/listen-closer.test.mjs tests/audio-seek.test.mjs tests/personal-practice.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "audio:generate": "node --experimental-strip-types scripts/generate-passage-audio.mjs",
+    "audio:swedish": "node --experimental-strip-types scripts/refresh-swedish-audio.mjs",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

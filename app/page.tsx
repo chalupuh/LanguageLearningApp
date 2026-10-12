@@ -29,6 +29,7 @@ import Rehearse from "./rehearse";
 import HintFeedback from "./hint-feedback";
 import PhraseTools from "./phrase-tools";
 import FluencyPractice,{emptyFluencyDraft,restoreFluencyDraft} from "./fluency-practice";
+import {speechVersion} from "../lib/speech-policy";
 import ListenCloser from "./listen-closer";
 import {useJourney} from "./use-journey";
 import {earnedXp,rewards,localDay} from "../lib/journey";
@@ -81,20 +82,21 @@ function NewUpdates({updates,onClose}:{updates:import("../content/releases").Rel
  return <div className="updates-backdrop" role="presentation"><section ref={dialogRef} className="updates-modal" role="dialog" aria-modal="true" aria-labelledby="updates-title"><button ref={closeRef} disabled={saving} className="updates-close" onClick={()=>void dismiss()} aria-label="Close new updates">×</button><div className="updates-ribbon"><span>New</span><time>{latest.date}</time></div><p className="eyebrow">What’s new at À l’Oreille</p><h1 id="updates-title">{latest.title}</h1><p className="updates-summary">{latest.summary}</p>{updates.map(update=><section key={update.id}>{updates.length>1&&<h2>{update.date} · {update.title}</h2>}<div className="updates-list">{update.items.map(item=><article key={item.mark}><span>{item.mark}</span><div><h2>{item.title}</h2><p>{item.body}</p></div></article>)}</div></section>)}{error&&<p role="alert">{error}</p>}<button disabled={saving} className="updates-primary" onClick={()=>void dismiss()}>{saving?"Saving…":"Start listening"} <span>→</span></button><small>You’ll only see this again after the app gets another update. Acknowledgements sync across your devices.</small></section></div>
 }
 
-async function speechCacheKey(text:string,voice:string){
- const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(`multilingual-v2\n${activeLanguage()}\n${voice}\n${text.trim()}`));
+async function speechCacheKey(text:string,voice:string,language=activeLanguage()){
+ const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(`${speechVersion(language)}\n${language}\n${voice}\n${text.trim()}`));
  const hash=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,"0")).join("");
  return new Request(`${window.location.origin}/api/speech/audio/${hash}`);
 }
 
 async function loadSpeech(text:string,audioFile?:string,voice="marin"){
+ const language=activeLanguage();
  if(audioFile){const approved=await fetch(audioFile);if(approved.ok)return approved.blob()}
  const canCache="caches" in window;
  const cache=canCache?await caches.open(SPEECH_CACHE).catch(()=>null):null;
- const cacheKey=canCache?await speechCacheKey(text,voice):null;
+ const cacheKey=canCache?await speechCacheKey(text,voice,language):null;
  const cached=cacheKey?await cache?.match(cacheKey).catch(()=>undefined):null;
  if(cached)return cached.blob();
- const response=await fetch("/api/speech",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,voice,language:activeLanguage()})});
+ const response=await fetch("/api/speech",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,voice,language})});
  if(!response.ok)throw new Error();
  const blob=await response.blob();
  if(cache&&cacheKey)await cache.put(cacheKey,new globalThis.Response(blob,{headers:{"Content-Type":"audio/mpeg","Cache-Control":"max-age=2592000"}})).catch(()=>undefined);

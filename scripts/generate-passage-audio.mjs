@@ -12,7 +12,8 @@ const outputDir = new URL("../public/audio/passages/", import.meta.url);
 await mkdir(outputDir, { recursive: true });
 
 const selected = process.argv.slice(2);
-for (const passage of passages.filter(item => item.audioFile && (!selected.length || selected.includes(item.id)))) {
+if(selected.some(id=>id.startsWith("sv-")))throw new Error("Use npm run audio:swedish for versioned Swedish recordings.");
+for (const passage of passages.filter(item => item.language!=="sv" && item.audioFile && (!selected.length || selected.includes(item.id)))) {
   const target = new URL(`${passage.id}.mp3`, outputDir);
   try {
     const existing = await stat(target);

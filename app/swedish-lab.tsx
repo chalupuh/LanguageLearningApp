@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
+import SwedishWordHelp from "./swedish-word-help";
 import {swedishDailyMinutes,swedishDictations,swedishFoundations,swedishListeningLadders,swedishMissions,swedishNouns,swedishSentences,swedishSounds} from "../content/swedish-lab";
 import {dailySwedishIndex,evaluateSwedishDictation,sentenceAnswerIsCorrect,type SwedishLabState} from "../lib/swedish-lab";
 
@@ -15,7 +16,7 @@ function useLabAudio(loadAudio:(text:string)=>Promise<Blob>){
  const generation=useRef(0),alive=useRef(true);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;generation.current++;}},[]);
  const stop=()=>{generation.current++;ref.current?.pause();setActive("");setBusy("")};
- const play=async(text:string,rate=.88)=>{if(active===text&&ref.current&&!ref.current.paused){stop();return}stop();const attempt=generation.current;setBusy(text);setError("");try{const blob=await loadAudio(text);if(!alive.current||attempt!==generation.current)return;if(url.current)URL.revokeObjectURL(url.current);url.current=URL.createObjectURL(blob);const audio=new Audio(url.current);ref.current=audio;audio.playbackRate=rate;audio.onended=()=>setActive("");audio.onerror=()=>{setActive("");setError("The Swedish voice is temporarily unavailable.")};await audio.play();if(alive.current&&attempt===generation.current)setActive(text);else audio.pause()}catch{if(alive.current&&attempt===generation.current)setError("The Swedish voice is temporarily unavailable.")}finally{if(alive.current&&attempt===generation.current)setBusy("")}};
+ const play=async(text:string,rate=1)=>{if(active===text&&ref.current&&!ref.current.paused){if(ref.current.playbackRate!==rate){ref.current.playbackRate=rate;return}stop();return}stop();const attempt=generation.current;setBusy(text);setError("");try{const blob=await loadAudio(text);if(!alive.current||attempt!==generation.current)return;if(url.current)URL.revokeObjectURL(url.current);url.current=URL.createObjectURL(blob);const audio=new Audio(url.current);ref.current=audio;audio.preservesPitch=true;audio.playbackRate=rate;audio.onended=()=>setActive("");audio.onerror=()=>{setActive("");setError("The Swedish voice is temporarily unavailable.")};await audio.play();if(alive.current&&attempt===generation.current)setActive(text);else audio.pause()}catch{if(alive.current&&attempt===generation.current)setError("The Swedish voice is temporarily unavailable.")}finally{if(alive.current&&attempt===generation.current)setBusy("")}};
  return {play,stop,active,busy,error};
 }
 
@@ -40,7 +41,7 @@ export default function SwedishLab({completedLessons,state,onChange,onLesson,loa
  </section>
 }
 
-function ListenButton({text,play,busy,label="Listen"}:{text:string;play:(text:string,rate?:number)=>void;busy:string;label?:string}){return <button className="lab-listen" disabled={busy===text} onClick={()=>play(text)} aria-label={`${label}: ${text}`}><span aria-hidden="true">▶</span>{busy===text?"Loading…":label}</button>}
+function ListenButton({text,play,busy,label="Listen"}:{text:string;play:(text:string,rate?:number)=>void;busy:string;label?:string}){return <div className="lab-audio-tools"><div><button className="lab-listen" disabled={busy===text} onClick={()=>play(text,1)} aria-label={`${label}: ${text}`}><span aria-hidden="true">▶</span>{busy===text?"Loading…":label}</button><button className="lab-listen" disabled={busy===text} onClick={()=>play(text,.85)} aria-label={`Listen slowly: ${text}`}>Listen slowly</button></div><SwedishWordHelp key={text} text={text}/></div>}
 
 function PathSection({completedLessons,daily,minuteDone,onCompleteMinute,onLesson,play,busy}:{completedLessons:string[];daily:typeof swedishDailyMinutes[number];minuteDone:boolean;onCompleteMinute:()=>void;onLesson:(id:string)=>void;play:(text:string,rate?:number)=>void;busy:string}){
  const [revealed,setRevealed]=useState(false);
