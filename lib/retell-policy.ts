@@ -1,0 +1,6 @@
+export const retellMeaningPolicy = "Judge the meaning of the learner's account, not whether it copies the speaker's words. Accept an observer's third-person retell, a first-person role-play, present or past narration, and equivalent paraphrases when they preserve who did what. Never require the learner to pretend to be a character or say I when describing someone else. For example, Swedish 'En kvinna beställde kaffe' is a valid account of a woman ordering coffee. Do not penalize omission of minor details in a quick summary. Distinguish an actual contradiction from a harmless change in viewpoint. If meaning is clear, allow no correction; at A1 accept one simple sentence.";
+export function speakingTaskPolicy(task:string){
+ return task.toLowerCase().includes("retell")
+ ? retellMeaningPolicy+" The reference is the original story or the learner's planning notes, not a script to repeat word for word. Prioritize the situation and outcome. Offer one optional next improvement; never grade exact word matching."
+ : "For phrase rehearsal, compare the supplied reference with the learner's words, while allowing harmless variations. Keep transcription uncertainty separate from language mistakes.";
+}

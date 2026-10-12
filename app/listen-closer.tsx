@@ -26,6 +26,8 @@ export default function ListenCloser({text,focus,meaning,language,completed,load
   }catch{if(mounted.current&&attempt===generation.current){stop();setStatus("idle");setError("Audio is unavailable. Retry, or use the reading alternative below.")}}finally{if(timer)clearTimeout(timer)}
  };
  const ready=revealed&&noticed!==null&&(reheard||reading)&&status==="idle";
+ const [practiseAgain,setPractiseAgain]=useState(false);
+ if(completed&&!practiseAgain)return <section className="listen-closer"><p className="closer-complete" role="status">Listen closer complete ✓ Your earlier practice is saved.</p><p>Continue to your retell practice, or hear one detail again.</p><button onClick={()=>setPractiseAgain(true)}>Practise another detail</button></section>;
  if(!phrase)return <p>Add a transcript to begin Listen closer.</p>;
  return <section className="listen-closer" aria-label="Listen closer">
   <p className="closer-purpose">Turn one blurry phrase into something familiar. No transcription test, no score: just hear it, uncover it, then hear it again.</p>

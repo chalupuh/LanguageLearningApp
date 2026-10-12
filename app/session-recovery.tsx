@@ -5,7 +5,7 @@ import "./session-recovery.css";
 
 type Draft = { version: number; title: string; step: number; done: boolean; [key: string]: any };
 type Saved = { source: string; state: Draft; revision: number; updatedAt: number };
-const stages = ["First listen", "Listen closer", "Rehearse", "Retell"];
+const stages = ["First listen", "Listen closer", "Retell practice", "Retell"];
 const cacheKey = (user: string, source: string) => `a-loreille-draft:${user}:${source}`;
 
 export function useSessionDraft(source: string | null, state: Draft, restore: (draft: Draft | null) => void, language:"fr"|"sv"="fr") {
@@ -89,7 +89,8 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
 
 export function SessionSaveStatus({ recovery, restart }: { recovery: ReturnType<typeof useSessionDraft>; restart: () => void }) {
   if (!recovery.ready) return null;
-  return <div className="session-save"><span role="status">{recovery.status}</span><button onClick={recovery.retry}>Retry save</button><button onClick={recovery.reload}>Reload saved session</button><button onClick={() => { if (window.confirm("Start this session over? Its answers and playback position will be cleared. Earned XP is kept.")) restart(); }}>Start over</button></div>;
+  const needsAttention=/unavailable|failed|retry|newer|another|couldn|refresh/i.test(recovery.status);
+  return <div className="session-save"><span role="status">{recovery.status}</span><details open={needsAttention}><summary>Session options</summary><div><button onClick={recovery.retry}>Retry save</button><button onClick={recovery.reload}>Reload saved session</button><button onClick={() => { if (window.confirm("Start this session over? Its answers and playback position will be cleared. Earned XP is kept.")) restart(); }}>Start over</button></div></details></div>;
 }
 
 export function SessionRecoveryGate({ recovery, onLeave }: { recovery: ReturnType<typeof useSessionDraft>; onLeave: () => void }) {

@@ -21,9 +21,11 @@ export async function GET(request:Request){
     const userIds=[...new Set([...records.map(r=>r.userId),...sessions.map(r=>r.userId)])];
     const samples=userIds.length?await db.select().from(s.usageSamples).where(and(inArray(s.usageSamples.userId,userIds),gte(s.usageSamples.end,now-90*86400000))):[];
     const events=userIds.length?await db.select().from(s.journeyEvents).where(and(inArray(s.journeyEvents.userId,userIds),gte(s.journeyEvents.createdAt,now-days*86400000))):[];
+    const lastSave=records.length?Math.max(...records.map(r=>r.updatedAt)):null;
+    const lastActive=sessions.length?Math.max(...sessions.map(r=>r.lastActiveAt)):null;
     // Namespace ids across identities; do not send emails, summaries, phrases or recordings from the ledger.
     const usage=summarizeUsage(sessions.map(r=>({...r,id:r.userId+":"+r.id})),samples.map(r=>({...r,sessionId:r.userId+":"+r.sessionId})),now,days);
-    return reply({learners:allowed,learner:email,asOf:now,usage,tracking:{lastProgressSave:records.length?Math.max(...records.map(r=>r.updatedAt)):null,timedSamples:samples.length,warning:records.length&&!samples.length?"Saved learning progress exists, but no active-time samples have arrived. Missing timing is not zero usage. Ask the learner to reload; verify tracking on her next practice session.":null},
+    return reply({learners:allowed,learner:email,asOf:now,usage,tracking:{lastProgressSave:lastSave,timedSamples:samples.length,warning:lastSave&&(!lastActive||lastSave>lastActive+10*60000)?"Learning progress was saved after the last measured activity. Tracking may have gaps; missing timing is not zero usage. Reload the learner app and verify the next practice session.":records.length&&!samples.length?"Saved learning progress exists, but no active-time samples have arrived. Missing timing is not zero usage.":null},
       learning:{...listeningSummary(events),checkpoints:events.filter(e=>e.kind==="checkpoint").map(e=>({date:e.createdAt,level:details(e).level,score:details(e).score,condition:details(e).condition})).sort((a,b)=>a.date-b.date),phraseReviews:events.filter(e=>e.kind==="phrase").length},
     });
   }catch{return reply({error:"Usage could not be loaded. No records have been changed. Please retry."},503)}

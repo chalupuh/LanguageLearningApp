@@ -62,6 +62,11 @@ export const releases = [
   {mark:"01",title:"Clearer Swedish playback",body:"Swedish speech now uses more specific pronunciation guidance, and all twelve Library lessons have fresh recordings. A1 Lab starts at normal speed, with a separate Listen slowly option."},
   {mark:"02",title:"A few words when you need them",body:"In A1 Lab, open Help with a few words for up to three Swedish–English clues. Listen again before revealing the full meaning; clues do not complete the activity for you."},
  ]},
+ {id:"2026-10-12-retell-practice",date:"October 12, 2026",title:"Tell it in your own words",summary:"A quick retell before your fuller story, with clearer study controls.",items:[
+  {mark:"01",title:"Quick retell, then try it smoothly",body:"Stage three now opens Quick retell: explain what you heard in one or two sentences, notice a gap, and try a linking phrase. Phrase rehearsal remains available beside it."},
+  {mark:"02",title:"Your viewpoint is welcome",body:"Retell coaching accepts describing someone else as she, he, or they. You can preserve the meaning without repeating the speaker’s exact words."},
+  {mark:"03",title:"Find your next practice",body:"Library has direct buttons for announcements, server situations, listening practice, poetry, original voices, and recordings. Session options take up less space while you study."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

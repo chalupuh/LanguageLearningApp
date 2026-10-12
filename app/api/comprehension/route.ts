@@ -1,4 +1,5 @@
 import { guardAiRequest, fetchAi } from "../ai-guard";
+import {retellMeaningPolicy} from "../../../lib/retell-policy";
 
 export async function POST(request: Request) {
   const denied = await guardAiRequest(request);
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "gpt-5.4-mini",
-      input: `Reference ${body.language==="sv"?"Swedish":"French"} passage:\n${passage}\n\nLearner's first-listen summary:\n${summary}`,
+      input: `${retellMeaningPolicy}\nReference ${body.language==="sv"?"Swedish":"French"} passage:\n${passage}\n\nLearner's first-listen summary:\n${summary}`,
       instructions: `${body.category==="poetry"?"This is poetry. Accept plausible interpretations supported by imagery; do not impose one meaning. Distinguish factual misreadings from subjective responses. Literary difficulty is not a validated CEFR rating. ":""}Use these authored key ideas when relevant: ${JSON.stringify(body.comprehensionPoints||[])}. Assess listening comprehension for a learner around ${body.level || "B1-B2"}. Judge meaning, not writing grammar. For Swedish A1 accept short, simple accounts of the main idea and respond with English explanations. Score on a 0-100 percentage scale: 90-100 captures the situation, key details, and outcome; 70-89 captures the main situation and outcome; 40-69 captures only part of the situation; below 40 substantially misunderstands it. Be warm, specific, and concise. Never reveal the full transcript in the feedback and never invent an action not present in the reference.`,
       text: { format: { type: "json_schema", name: "comprehension_feedback", strict: true, schema: {
         type: "object", additionalProperties: false,

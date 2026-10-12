@@ -211,6 +211,11 @@ test("owner usage API denies learners, saves idempotent intervals, and confirms 
   await telemetry.POST(req("usage","nikki",{...body,id:id3}));
   assert.equal((await journey.POST(req("journey","nikki",{...loop,usageSessionId:id3,retell:""}))).status,400);
   assert.equal(sqlite.prepare("select completed_at from usage_sessions where user_id='nikki' and id=?").get(id3).completed_at,null);
+  const fullId="44444444-4444-4444-8444-444444444444";
+  const fullBatch={id:fullId,source:"library:cafe",stage:2,samples:Array.from({length:16},(_,seq)=>({seq,start:clock-(16-seq)*5000,end:clock-(15-seq)*5000,stage:2,feature:"fluency",language:"fr"}))};
+  assert.equal((await telemetry.POST(req("usage","nikki",fullBatch))).status,200,"Full retry batches fit D1's 100-parameter limit");
+  assert.equal((await telemetry.POST(req("usage","nikki",fullBatch))).status,200);
+  assert.equal(sqlite.prepare("select count(*) as n from usage_samples where session_id=?").get(fullId).n,16,"Retries do not double count either chunk");
   delete process.env.OWNER_EMAIL;assert.equal((await dashboard.GET(req("owner-usage","owner"))).status,403);
  }finally{Date.now=realNow;for(const [key,value]of [["ALLOWED_USER_EMAILS",allowed],["OWNER_EMAIL",owner]])if(value===undefined)delete process.env[key];else process.env[key]=value;delete globalThis.__journeyTestDb;sqlite.close()}
 });
@@ -228,7 +233,7 @@ test("cosmetics are reachable from profile, header, and Progress collection",asy
 const dataUrl=js=>"data:text/javascript;base64,"+Buffer.from(js).toString("base64");
 const moduleUrls=new Map();
 test("usage client stops on blur/hidden transitions and never retroactively counts an idle gap",async()=>{
- const previous={window:globalThis.window,document:globalThis.document,fetch:globalThis.fetch,localStorage:globalThis.localStorage,now:Date.now};
+ const previous={window:globalThis.window,document:globalThis.document,fetch:globalThis.fetch,localStorage:globalThis.localStorage,sessionStorage:globalThis.sessionStorage,now:Date.now};
  const performanceDescriptor=Object.getOwnPropertyDescriptor(globalThis,"performance");
  let time=0,visible=true,focused=true,interval;const effects=[],sent=[],listeners=new Map(),base=Date.parse("2026-08-27T16:00:00Z");
  const add=(name,fn)=>listeners.set(name,fn),remove=(name)=>listeners.delete(name);
@@ -236,6 +241,7 @@ test("usage client stops on blur/hidden transitions and never retroactively coun
  globalThis.window={setInterval:fn=>{interval=fn;return 1},clearInterval:()=>{},addEventListener:add,removeEventListener:remove,dispatchEvent:()=>{}};
  globalThis.document={get visibilityState(){return visible?"visible":"hidden"},hasFocus:()=>focused,querySelectorAll:()=>[],addEventListener:add,removeEventListener:remove};
  let blocked=false,offline=false;const storage=new Map();globalThis.localStorage={getItem:k=>{if(blocked)throw Error("Storage disabled");return storage.get(k)||null},setItem:(k,v)=>{if(blocked)throw Error("Storage disabled");storage.set(k,v)}};
+ const tabStorage=new Map();globalThis.sessionStorage={getItem:k=>tabStorage.get(k)||null,setItem:(k,v)=>tabStorage.set(k,v)};
  globalThis.fetch=async(_url,options)=>{if(!options?.body)return {ok:true,json:async()=>({serverTime:base+time,userId:"nikki"})};if(offline)throw Error("Offline");sent.push(JSON.parse(options.body));return {ok:true}};
  Date.now=()=>base+time+4*3600000;Object.defineProperty(globalThis,"performance",{configurable:true,value:{now:()=>time}});
  try{
@@ -263,13 +269,19 @@ test("usage client stops on blur/hidden transitions and never retroactively coun
   assert.ok(tracker.sessionId());
   for(const cleanup of cleanups)cleanup?.();
   assert.equal(listeners.size,0);
- }finally{for(const key of ["window","document","fetch","localStorage"])if(previous[key]===undefined)delete globalThis[key];else globalThis[key]=previous[key];Date.now=previous.now;Object.defineProperty(globalThis,"performance",performanceDescriptor);delete globalThis.__usageHooks}
+  const beforeRemount=tracker.sessionId();effects.length=0;time=120000;
+  const resumed=useUsage("library:cafe",2,false,"fluency","fr"),resumedCleanups=effects.map(fn=>fn());await new Promise(r=>setImmediate(r));
+  assert.equal(resumed.sessionId(),beforeRemount,"Returning to a passage in the same tab resumes its measured session");
+  await tick(125000);assert.equal(sent.at(-1).samples.at(-1).feature,"fluency");
+  for(const cleanup of resumedCleanups)cleanup?.();
+ }finally{for(const key of ["window","document","fetch","localStorage","sessionStorage"])if(previous[key]===undefined)delete globalThis[key];else globalThis[key]=previous[key];Date.now=previous.now;Object.defineProperty(globalThis,"performance",performanceDescriptor);delete globalThis.__usageHooks}
 });
 async function moduleUrl(path){
  if(moduleUrls.has(path))return moduleUrls.get(path);
  let source=await readFile(new URL(path,root),"utf8");
  const replacements={
   "../lib/speech-policy.ts":"lib/speech-policy.ts",
+  "../../../lib/retell-policy":"lib/retell-policy.ts",
   "./service-passages.ts":"content/service-passages.ts", "./poetry-passages.ts":"content/poetry-passages.ts", "./swedish-passages.ts":"content/swedish-passages.ts", "../learning-track":"app/api/learning-track.ts", "./app-auth":"app/api/app-auth.ts",
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
@@ -289,7 +301,7 @@ function d1Adapter(sqlite){
  return {prepare(sql){
   let bindings=[];
   const statement={
-   bind(...values){bindings=values;return statement},
+   bind(...values){if(values.length>100)throw Error("D1 bound parameter limit exceeded");bindings=values;return statement},
    async raw(){const stmt=sqlite.prepare(sql);stmt.setReturnArrays(true);return stmt.all(...bindings)},
    async all(){return {success:true,results:sqlite.prepare(sql).all(...bindings)}},
    async run(){const result=sqlite.prepare(sql).run(...bindings);return {success:true,meta:{changes:result.changes}}},
