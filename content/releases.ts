@@ -67,6 +67,10 @@ export const releases = [
   {mark:"02",title:"Your viewpoint is welcome",body:"Retell coaching accepts describing someone else as she, he, or they. You can preserve the meaning without repeating the speaker’s exact words."},
   {mark:"03",title:"Find your next practice",body:"Library has direct buttons for announcements, server situations, listening practice, poetry, original voices, and recordings. Session options take up less space while you study."},
  ]},
+ {id:"2026-10-13-simple-listen-closer",date:"October 13, 2026",title:"Listen closer, with fewer choices",summary:"Listen to the full passage, show the words, and keep what you missed.",items:[
+  {mark:"01",title:"Listen first, then show the transcript",body:"Use the original lesson recording. One Show transcript button reveals the whole passage; there is no separate phrase drill or More replay tools menu."},
+  {mark:"02",title:"Keep the confusing words",body:"Highlight text and choose Mark for next time. Your highlights return with this lesson, and Save phrase adds them to your review notebook."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

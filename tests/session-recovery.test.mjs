@@ -39,10 +39,10 @@ test("draft API saves through real SQLite, enforces account ownership and reject
     assert.equal((await PUT(request({ ...body, revision: -1 }))).status, 400);
     assert.equal((await PUT(request(body))).status, 200);
     assert.equal((await PUT(request(body))).status, 409);
-    assert.equal((await PUT(request({ ...body, state: { ...base, step: 3, text: "Retell" }, revision: 1 }))).status, 200);
+    assert.equal((await PUT(request({ ...body, state: { ...base, step: 3, text: "Retell",closerHighlights:["café"],transcriptOpen:true }, revision: 1 }))).status, 200);
     let response = await GET(request());
     assert.match(response.headers.get("cache-control"), /private, no-store/);
-    assert.equal((await response.json()).drafts[0].state.step, 3);
+    const restored=(await response.json()).drafts[0].state;assert.equal(restored.step, 3);assert.deepEqual(restored.closerHighlights,["café"]);assert.equal(restored.transcriptOpen,true);
     assert.equal((await (await GET(request(null, "owner"))).json()).drafts.length, 0);
     assert.equal((await PUT(request({ ...body, userId: "nikki" }, "owner"))).status, 200);
     assert.equal((await (await GET(request())).json()).drafts[0].state.text, "Retell");

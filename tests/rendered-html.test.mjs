@@ -149,7 +149,7 @@ test("keeps the learning loop and AI routes honest", async () => {
     readFile(new URL(".openai/hosting.json", root), "utf8"),
   ]);
   assert.match(page, /Check my understanding/);
-  assert.match(page, /Reveal full transcript/);
+  assert.match(await readFile(new URL("app/listen-closer.tsx", root), "utf8"), /Show transcript/);
   const rehearsal = await readFile(new URL("app/rehearse.tsx", root), "utf8");
   assert.match(rehearsal, /it is not a pronunciation score/);
   assert.match(page, /Bring your own \{languageName\(language\)\}/);
