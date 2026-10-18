@@ -22,6 +22,10 @@ export const sessionDrafts = sqliteTable("session_drafts", {
   updatedAt: integer("updated_at").notNull(),
 }, table => [primaryKey({ columns: [table.userId, table.source] })]);
 
+export const calendarPlans=sqliteTable("calendar_plans",{
+ userId:text("user_id").primaryKey(),state:text("state").notNull(),revision:integer("revision").notNull(),updatedAt:integer("updated_at").notNull(),
+});
+
 export const usageSessions = sqliteTable("usage_sessions", {
   userId: text("user_id").notNull(), id: text("id").notNull(), email: text("email"),
   source: text("source").notNull(), startedAt: integer("started_at").notNull(),

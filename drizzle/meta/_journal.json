@@ -57,6 +57,13 @@
       "when": 1791685992290,
       "tag": "0007_green_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792359092803,
+      "tag": "0008_sloppy_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

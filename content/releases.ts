@@ -85,6 +85,10 @@ export const releases = [
   {mark:"03",title:"Two ways to explain what you heard",body:"First listen has separate optional English and French summary boxes. Review my French writing gives grammar and wording feedback, an estimated writing score, and a natural French example that preserves your meaning."},
   {mark:"04",title:"Try Parisian French",body:"Everyday French lessons have an optional extra listening test with a faster, informal adaptation. The same voices keep their roles. Your main lesson answers stay in place."},
  ]},
+ {id:"2026-10-18-my-calendar",date:"October 18, 2026",title:"A little intention, every week",summary:"Your main goal, a weekly checklist, and a history you can return to.",items:[
+  {mark:"01",title:"My Calendar",body:"Open My Calendar to set your main goal and add small practice goals to any week. Check them off yourself, edit them, or move them to another week."},
+  {mark:"02",title:"Keep your history",body:"Browse previous months and their checklists. Weeks that cross two months share the same goals. French and Swedish each have their own calendar, saved across devices."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
