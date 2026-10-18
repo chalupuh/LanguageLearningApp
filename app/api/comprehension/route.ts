@@ -3,19 +3,20 @@ import { guardAiRequest, fetchAi } from "../ai-guard";
 import {retellMeaningPolicy} from "../../../lib/retell-policy";
 
 export async function POST(request: Request) {
-  const denied = await guardAiRequest(request);
+  const denied = await guardAiRequest(request,false);
   if (denied) return denied;
   try {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI coaching is not configured." }, { status: 503 });
 
   const body = await request.json() as { summary?: string; passage?: string; level?: string; language?:string; category?: string; comprehensionPoints?: string[] };
-  const summary = body.summary?.trim() ?? "";
-  const passage = body.passage?.trim() ?? "";
+  const summary = typeof body.summary==="string"?body.summary.trim():"";
+  const passage = typeof body.passage==="string"?body.passage.trim():"";
   if (!summary || summary.length > 1200 || !passage || passage.length > 4000) {
     return Response.json({ error: "A short summary and passage are required." }, { status: 400 });
   }
 
+  const quota=await guardAiRequest(request);if(quota)return quota;
   const response = await fetchAi("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

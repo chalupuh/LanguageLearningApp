@@ -3,10 +3,11 @@ import {getDb} from "../../db";
 import {aiQuota} from "../../db/schema";
 import {sql} from "drizzle-orm";
 const WINDOW_MS=3600000,MAX_REQUESTS=60;
-export async function guardAiRequest(request:Request):Promise<Response|null>{
+export async function guardAiRequest(request:Request,reserve=true):Promise<Response|null>{
  const auth=authorizeAppRequest(request);
  if(!auth.identity)return Response.json({error:auth.status===401?"Sign in to use AI coaching.":"This account is not invited."},{status:auth.status});
  if(request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return Response.json({error:"Invalid origin."},{status:403});
+ if(!reserve)return null;
  const now=Date.now(),start=Math.floor(now/WINDOW_MS)*WINDOW_MS;
  try{
   // An atomic database counter is shared by every Worker and both languages.

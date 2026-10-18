@@ -10,7 +10,7 @@ function authorize(request:Request){const auth=authorizeLearningRequest(request)
 export async function GET(request:Request){
  const auth=authorize(request);if(auth.error)return auth.error;
  try{const db=getDb(),id=new URL(request.url).searchParams.get("id");
- if(id){if(!validId(id))return json({error:"Invalid recording."},400);const rows=await db.select().from(savedRecordings).where(and(eq(savedRecordings.userId,auth.userId!),eq(savedRecordings.id,id),eq(savedRecordings.ready,1)));if(!rows.length)return json({error:"Recording not found."},404);const object=await env.BUCKET?.get(rows[0].objectKey);if(!object)return json({error:"Recording unavailable."},404);return new Response(object.body,{headers:{...headers,"Content-Type":rows[0].mime,"Content-Length":String(object.size)}});}
+ if(id){if(!validId(id))return json({error:"Invalid recording."},400);const rows=await db.select().from(savedRecordings).where(and(eq(savedRecordings.userId,auth.userId!),eq(savedRecordings.id,id),eq(savedRecordings.ready,1)));if(!rows.length)return json({error:"Recording not found."},404);const object=await env.BUCKET?.get(rows[0].objectKey);if(!object)return json({error:"Recording unavailable."},404);return new Response(object.body as unknown as BodyInit,{headers:{...headers,"Content-Type":rows[0].mime,"Content-Length":String(object.size)}});}
  const rows=await db.select().from(savedRecordings).where(eq(savedRecordings.userId,auth.userId!));
  return json({recordings:rows.sort((a,b)=>b.createdAt-a.createdAt).map(({id,source,task,transcript,createdAt,ready})=>({id,source,task,transcript,createdAt,ready}))});
  }catch{return json({error:"Could not load the recording journal."},503)}
@@ -31,7 +31,7 @@ export async function POST(request:Request){
  const ownerHash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(auth.userId!))),n=>n.toString(16).padStart(2,"0")).join("");objectKey=`recordings/${ownerHash}/${id}`;
  for(let slot=0;slot<20;slot++){const rows=await db.insert(savedRecordings).values({userId:auth.userId!,id,slot,source,task,transcript,objectKey,mime,createdAt:Date.now(),ready:0}).onConflictDoNothing().returning();if(rows.length){reserved=true;break}}
  if(!reserved)return json({error:"Your journal holds 20 recordings per language. Remove one before saving another."},409);
- await env.BUCKET.put(objectKey,file.stream(),{httpMetadata:{contentType:mime}});
+ await env.BUCKET.put(objectKey,await file.arrayBuffer(),{httpMetadata:{contentType:mime}});
  await db.update(savedRecordings).set({ready:1}).where(where);return json({saved:true,id});
  }catch{if(reserved){try{await env.BUCKET.delete(objectKey);await db.delete(savedRecordings).where(where)}catch{}}return json({error:"Could not save the recording. Please retry."},503)}
 }

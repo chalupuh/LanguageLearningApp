@@ -26,12 +26,13 @@ let playbackLocks=0;
 export const captureActive=()=>playbackLocks>0;
 export function holdAppPlayback(){
   playbackLocks++;
+  window.dispatchEvent(new Event("a-loreille-capture-state"));
   const pause=(event:Event)=>{const media=event.target as HTMLMediaElement;if(typeof media?.pause==="function")media.pause()};
   document.querySelectorAll<HTMLMediaElement>("audio,video").forEach(media=>media.pause());
   document.addEventListener("play",pause,true);
   window.dispatchEvent(new Event(CAPTURE_PLAYBACK_EVENT));
   let released=false;
-  return()=>{if(released)return;released=true;playbackLocks--;document.removeEventListener("play",pause,true)};
+  return()=>{if(released)return;released=true;playbackLocks--;window.dispatchEvent(new Event("a-loreille-capture-state"));document.removeEventListener("play",pause,true)};
 }
 
 export function createAudioCapture(callbacks:{onState:(state:"idle"|"starting"|"recording")=>void;onAudio:(blob:Blob)=>void;onError:(message:string)=>void;onSettings?:(settings:MediaTrackSettings)=>void}){

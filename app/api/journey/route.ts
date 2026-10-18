@@ -1,5 +1,5 @@
 import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
-import { earnedXp, rewards } from "../../../lib/journey";
+import { earnedXp, rewards, localDay } from "../../../lib/journey";
 import { passages } from "../../../content/passages";
 import { checkpoints } from "../../../content/checkpoints";
 import { releases, unseenReleases } from "../../../content/releases";
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(()=>null);
   if (!body || typeof body.kind!=="string" || typeof body.source!=="string" || !body.source || body.source.length>240) return reply({error:"Invalid activity."},400);
   try {
-    const userId=auth.identity.userId, c=await context(userId,auth.accountUserId), now=Date.now(), day=new Date(now).toISOString().slice(0,10);
+    const userId=auth.identity.userId, c=await context(userId,auth.accountUserId), now=Date.now(), day=localDay(new Date(now));
     let kind=body.kind, xp=0, id="", data:Record<string,unknown>={};
     const confirmUsage=async()=>{
       const usageId=typeof body.usageSessionId==="string"&&/^[-\w]{36}$/.test(body.usageSessionId)?body.usageSessionId:`confirmed:${auth.language}:${body.source}:${day}`;
@@ -83,12 +83,14 @@ export async function POST(request: Request) {
       if (!c.legacy.savedPhrases?.includes(body.source) || !["Again","Hard","Good","Easy"].includes(body.rating)) return reply({error:"Review a saved phrase first."},400);
       const due=c.legacy.phraseReviews?.[body.source];
       if (due&&Date.parse(due)>now) return reply({awarded:0});
+      if(c.events.some(e=>e.kind==="phrase"&&e.source===body.source&&localDay(new Date(e.createdAt))===day))return reply({awarded:0});
       id="phrase:"+body.source+":"+day; data={rating:body.rating,day};
-      // One review-set award per UTC day, independent of how many phrases it contains.
+      // One review-set award per practice day, independent of how many phrases it contains.
       xp=0;
     } else if (kind==="shadow" || kind==="rehearse") {
       if ((!passage&&!studio)||body.repeated!==true) return reply({error:"Complete a listen-and-repeat retry first."},400);
       // Share the historical daily key so renamed activities cannot double XP.
+      if(c.events.some(e=>(e.kind==="shadow"||e.kind==="rehearse")&&e.source===body.source&&localDay(new Date(e.createdAt))===day))return reply({awarded:0,message:"Practice already recorded today."});
       id="shadow:"+body.source+":"+day; xp=10; data={day};
     } else if (kind==="observation") {
       if ((!passage&&!studio)||!Number.isFinite(body.score)||body.score<0||body.score>100||!["first","replay","familiar","unknown","slowed","transcript"].includes(body.condition)) return reply({error:"Invalid listening observation."},400);
@@ -110,7 +112,8 @@ export async function POST(request: Request) {
     let awarded=inserted.length?xp:0;
     if(kind==="loop"||kind==="review")await confirmUsage();
     if(kind==="phrase"){
-      const bonus=await c.db.insert(c.schema.journeyEvents).values({userId,id:"phrase-set:"+day,kind:"phrase-set",source:day,xp:10,createdAt:now,details:JSON.stringify({day,weeklyGoal:c.profile.weeklyGoal})}).onConflictDoNothing().returning();
+      const alreadyAwarded=c.events.some(e=>e.kind==="phrase-set"&&localDay(new Date(e.createdAt))===day);
+      const bonus=alreadyAwarded?[]:await c.db.insert(c.schema.journeyEvents).values({userId,id:"phrase-set:"+day,kind:"phrase-set",source:day,xp:10,createdAt:now,details:JSON.stringify({day,weeklyGoal:c.profile.weeklyGoal})}).onConflictDoNothing().returning();
       awarded=bonus.length?10:0;
     }
     return reply({awarded,result:inserted.length?data:undefined,message:inserted.length?"Practice recorded.":"Already recorded — no duplicate XP."});

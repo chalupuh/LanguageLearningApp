@@ -9,11 +9,15 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/journey.test.mjs tests/session-recovery.test.mjs tests/rehearsal.test.mjs tests/phrase-context.test.mjs tests/swedish-lab.test.mjs tests/learning-review.test.mjs tests/listen-closer.test.mjs tests/audio-seek.test.mjs tests/personal-practice.test.mjs tests/passage-speech.test.mjs tests/requested-features.test.mjs tests/full-review.test.mjs tests/calendar.test.mjs",
+    "test": "npm run build && npm run test:unit",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "audio:generate": "node --experimental-strip-types scripts/generate-passage-audio.mjs",
     "audio:swedish": "node --experimental-strip-types scripts/refresh-swedish-audio.mjs",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test:unit": "node --experimental-strip-types --test tests/*.test.mjs",
+    "typecheck": "npm run types:worker && node node_modules/typescript/bin/tsc --noEmit --incremental false",
+    "types:worker": "node scripts/worker-types.mjs",
+    "lint:baseline": "node scripts/lint-baseline.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

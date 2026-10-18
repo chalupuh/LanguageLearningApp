@@ -1,21 +1,27 @@
 import { guardAiRequest, fetchAi } from "../ai-guard";
 import {speakingTaskPolicy} from "../../../lib/retell-policy";
+import {validSpeakingFeedback} from "../../../lib/speaking-feedback";
 
 export async function POST(request: Request) {
-  const denied = await guardAiRequest(request);
+  const denied = await guardAiRequest(request,false);
   if (denied) return denied;
   try {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return Response.json({ error: "AI feedback is not configured." }, { status: 503 });
-  const form = await request.formData();
+  const reader=request.body?.getReader();if(!reader)return Response.json({error:"A recording is required."},{status:400});
+  const chunks:Uint8Array[]=[];let size=0;
+  for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>9*1024*1024){await reader.cancel();return Response.json({error:"Keep recordings under 8 MB."},{status:413});}chunks.push(part.value);}
+  const form = await new Response(new Blob(chunks as BlobPart[]),{headers:{"Content-Type":request.headers.get("content-type")||""}}).formData();
   const audio = form.get("audio");
   const language=form.get("language")==="sv"?"sv":"fr";
-  const level = String(form.get("level") || "B1");
-  const task = String(form.get("task") || "spoken retell");
+  const level = String(form.get("level") || "B1").slice(0,40);
+  const task = String(form.get("task") || "spoken retell").slice(0,100);
   const reference = String(form.get("reference") || "").slice(0, 3000);
   const timing = String(form.get("timing") || "").slice(0, 1000);
   if (!(audio instanceof File)) return Response.json({ error: "An audio recording is required." }, { status: 400 });
   if (audio.size > 8 * 1024 * 1024) return Response.json({ error: "Keep recordings under 8 MB." }, { status: 413 });
+  if(!audio.size||!["audio/webm","video/webm","audio/mp4","audio/ogg","audio/mpeg","audio/wav","audio/x-wav"].includes(audio.type.split(";")[0]))return Response.json({error:"Choose a supported, nonempty audio recording."},{status:400});
+  const quota=await guardAiRequest(request);if(quota)return quota;
 
   const transcriptionForm = new FormData();
   transcriptionForm.append("file", audio, audio.type.includes("mp4") ? "recording.m4a" : audio.type.includes("ogg") ? "recording.ogg" : "recording.webm");
@@ -24,6 +30,7 @@ export async function POST(request: Request) {
   const transcriptionResponse = await fetchAi("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: transcriptionForm });
   if (!transcriptionResponse.ok) return Response.json({ error: "The recording could not be transcribed." }, { status: transcriptionResponse.status });
   const transcription = await transcriptionResponse.json() as { text: string };
+  if(typeof transcription.text!=="string"||!transcription.text.trim()||transcription.text.length>10000)throw Error("Invalid transcription");
 
   const response = await fetchAi("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -39,6 +46,7 @@ export async function POST(request: Request) {
   const result = await response.json() as { output?: Array<{ content?: Array<{ type?: string; text?: string }> }> };
   const outputText = result.output?.flatMap(item => item.content || []).find(item => item.type === "output_text")?.text;
   if (!outputText) return Response.json({ error: "AI feedback was empty." }, { status: 502 });
-  return Response.json({ transcript: transcription.text, feedback: JSON.parse(outputText) });
+  const feedback=JSON.parse(outputText);if(!validSpeakingFeedback(feedback))throw Error("Invalid feedback");
+  return Response.json({ transcript: transcription.text, feedback },{headers:{"Cache-Control":"private, no-store"}});
   } catch { return Response.json({error:"Coaching could not finish. Your recording remains available here; please retry."},{status:502}); }
 }

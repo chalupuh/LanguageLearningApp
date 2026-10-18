@@ -130,6 +130,15 @@ test("session hook restores, autosaves, survives unmount and prevents stale-tab 
     state = { ...state, text: "Stale tab" }; render(); await settle(); await flush();
     assert.equal(remote.get(source).state.text, "Newer device");
     assert.match(result.status, /Newer work/);
+    assert.ok(result.conflict);
+    await result.resolveConflict(true); await settle(); await flush();
+    assert.equal(remote.get(source).state.text,"Stale tab");
+    assert.equal(result.conflict,null);
+    remote.set(source,{...remote.get(source),revision:remote.get(source).revision+1,state:{...base,text:"Keep remote"}});
+    state={...state,text:"Conflicting local"};render();await settle();await flush();
+    await result.resolveConflict(false);await settle();
+    assert.equal(state.text,"Keep remote");
+    assert.ok([...storage.keys()].some(key=>key.includes(":conflict-backup:")));
     assert.ok(requests.every(request => request.url.startsWith("/api/session-drafts")));
     unmount();
     // A keepalive may reach the server even if the old page never receives its response.

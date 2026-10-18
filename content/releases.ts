@@ -89,6 +89,12 @@ export const releases = [
   {mark:"01",title:"My Calendar",body:"Open My Calendar to set your main goal and add small practice goals to any week. Check them off yourself, edit them, or move them to another week."},
   {mark:"02",title:"Keep your history",body:"Browse previous months and their checklists. Weeks that cross two months share the same goals. French and Swedish each have their own calendar, saved across devices."},
  ]},
+ {id:"2026-10-18-reliable-practice",date:"October 18, 2026",title:"Pick up your practice with confidence",summary:"Clearer reviews, safer recovery, and a more useful personal notebook.",items:[
+  {mark:"01",title:"A fresh review",body:"Reopen a completed lesson to begin another practice attempt. If two devices have different unsynced answers, compare versions, download a backup, and choose which to keep."},
+  {mark:"02",title:"Find the phrases you need",body:"Search saved phrases by their words, sentence, or lesson. Filter for due phrases, edit their context, and undo an accidental removal. Your library area and filters stay with you when you return."},
+  {mark:"03",title:"Keep your recordings",body:"Download an original take or save its audio while coaching is still running. Your recording journal includes search, refresh, downloads, and available slots."},
+  {mark:"04",title:"More dependable saving",body:"Save messages distinguish device storage from work that only exists in an open tab. Your calendar checks for other-device changes, and daily practice rewards use Eastern time consistently."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

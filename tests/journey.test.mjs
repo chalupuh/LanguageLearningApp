@@ -55,6 +55,11 @@ test("new persistent APIs protect revisions, quotas, request ownership, release 
   assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe","train"]},"nikki",rev))).status,200);
   assert.equal((await progress.PUT(req("progress","PUT",{completed:[]},"nikki",rev))).status,409);
   assert.deepEqual((await(await progress.GET(req("progress"))).json()).state.completed,["cafe","train"]);
+  const futureRevision=Date.now()+60000;
+  sqlite.prepare("UPDATE learner_progress SET updated_at=? WHERE user_id=?").run(futureRevision,"nikki");
+  assert.equal((await progress.PUT(req("progress?language=sv","PUT",{holidayTheme:"winter"},"nikki",0))).status,200);
+  const shared=await(await progress.GET(req("progress"))).json();
+  assert.equal(shared.syncedAt,futureRevision+1);assert.deepEqual(shared.state.completed,["cafe","train"]);
   const guard=await import(await moduleUrl("app/api/ai-guard.ts"));
   for(let i=0;i<60;i++)assert.equal(await guard.guardAiRequest(req("speech","POST",{})),null);
   assert.equal((await guard.guardAiRequest(req("speech?language=sv","POST",{}))).status,429);
@@ -63,6 +68,7 @@ test("new persistent APIs protect revisions, quotas, request ownership, release 
   const note={id:"request-test-000000001",text:"More café surprises",kind:"idea",language:"both"};
   assert.equal((await requests.POST(req("requests","POST",note))).status,200);
   assert.equal((await requests.POST(req("requests","POST",note))).status,200);
+  assert.equal((await requests.POST(req("requests","POST",{...note,text:"Edited after a lost response"}))).status,409);
   assert.equal((await(await requests.GET(req("requests?language=sv"))).json()).requests.length,1);
   assert.equal((await requests.GET(req("requests?owner=1"))).status,403);
   const update={id:note.id,userId:"nikki",status:"planned",message:"Next up"};

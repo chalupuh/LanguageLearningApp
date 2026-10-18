@@ -115,3 +115,14 @@ html[data-holiday-theme="summer"] .theme-motif-set[data-theme="summer"]{display:
 @media(max-width:600px){.full-transcript p:has(>span){grid-template-columns:minmax(0,1fr);row-gap:4px}.full-transcript p>span{font-weight:700}}
 /* Focused practice tools retain the app's paper, rose and forest palette. */
 .practice-tools label{display:block;margin:1rem 0 .5rem}.practice-tools input:not([type=checkbox]),.practice-tools textarea{display:block;box-sizing:border-box;width:100%;max-width:100%;padding:.75rem;border:1px solid var(--line-strong);border-radius:.5rem;background:var(--paper,#fffafc);color:var(--ink);font:inherit}.practice-tools textarea{min-height:100px}.practice-tools audio{width:100%;max-width:100%}.practice-tools li{margin:.75rem 0;overflow-wrap:anywhere}.practice-tools button:disabled{opacity:.5;cursor:default}.practice-tools select{display:block;width:100%;margin-top:.4rem}.journey-card{padding:1.2rem;margin:1rem 0;border:1px solid var(--line-strong);border-radius:1rem}.journey-card summary{cursor:pointer;font-weight:600}.journey-card summary:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+
+/* Notebook controls use the same readable fields as the lesson library. */
+.phrase-library{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.phrase-library>div,.phrase-context-editor{grid-column:1/-1}
+.phrase-library>label{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.phrase-library>label:nth-of-type(2){flex-direction:row;align-items:center}
+.phrase-library input[type=search],.phrase-library select,.phrase-context-editor textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--paper,#fffafc);color:var(--ink);font:inherit}
+.phrase-context-editor textarea{display:block;min-height:100px;margin:10px 0}
+.phrase-library article .phrase-edit,.phrase-context-editor button{font:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:8px;color:var(--ink);width:max-content;max-width:100%}
+.phrase-library input:focus-visible,.phrase-context-editor textarea:focus-visible{outline:3px solid var(--pink-deep);outline-offset:3px}
+@media(max-width:700px){.phrase-library{grid-template-columns:minmax(0,1fr)}.phrase-library>label{grid-column:1}.phrase-library article{min-width:0}}

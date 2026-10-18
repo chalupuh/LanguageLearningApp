@@ -1,8 +1,24 @@
-# vinext-starter
+# À l’Oreille
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A French and Swedish listening-practice app running on Vinext, React, Cloudflare
+D1, and R2. Lessons combine listening, contextual phrase review, rehearsal, and
+retelling. French and Swedish learning data is isolated; appearance is shared.
+
+Application code lives in `app/`, authored lessons and releases in `content/`,
+learning rules and validators in `lib/`, and database migrations in `drizzle/`.
+The hosting manifest preserves the existing Site identity and storage bindings.
+
+Use `npm run typecheck` to generate scoped Worker types and check TypeScript,
+`npm test` to build and run every test, or `npm run test:unit` after a successful
+build to rerun tests. Render tests require `dist/server/index.js`. `npm run lint`
+excludes generated runtime directories but still reports existing authored-code
+lint debt. See `docs/review-fixes-2026-10-18.md` for validation and remaining work.
+
+Local development uses the existing ignored environment configuration; production
+configuration is managed by Sites. `ALLOWED_USER_EMAILS` controls invitations,
+`OWNER_EMAIL` enables owner surfaces, and `OPENAI_API_KEY` enables optional AI
+coaching. Never commit those values. Localhost uses a separate development identity.
+No AI key is needed for bundled lesson audio or mocked automated tests.
 
 ## Prerequisites
 
@@ -91,7 +107,7 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - `npm run dev`: start local development
 - `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
+- `npm test`: build the app and run the complete regression suite
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
 ## Recording maintenance

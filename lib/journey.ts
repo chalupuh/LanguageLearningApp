@@ -19,9 +19,9 @@ export function achievements(events: Activity[]) {
   const retained = new Set(events.filter(e => e.kind === "phrase" && details(e).rating !== "Again").filter(e => events.some(other => other.source === e.source && other.id !== e.id && other.createdAt < e.createdAt - 86400000 && details(other).rating !== "Again")).map(e => e.source)).size;
   const weeks=new Map<string,Set<string>>(), achievedWeeks=new Set<string>();
   for(const event of [...events].filter(e=>e.xp>0).sort((a,b)=>a.createdAt-b.createdAt)){
-    const date=new Date(event.createdAt),day=localDay(date);
-    date.setDate(date.getDate()-((date.getDay()+6)%7));
-    const week=localDay(date),days=weeks.get(week)||new Set<string>();days.add(day);weeks.set(week,days);
+    const day=localDay(new Date(event.createdAt)),date=new Date(day+"T12:00:00Z");
+    date.setUTCDate(date.getUTCDate()-((date.getUTCDay()+6)%7));
+    const week=date.toISOString().slice(0,10),days=weeks.get(week)||new Set<string>();days.add(day);weeks.set(week,days);
     if(days.size>=(details(event).weeklyGoal||3))achievedWeeks.add(week);
   }
   return [
@@ -46,4 +46,4 @@ export function listeningSummary(events: Activity[]){
     return {level,count,recent:count>=4?(details(sorted[0]).score+details(sorted[1]).score)/2:null,earlier:count>=4?(details(sorted[2]).score+details(sorted[3]).score)/2:null};
   })};
 }
-export function localDay(date = new Date()) { return [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0"), String(date.getDate()).padStart(2,"0")].join("-"); }
+export function localDay(date = new Date()) { return new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).format(date); }

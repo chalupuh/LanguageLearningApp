@@ -23,7 +23,7 @@ test("clean capture requests disabled processing and silence locks pause app med
  assert.deepEqual(captureConstraints("","browser"),{audio:true});
  assert.deepEqual(captureConstraints("laptop","clean"),{audio:{deviceId:{exact:"laptop"},autoGainControl:false,noiseSuppression:false,echoCancellation:false}});
  const oldWindow=globalThis.window,oldDocument=globalThis.document;let paused=0,events=0;const handlers=new Set();
- globalThis.window={dispatchEvent:()=>events++};globalThis.document={querySelectorAll:()=>[{pause:()=>paused++}],addEventListener:(_n,fn)=>handlers.add(fn),removeEventListener:(_n,fn)=>handlers.delete(fn)};
+ globalThis.window={dispatchEvent:event=>{if(event.type==="a-loreille-capture-playback")events++}};globalThis.document={querySelectorAll:()=>[{pause:()=>paused++}],addEventListener:(_n,fn)=>handlers.add(fn),removeEventListener:(_n,fn)=>handlers.delete(fn)};
  try{const release=holdAppPlayback(),second=holdAppPlayback();assert.equal(paused,2);assert.equal(events,2);assert.equal(captureActive(),true);for(const fn of handlers)fn({target:{pause:()=>paused++}});assert.equal(paused,4);release();release();assert.equal(captureActive(),true);second();assert.equal(captureActive(),false);assert.equal(handlers.size,0)}finally{if(oldWindow===undefined)delete globalThis.window;else globalThis.window=oldWindow;if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument}
  const page=await readFile(new URL("app/page.tsx",root),"utf8");assert.match(page,/Test only — no AI upload/);assert.match(page,/if\(takeOptions.current.testOnly\).*setComparisons.*return/);assert.match(page,/CAPTURE_PLAYBACK_EVENT,report/);assert.match(page,/CAPTURE_PLAYBACK_EVENT,pause/);
 });

@@ -11,6 +11,7 @@ const cacheKey = (user: string, source: string) => `a-loreille-draft:${user}:${s
 export function useSessionDraft(source: string | null, state: Draft, restore: (draft: Draft | null) => void, language:"fr"|"sv"="fr") {
   const [readySource, setReadySource] = useState<string | null>(null), [status, setStatus] = useState("Restoring your session…"), [reload, setReload] = useState(0);
   const [loadError, setLoadError] = useState("");
+  const [conflict, setConflict] = useState<{local: Draft; remote: Draft | null} | null>(null);
   const restoreRef = useRef(restore); restoreRef.current = restore;
   const current = useRef<{ source: string; user: string; revision: number; latest: Draft; sent: string; inFlight: string; saving: boolean; conflict: boolean; closed: boolean; flush: () => Promise<void> } | null>(null);
   const serialized = JSON.stringify(state);
@@ -35,16 +36,18 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
       if (cancelled) return;
       const remote: Saved | undefined = data.drafts[0];
       let draft = remote?.state ?? null;
-      let local: { state: Draft; revision: number; inFlight?: string } | null = null;
+      let conflicted = false;
+      let local: { state: Draft; revision: number; inFlight?: string; sent?: string } | null = null;
       try { local = JSON.parse(localStorage.getItem(cacheKey(data.userId, source)) || "null"); } catch {}
       // Recover unsynced edits only when they are based on this exact server version.
       const recoverable = local && validDraft(local.state) && (local.revision === (remote?.revision ?? 0) || (remote && local.revision + 1 === remote.revision && local.inFlight === JSON.stringify(remote.state)));
       if (recoverable) draft = local!.state;
-      else if (local && validDraft(local.state) && JSON.stringify(local.state) !== JSON.stringify(remote?.state)) {
-        try { localStorage.setItem(cacheKey(data.userId, source) + ":conflict-backup", JSON.stringify(local)); } catch {}
+      else if (local && validDraft(local.state) && local.sent !== JSON.stringify(local.state) && JSON.stringify(local.state) !== JSON.stringify(remote?.state)) {
+        conflicted = true; draft = local.state; setConflict({local: local.state, remote: remote?.state ?? null});
+        try { localStorage.setItem(cacheKey(data.userId, source) + ":conflict-backup:" + Date.now(), JSON.stringify(local)); } catch {}
       }
-      const entry = { source, user: data.userId, revision: remote?.revision ?? 0, latest: draft as Draft, sent: JSON.stringify(remote?.state ?? null), inFlight: "", saving: false, conflict: false, closed: false, flush: async () => {} };
-      const cache = () => { try { localStorage.setItem(cacheKey(entry.user, source), JSON.stringify({ state: entry.latest, revision: entry.revision, inFlight: entry.inFlight })); return true; } catch { return false; } };
+      const entry = { source, user: data.userId, revision: remote?.revision ?? 0, latest: draft as Draft, sent: JSON.stringify(remote?.state ?? null), inFlight: "", saving: false, conflict: conflicted, closed: false, flush: async () => {} };
+      const cache = () => { try { localStorage.setItem(cacheKey(entry.user, source), JSON.stringify({ state: entry.latest, revision: entry.revision, inFlight: entry.inFlight, sent: entry.sent })); return true; } catch { return false; } };
       entry.flush = async () => {
         if (!entry.latest || entry.saving || entry.conflict || JSON.stringify(entry.latest) === entry.sent) return;
         const snapshot = JSON.stringify(entry.latest);
@@ -52,9 +55,19 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
         entry.saving = true; entry.inFlight = snapshot; cache();
         try {
           const body = JSON.stringify({ source, state: entry.latest, revision: entry.revision });
-          const r = await fetch("/api/session-drafts"+(language==="sv"?"?language=sv":""), { method: "PUT", headers: { "Content-Type": "application/json" }, body, keepalive: new TextEncoder().encode(body).length < 60000 });
+          const r = await fetch("/api/session-drafts"+(language==="sv"?"?language=sv":""), { method: "PUT", headers: { "Content-Type": "application/json" }, body, signal: AbortSignal.timeout(15000), keepalive: new TextEncoder().encode(body).length < 60000 });
           const result = await r.json();
-          if (!r.ok) { entry.conflict = r.status === 409; throw Error(result.error || "Waiting to sync"); }
+          if(r.status===409){
+            const check=await fetch("/api/session-drafts?source="+encodeURIComponent(source)+(language==="sv"?"&language=sv":""),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+            if(!check.ok)throw Error("Could not check the saved session");const data=await check.json();const remote:Saved|undefined=data.drafts?.[0];
+            if(data.userId!==entry.user||!remote||!validDraft(remote.state)||!Number.isSafeInteger(remote.revision))throw Error("Invalid saved session");
+            // A timed-out request may already have committed. Reconcile it without
+            // asking the learner to resolve two identical versions.
+            if(JSON.stringify(remote.state)===snapshot){entry.revision=remote.revision;entry.sent=snapshot;entry.inFlight="";cache();if(!entry.closed)setStatus("Saved · available on your other devices");return;}
+            entry.conflict=true;if(!entry.closed)setConflict({local:entry.latest,remote:remote.state});
+          }
+          if (!r.ok) throw Error(result.error || "Waiting to sync");
+          if(!Number.isSafeInteger(result.revision)||result.revision<=entry.revision)throw Error("Invalid save revision");
           entry.revision = result.revision; entry.sent = snapshot; entry.inFlight = ""; cache();
           if (!entry.closed) setStatus(JSON.stringify(entry.latest) === snapshot ? "Saved · available on your other devices" : "Saving…");
         } catch (error) { if (!entry.closed) setStatus(entry.conflict ? "Newer work exists on another tab or device. Reload saved session." : cache() ? "Saved on this device · waiting to sync" : "Not saved. Keep this page open and retry."); }
@@ -64,7 +77,7 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
       current.current = entry;
       restoreRef.current(draft);
       setReadySource(source);
-      setStatus("Session restored · audio paused");
+      setStatus(conflicted?"Newer work exists on another device. Choose which version to keep.":"Session restored · audio paused");
     }).catch(error => { if (!cancelled) { const message = controller.signal.aborted ? "Loading took too long. Retry loading or return to Today. Your saved work has not been replaced." : error instanceof Error ? error.message : "Could not load your session."; setLoadError(message); setStatus(message); } }).finally(() => window.clearTimeout(loadTimer));
     const flush = () => { void current.current?.flush(); };
     const timer = window.setInterval(flush, 3000);
@@ -75,22 +88,44 @@ export function useSessionDraft(source: string | null, state: Draft, restore: (d
     const entry = current.current;
     if (!source || readySource !== source || entry?.source !== source) return;
     entry.latest = JSON.parse(serialized);
+    if(entry.conflict)setConflict(value=>value?{...value,local:entry.latest}:value);
     if (serialized === entry.sent) return;
     try { localStorage.setItem(cacheKey(entry.user, source), JSON.stringify({ state: entry.latest, revision: entry.revision, inFlight: entry.inFlight })); setStatus(entry.conflict ? "Newer work exists on another tab or device. Reload saved session." : "Saved on this device · syncing…"); }
     catch { setStatus("Saving… keep this page open until saved."); }
     const timer = window.setTimeout(() => void entry.flush(), 450);
     return () => window.clearTimeout(timer);
   }, [source, readySource, serialized]);
-  return { ready: Boolean(source && source === readySource), status, loadError,
+  const download = () => {
+    const entry = current.current;
+    const url = URL.createObjectURL(new Blob([JSON.stringify({source, local:entry?.latest, saved:conflict?.remote}, null, 2)], {type:"application/json"}));
+    const link = document.createElement("a"); link.href=url; link.download="practice-session-backup.json"; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+  const resolveConflict = async (keepLocal:boolean) => {
+    const entry=current.current; if(!entry||entry.saving)return;
+    entry.saving=true;
+    try {
+      const response=await fetch("/api/session-drafts?source="+encodeURIComponent(entry.source)+(language==="sv"?"&language=sv":""),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+      if(!response.ok)throw Error(); const data=await response.json(); const remote:Saved|undefined=data.drafts?.[0];
+      if(entry.closed||current.current!==entry)return;
+      if(data.userId!==entry.user||(remote&&!validDraft(remote.state)))throw Error();
+      // Preserve a separately downloadable copy before replacing the working version.
+      if(!keepLocal){localStorage.setItem(cacheKey(entry.user,entry.source)+":conflict-backup:"+Date.now(),JSON.stringify({state:entry.latest,revision:entry.revision}));entry.latest=(remote?.state??null) as Draft;restoreRef.current(remote?.state??null);}
+      entry.revision=remote?.revision??0;entry.sent=JSON.stringify(remote?.state??null);entry.inFlight="";entry.conflict=false;setConflict(null);
+      setStatus(keepLocal?"Saving your chosen version…":"Saved version restored · audio paused");
+    } catch {if(!entry.closed)setStatus("Could not resolve this conflict. Download your edits and retry; this tab still has your work.");}
+    finally {entry.saving=false;}
+    if(!entry.conflict)void entry.flush();
+  };
+  return { ready: Boolean(source && source === readySource), status, loadError, conflict, download, resolveConflict,
     retry: () => { if (!current.current) setReload(n => n + 1); else void current.current.flush(); },
-    reload: () => { if (window.confirm("Load the saved version? Unsynced edits in this tab will be replaced.")) { const entry = current.current; if (entry) { entry.conflict = true; try { localStorage.removeItem(cacheKey(entry.user, entry.source)); } catch {} } setReload(n => n + 1); } },
+    reload: () => { if (window.confirm("Load the saved version? A backup of your current edits will be kept on this device.")) void resolveConflict(false); },
   };
 }
 
 export function SessionSaveStatus({ recovery, restart }: { recovery: ReturnType<typeof useSessionDraft>; restart: () => void }) {
   if (!recovery.ready) return null;
   const needsAttention=/unavailable|failed|retry|newer|another|couldn|refresh/i.test(recovery.status);
-  return <div className="session-save"><span role="status">{recovery.status}</span><details open={needsAttention}><summary>Session options</summary><div><button onClick={recovery.retry}>Retry save</button><button onClick={recovery.reload}>Reload saved session</button><button onClick={() => { if (window.confirm("Start this session over? Its answers and playback position will be cleared. Earned XP is kept.")) restart(); }}>Start over</button></div></details></div>;
+  return <div className="session-save"><span role="status">{recovery.status}</span>{recovery.conflict&&<section role="alert"><h2>Two versions of this practice exist</h2><p>Your edits are still here. Choose a version before syncing continues.</p><details><summary>Compare answers</summary><p>Your version: {String(recovery.conflict.local.retell||recovery.conflict.local.text||"No written answer")}</p><p>Saved version: {recovery.conflict.remote?String(recovery.conflict.remote.retell||recovery.conflict.remote.text||"No written answer"):"Load the latest saved version using the button below."}</p></details><button onClick={()=>void recovery.resolveConflict(true)}>Keep my edits</button><button onClick={()=>void recovery.resolveConflict(false)}>Use saved version</button></section>}<details open={needsAttention}><summary>Session options</summary><div><button onClick={recovery.download}>Download session backup</button><button onClick={recovery.retry}>Retry save</button><button onClick={recovery.reload}>Reload saved session</button><button onClick={() => { if (window.confirm("Start this session over? Its answers and playback position will be cleared. Earned XP is kept.")) restart(); }}>Start over</button></div></details></div>;
 }
 
 export function SessionRecoveryGate({ recovery, onLeave }: { recovery: ReturnType<typeof useSessionDraft>; onLeave: () => void }) {
