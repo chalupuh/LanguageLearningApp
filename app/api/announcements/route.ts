@@ -1,23 +1,28 @@
 import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
 import { announcements } from "../../../content/announcements";
 import {situations} from "../../../content/situations";
+import {isListeningDifficulty,listeningQuestions,scoreListening} from "../../../content/listening-challenges";
 import { getDb } from "../../../db";
 import { journeyEvents } from "../../../db/schema";
 import { and, eq } from "drizzle-orm";
 const headers={"Cache-Control":"private, no-store"};
 export async function GET(request:Request){
  const auth=authorizeAppRequest(request);if(!auth.identity)return Response.json({error:"Sign in to practice."},{status:auth.status,headers});
+ const difficulty=new URL(request.url).searchParams.get("difficulty")||"standard";
+ if(!isListeningDifficulty(difficulty)||(auth.language==="sv"&&difficulty!=="standard"))return Response.json({error:"Choose a supported listening level."},{status:400,headers});
  try{const events=await getDb().select().from(journeyEvents).where(eq(journeyEvents.userId,auth.identity.userId));
  const catalog=new URL(request.url).searchParams.get("category")==="situations"?situations:announcements;
- return Response.json({items:catalog.filter(a=>(a.language||"fr")===auth.language).map(({questions,...item})=>({...item,questions:questions.map(({answer,...question})=>question)})),completed:events.filter(e=>e.kind==="announcement").map(e=>e.source),attempts:events.filter(e=>e.kind==="announcement-attempt").sort((a,b)=>b.createdAt-a.createdAt).map(e=>({id:e.id,source:e.source,createdAt:e.createdAt,...JSON.parse(e.details)}))},{headers});
+ return Response.json({items:catalog.filter(a=>(a.language||"fr")===auth.language).map(item=>({id:item.id,title:item.title,level:item.level,text:item.text,questions:listeningQuestions(item,difficulty).map(q=>({skill:q.skill,prompt:q.prompt,...(difficulty==="write"?{}:{options:q.options})}))})),completed:events.filter(e=>e.kind==="announcement").map(e=>e.source),attempts:events.filter(e=>e.kind==="announcement-attempt").sort((a,b)=>b.createdAt-a.createdAt).map(e=>({id:e.id,source:e.source,createdAt:e.createdAt,...JSON.parse(e.details)}))},{headers});
  }catch{return Response.json({error:"Could not load announcement practice."},{status:503,headers})}
 }
 export async function POST(request:Request){
  const auth=authorizeAppRequest(request);if(!auth.identity)return Response.json({error:"Sign in to save practice."},{status:auth.status,headers});
  if(request.headers.get("origin")&&request.headers.get("origin")!==new URL(request.url).origin)return Response.json({error:"Invalid origin."},{status:403,headers});
  const body=await request.json().catch(()=>null),item=[...announcements,...situations].find(a=>a.id===body?.id&&(a.language||"fr")===auth.language);
- if(!item||!Array.isArray(body.answers)||body.answers.length!==item.questions.length||body.answers.some((a:unknown)=>!Number.isInteger(a)||Number(a)<0||Number(a)>2)||!Number.isInteger(body.listens)||body.listens<1||body.listens>100)return Response.json({error:"Finish listening and answer every question."},{status:400,headers});
- const result={score:Math.round(item.questions.filter((q,i)=>q.answer===body.answers[i]).length/item.questions.length*100),skills:item.questions.map((q,i)=>({skill:q.skill,correct:q.answer===body.answers[i],answer:q.options[q.answer]})),condition:body.listens===1?"first":"replay",level:item.level};
+ const difficulty=body?.difficulty||"standard";
+ if(!item||!isListeningDifficulty(difficulty)||(auth.language==="sv"&&difficulty!=="standard")||!Array.isArray(body.answers)||!Number.isInteger(body.listens)||body.listens<1||body.listens>100)return Response.json({error:"Finish listening and answer every question."},{status:400,headers});
+ let graded;try{graded=scoreListening(item,difficulty,body.answers)}catch{return Response.json({error:"Answer every question using the selected difficulty."},{status:400,headers})}
+ const result={...graded,condition:body.listens===1?"first":"replay",level:item.level,difficulty};
  if(body.attemptId!==undefined&&(typeof body.attemptId!=="string"||!/^[-\w]{16,80}$/.test(body.attemptId)))return Response.json({error:"Invalid attempt."},{status:400,headers});
  try{const db=getDb(),createdAt=Date.now();
  const prior=await db.select().from(journeyEvents).where(and(eq(journeyEvents.userId,auth.identity.userId),eq(journeyEvents.id,"announcement:"+item.id)));

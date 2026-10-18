@@ -1,6 +1,7 @@
 import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {passages} from '../content/passages.ts';
+import {parisianVariant} from '../content/parisian-french.ts';
 import {announcements} from '../content/announcements.ts';
 import {situations} from '../content/situations.ts';
 import {speechTurns,recordingSignature,pcmWave,RECORDING_VERSION} from '../lib/passage-speech.ts';
@@ -8,13 +9,13 @@ import {speechInstructions} from '../lib/speech-policy.ts';
 const env=await readFile(new URL('../.env.local',import.meta.url),'utf8');
 const key=process.env.OPENAI_API_KEY||env.split(/\r?\n/).find(x=>/^\s*OPENAI_API_KEY\s*=/.test(x))?.replace(/^\s*OPENAI_API_KEY\s*=\s*/,'').trim().replace(/^(["'])(.*)\1$/,'$2');
 if(!key)throw Error('Speech credentials missing');
-const catalog=[...passages,...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speaker:{name:'Narrator',voice:'marin'}}))];
+const catalog=[...passages,...passages.flatMap(p=>{const v=parisianVariant(p);return v?[v]:[]}),...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speaker:{name:'Narrator',voice:'marin'}}))];
 const root=new URL(`../public/audio/passages/${RECORDING_VERSION}/`,import.meta.url),scratch=new URL('../work/aligned-audio/',import.meta.url);
 await mkdir(root,{recursive:true});await mkdir(scratch,{recursive:true});
 const records={},queue=[...catalog];
 async function worker(){while(queue.length){
  const p=queue.shift(),turns=speechTurns(p),signature=recordingSignature(p),language=p.language||'fr';
- const instructions=speechInstructions(language)+(p.poem?' Recite the poem thoughtfully, preserving its rhythm without singing.':' Read only the supplied words, as one speaker. Do not invent another voice or add words.');
+ const instructions=speechInstructions(language,p.speechStyle)+(p.poem?' Recite the poem thoughtfully, preserving its rhythm without singing.':' Read only the supplied words, as one speaker. Do not invent another voice or add words.');
  const hash=createHash('sha256').update(signature+instructions).digest('hex').slice(0,24),filename=hash+'.wav',target=new URL(filename,root),meta=new URL(hash+'.json',scratch);
  try{const saved=JSON.parse(await readFile(meta,'utf8'));if((await stat(target)).size>1000){records[p.id]=saved;console.log('Verified existing '+p.id);continue}}catch{}
  const parts=[],timings=[];let seconds=0;

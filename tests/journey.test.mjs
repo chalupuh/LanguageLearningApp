@@ -134,6 +134,22 @@ test("language progress is isolated, appearance shared, and announcement XP is i
   assert.equal((await ann.POST(req("announcements?language=sv","POST",body))).status,400);
   const event=sqlite.prepare("select details from journey_events where user_id='nikki' and kind='announcement'").get();
   assert.equal(JSON.parse(event.details).score,100);assert.equal(JSON.parse(event.details).condition,"first");
+  const hardCatalog=await(await ann.GET(req("announcements?difficulty=close"))).json();
+  const writtenCatalog=await(await ann.GET(req("announcements?difficulty=write"))).json();
+  assert.ok(hardCatalog.items.every(a=>a.questions.every(q=>!("answer" in q)&&!("accepted" in q))));
+  assert.ok(writtenCatalog.items.every(a=>a.questions.every(q=>!("answer" in q)&&!("accepted" in q)&&!("options" in q))));
+  const {listeningQuestions}=await import(await moduleUrl("content/listening-challenges.ts"));
+  const {announcements:privateCatalog}=await import(await moduleUrl("content/announcements.ts"));
+  const mall=privateCatalog.find(a=>a.id==="mall-closing");
+  for(const difficulty of ["close","write"]){
+   const questions=listeningQuestions(mall,difficulty),attemptId=crypto.randomUUID();
+   const hardBody={...body,difficulty,attemptId,answers:questions.map(q=>difficulty==="write"?q.accepted[0]:q.answer)};
+   const saved=await(await ann.POST(req("announcements","POST",hardBody))).json();
+   assert.equal(saved.awarded,0);assert.equal(saved.result.score,100);assert.equal(saved.result.difficulty,difficulty);assert.equal(saved.result.condition,"familiar");
+   assert.equal((await(await ann.POST(req("announcements","POST",hardBody))).json()).awarded,0);
+  }
+  assert.equal((await ann.GET(req("announcements?language=sv&difficulty=write"))).status,400);
+  assert.equal((await ann.GET(req("announcements?difficulty=made-up"))).status,400);
   assert.deepEqual((await(await ann.GET(req("announcements?language=sv"))).json()).completed,[]);
   await ann.POST(req("announcements?language=sv","POST",{id:"sv-butik",answers:[0,1,2],listens:1}));
   const journey=await import(await moduleUrl("app/api/journey/route.ts"));
@@ -286,7 +302,7 @@ async function moduleUrl(path){
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
   "../../../content/releases":"content/releases.ts",
-  "../../../content/announcements":"content/announcements.ts", "../../../content/situations":"content/situations.ts", "../../../lib/feedback-notes":"lib/feedback-notes.ts", "../../db/schema":"db/schema.ts",
+  "../../../content/announcements":"content/announcements.ts", "../../../content/listening-challenges":"content/listening-challenges.ts", "../../../content/situations":"content/situations.ts", "../../../lib/feedback-notes":"lib/feedback-notes.ts", "../../db/schema":"db/schema.ts",
   "../../../db/schema":"db/schema.ts",
  };
  for(const [specifier,target]of Object.entries(replacements))if(source.includes('"'+specifier+'"'))source=source.replaceAll('"'+specifier+'"',JSON.stringify(await moduleUrl(target)));

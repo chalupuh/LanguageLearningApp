@@ -23,6 +23,7 @@ export type Passage = {
   meaning: string;
   speaker: Speaker;
   audioFile?: string;
+  speechStyle?: "parisian";
   challenges: string[];
   comprehensionPoints: string[];
   category?: "everyday" | "poetry";

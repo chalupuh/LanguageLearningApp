@@ -79,6 +79,12 @@ export const releases = [
  {id:"2026-10-17-phrase-help",date:"October 17, 2026",title:"Help with the words you highlighted",summary:"Phrase explanations are available while you listen closer.",items:[
   {mark:"01",title:"Mark, save, or understand",body:"Select transcript words in Listen closer and choose Help with this phrase for their meaning, verb forms, and everyday examples. Mark for next time and Save phrase remain beside it."},
  ]},
+ {id:"2026-10-17-french-next",date:"October 17, 2026",title:"A new voice, and a tougher French challenge",summary:"Poetry with Julien, Parisian listening, and room to write in both languages.",items:[
+  {mark:"01",title:"Julien reads the poetry",body:"All six poems now have new recordings with Julien’s male French voice."},
+  {mark:"02",title:"Make the answers harder",body:"French announcements and server situations offer Close choices with similar distractors, or Write the answer with no answer choices. Each attempt records its challenge level; XP is still awarded once per recording."},
+  {mark:"03",title:"Two ways to explain what you heard",body:"First listen has separate optional English and French summary boxes. Review my French writing gives grammar and wording feedback, an estimated writing score, and a natural French example that preserves your meaning."},
+  {mark:"04",title:"Try Parisian French",body:"Everyday French lessons have an optional extra listening test with a faster, informal adaptation. The same voices keep their roles. Your main lesson answers stay in place."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

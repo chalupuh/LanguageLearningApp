@@ -25,7 +25,7 @@ export function speechTurns(passage:Passage,excerpt?:string):SpeechTurn[]{
  const end=start+needle.length;let offset=0;
  return turns.flatMap(turn=>{const text=normalize(turn.text),base=offset,left=Math.max(start,base),right=Math.min(end,base+text.length);offset+=text.length+1;return right>left?[{...turn,text:text.slice(left-base,right-base)}]:[]});
 }
-export function recordingSignature(passage:Passage){return JSON.stringify([RECORDING_VERSION,passage.language||"fr",speechTurns(passage)]);}
+export function recordingSignature(passage:Passage){const signature:unknown[]=[RECORDING_VERSION,passage.language||"fr",speechTurns(passage)];if(passage.speechStyle)signature.push(passage.speechStyle);return JSON.stringify(signature);}
 
 // PCM from speech is mono signed 16-bit at 24 kHz. One container avoids the
 // competing MP3 headers that can truncate/skip turns when concatenated.

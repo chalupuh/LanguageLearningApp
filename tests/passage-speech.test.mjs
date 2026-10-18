@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {passages} from '../content/passages.ts';
+import {parisianVariant} from '../content/parisian-french.ts';
 import {speechTurns,recordingSignature,pcmWave} from '../lib/passage-speech.ts';
 import {passagePlayback} from '../lib/passage-playback.ts';
 import {audioRecordings} from '../content/audio-recordings.ts';
@@ -42,9 +43,9 @@ test('PCM assembly retains all samples in one seekable WAV container',()=>{
  const a=Uint8Array.from([1,2,3,4]),b=Uint8Array.from([5,6]);const wave=pcmWave([a,b]);const view=new DataView(wave.buffer);
  assert.equal(new TextDecoder().decode(wave.slice(0,4)),'RIFF');assert.equal(view.getUint32(4,true),42);assert.equal(view.getUint32(40,true),6);assert.equal(view.getUint32(24,true),24000);assert.deepEqual(wave.slice(44),Uint8Array.from([1,2,3,4,5,6]));
 });
-test('all 74 catalog recordings contain every assigned turn in order, with valid audio samples and WAV lengths',async()=>{
- const catalog=[...passages,...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speaker:{name:'Narrator',voice:'marin'}}))];
- assert.equal(catalog.length,74);
+test('all 97 catalog recordings contain every assigned turn in order, with valid audio samples and WAV lengths',async()=>{
+ const catalog=[...passages,...passages.flatMap(p=>{const v=parisianVariant(p);return v?[v]:[]}),...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speaker:{name:'Narrator',voice:'marin'}}))];
+ assert.equal(catalog.length,97);
  for(const passage of catalog){
   const record=audioRecordings[passage.id];assert.ok(record,passage.id);assert.equal(record.signature,recordingSignature(passage),passage.id);
   const data=await readFile(new URL('../public'+record.file,import.meta.url));

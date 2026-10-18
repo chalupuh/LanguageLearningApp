@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const body = await request.json() as { summary?: string; passage?: string; level?: string; language?:string; category?: string; comprehensionPoints?: string[] };
   const summary = body.summary?.trim() ?? "";
   const passage = body.passage?.trim() ?? "";
-  if (!summary || summary.length > 1000 || !passage || passage.length > 4000) {
+  if (!summary || summary.length > 1200 || !passage || passage.length > 4000) {
     return Response.json({ error: "A short summary and passage are required." }, { status: 400 });
   }
 
