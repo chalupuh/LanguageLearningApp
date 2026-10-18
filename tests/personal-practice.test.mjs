@@ -4,6 +4,30 @@ import {readFile} from "node:fs/promises";
 import ts from "typescript";
 const compile=code=>ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const data=code=>`data:text/javascript;base64,${Buffer.from(compile(code)).toString("base64")}`;
+
+test("Listen Closer marking does not hide phrase explanations, and help uses the selected sentence",async()=>{
+ let source=await readFile(new URL("../app/phrase-tools.tsx",import.meta.url),"utf8");
+ source=source.replace(/import \{useEffect,useRef,useState\} from "react";/,'const {useEffect,useRef,useState}=globalThis.__phraseHooks;').replace(/^import .*;\r?\n/gm,'');
+ const selected={text:"je m’en occupe",context:{sentence:"Oui, ne vous inquiétez pas, je m’en occupe.",source:"library:matin-comptoir"}};
+ let cells=[selected],cursor=0,tree,marked=[],request;
+ const old={window:globalThis.window,document:globalThis.document,HTMLElement:globalThis.HTMLElement,fetch:globalThis.fetch};
+ globalThis.__phraseHooks={useEffect(){},useRef(v){return {current:v}},useState(v){const id=cursor++;if(!(id in cells))cells[id]=v;return [cells[id],value=>cells[id]=typeof value==="function"?value(cells[id]):value]}};
+ globalThis.window={getSelection:()=>({removeAllRanges(){}})};globalThis.document={activeElement:null};globalThis.HTMLElement=class{};
+ globalThis.fetch=async(url,options)=>{assert.equal(url,"/api/phrase-help");request=JSON.parse(options.body);return Response.json({meaning:"I will take care of it",form:"Present tense of s’occuper",examples:["Je m’en occupe.","Elle s’en occupe."]})};
+ const Component=(await import(`data:text/javascript;base64,${Buffer.from(compile(source).replace('"react/jsx-runtime"',JSON.stringify(import.meta.resolve("react/jsx-runtime")))).toString("base64")}`)).default;
+ const props={saved:[],onSave(){},language:"fr",loadAudio:async()=>new Blob(),onMark:(text,context)=>marked.push({text,context})};
+ const render=()=>{cursor=0;tree=Component(props)};
+ const nodes=(n=tree)=>Array.isArray(n)?n.flatMap(x=>nodes(x??null)):n&&typeof n==="object"?[n,...nodes(n.props?.children??null)]:[];
+ const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?text(n.props?.children):String(n??"");
+ const button=label=>nodes().find(n=>n.type==="button"&&text(n)===label);
+ try{
+  render();assert.ok(button("Mark for next time"));assert.ok(button("Help with this phrase"));assert.ok(button("Save phrase"));
+  button("Mark for next time").props.onClick();assert.deepEqual(marked,[selected]);render();
+  button("Help with this phrase").props.onClick();render();assert.match(text(tree),/Explain meaning and form/);
+  button("Explain meaning and form").props.onClick();await new Promise(resolve=>setImmediate(resolve));render();assert.deepEqual(request,{...selected,language:"fr"});
+  assert.match(text(tree),/Words and verb forms/);assert.match(text(tree),/Present tense of s’occuper/);assert.match(text(tree),/Elle s’en occupe/);
+ }finally{for(const [key,value] of Object.entries(old)){if(value===undefined)delete globalThis[key];else globalThis[key]=value}delete globalThis.__phraseHooks}
+});
 test("phrase selection preserves accents and rejects oversized/non-language selections",async()=>{
  const {selectionText,validSelectedPhrase}=await import(data(await readFile(new URL("../lib/phrase-selection.ts",import.meta.url),"utf8")));
  assert.equal(selectionText("  ça\n vous ennuierait  "),"ça vous ennuierait");assert.equal(validSelectedPhrase("blême"),true);assert.equal(validSelectedPhrase("åtta"),true);assert.equal(validSelectedPhrase("123"),false);assert.equal(validSelectedPhrase("a".repeat(221)),false);

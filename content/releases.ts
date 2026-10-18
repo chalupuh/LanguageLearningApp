@@ -76,6 +76,9 @@ export const releases = [
   {mark:"02",title:"Announcements ready to play",body:"Announcements and server situations now have bundled recordings. Normal playback does not use your hourly AI coaching allowance; playback errors offer a retry."},
   {mark:"03",title:"Continue when you are ready",body:"Listen closer lets you continue without revealing the transcript or marking words first. Your saved highlights remain available."},
  ]},
+ {id:"2026-10-17-phrase-help",date:"October 17, 2026",title:"Help with the words you highlighted",summary:"Phrase explanations are available while you listen closer.",items:[
+  {mark:"01",title:"Mark, save, or understand",body:"Select transcript words in Listen closer and choose Help with this phrase for their meaning, verb forms, and everyday examples. Mark for next time and Save phrase remain beside it."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
