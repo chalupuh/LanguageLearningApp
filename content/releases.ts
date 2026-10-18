@@ -71,6 +71,11 @@ export const releases = [
   {mark:"01",title:"Listen first, then show the transcript",body:"Use the original lesson recording. One Show transcript button reveals the whole passage; there is no separate phrase drill or More replay tools menu."},
   {mark:"02",title:"Keep the confusing words",body:"Highlight text and choose Mark for next time. Your highlights return with this lesson, and Save phrase adds them to your review notebook."},
  ]},
+ {id:"2026-10-17-aligned-audio",date:"October 17, 2026",title:"Conversation voices stay with their speakers",summary:"Refreshed recordings and a simpler way to continue listening practice.",items:[
+  {mark:"01",title:"One voice for each speaker",body:"French and Swedish conversations have new recordings assembled line by line. Transcript labels, phrase replay, and rehearsal follow the same speaker assignments, including Le dernier croissant."},
+  {mark:"02",title:"Announcements ready to play",body:"Announcements and server situations now have bundled recordings. Normal playback does not use your hourly AI coaching allowance; playback errors offer a retry."},
+  {mark:"03",title:"Continue when you are ready",body:"Listen closer lets you continue without revealing the transcript or marking words first. Your saved highlights remain available."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

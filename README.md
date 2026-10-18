@@ -94,6 +94,21 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 - `npm test`: build the starter and verify its rendered loading skeleton
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
+## Recording maintenance
+
+Run `npm run audio:generate` (or `npm run audio:swedish`) with the existing ignored
+`OPENAI_API_KEY` configuration to refresh the complete recording catalog. Both use
+the same generator and resume completed turns from ignored `work/aligned-audio/`.
+Each dialogue turn is synthesized separately using its assigned voice. PCM samples
+are joined into one seekable WAV, with transcript/voice signatures and turn timings
+in `content/audio-recordings.ts`. Changed text, voice, or speech instructions creates
+a new recording URL. Bump `RECORDING_VERSION` when changing the generation policy.
+
+Run `node --experimental-strip-types --test tests/passage-speech.test.mjs` to check
+every catalog recording, speaker assignment, turn boundary, and missing-file fallback.
+Do not replace a conversation with one narrator; ambiguous short phrases should
+use the original conversation recording rather than guessing a speaker.
+
 ## Learn More
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)

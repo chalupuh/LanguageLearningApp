@@ -26,8 +26,8 @@ test("Listen closer hides the complete transcript, keeps highlights, and require
  const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?text(n.props?.children):String(n??"");
  const button=label=>nodes().find(n=>n.type==="button"&&text(n)===label);
  try{
-  render();assert.ok(!text(tree).includes(props.text));assert.equal(button("Continue to Retell practice →").props.disabled,true);
-  button("Show transcript").props.onClick();render();assert.ok(text(tree).includes(props.text));assert.equal(button("Continue to Retell practice →").props.disabled,false);
+  render();assert.ok(!text(tree).includes(props.text));assert.equal(button("Continue to Retell practice →").props.disabled,undefined);
+  button("Show transcript").props.onClick();render();assert.ok(text(tree).includes(props.text));assert.equal(button("Continue to Retell practice →").props.disabled,undefined);
   button("Continue to Retell practice →").props.onClick();assert.deepEqual(results,["I understood it"]);
   props.highlights=["café"];render();assert.equal(nodes().filter(n=>n.type==="mark").length,1);
   button("Save phrase").props.onClick();assert.deepEqual(saves,["café"]);props.saved=["café"];render();assert.equal(button("Saved ✓").props.disabled,true);

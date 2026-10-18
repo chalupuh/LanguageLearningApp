@@ -20,7 +20,7 @@ const lessons: Lesson[] = [
 export const servicePassages: Passage[] = lessons.map(lesson => ({
  id:lesson.id,title:lesson.title,level:lesson.level,topic:lesson.topic,xp:40,speaker,
  category:"everyday",releasedAt:"2026-09-30",audioFile:`/audio/passages/${lesson.id}.mp3`,
- text:lesson.lines.join("\n"),dialogue:lesson.lines.map((text,i)=>({role:i%2?"Staff":"Customer",text,voice:i%2?"marin":"cedar"})),
+ text:lesson.lines.join("\n"),dialogue:lesson.lines.map((text,i)=>{const staff=lesson.id==="diner-deplacer"?i%2===0:i%2===1;return {role:staff?"Camille · Staff":"Hugo · Customer",text,voice:staff?"marin":"cedar"}}),
  decode:lesson.decode,translation:lesson.translation,phrase:lesson.phrase,meaning:lesson.meaning,
  challenges:["Polite requests","Practical details","Natural conversation"],comprehensionPoints:lesson.points,
 }));

@@ -47,7 +47,9 @@ export async function POST(request: Request) {
     if(kind==="release-seen"){
       const index=releases.findIndex(r=>r.id===body.source);
       if(index<0)return reply({error:"Unknown update."},400);
-      await c.db.insert(c.schema.journeyEvents).values(releases.slice(0,index+1).map(r=>({userId:auth.accountUserId!,id:"release-seen:"+r.id,kind,source:r.id,xp:0,createdAt:now,details:"{}"}))).onConflictDoNothing();
+      // Keep each insert below D1's 100 bound-parameter limit as history grows.
+      const seen=releases.slice(0,index+1);
+      for(let start=0;start<seen.length;start+=10)await c.db.insert(c.schema.journeyEvents).values(seen.slice(start,start+10).map(r=>({userId:auth.accountUserId!,id:"release-seen:"+r.id,kind,source:r.id,xp:0,createdAt:now,details:"{}"}))).onConflictDoNothing();
       return reply({saved:true});
     }
     if (kind==="equip") {

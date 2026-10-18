@@ -14,7 +14,7 @@ export default function ListenCloser({text,language,completed,onComplete,player,
   {open&&<p className="closer-selection-help">Select words in the transcript, then choose “Mark for next time” or “Save phrase.” If nothing was confusing, you can simply continue.</p>}
   {open&&highlights.length>0&&<section className="closer-kept" aria-label="Words marked for next time"><h2>For next time</h2><p>These highlights stay with this lesson. Save a phrase to add it to your review notebook.</p>{highlights.map(phrase=><div key={phrase}><span lang={language} data-study-text>{phrase}</span>{onSave&&<button disabled={saved.includes(phrase)} onClick={()=>onSave(phrase)}>{saved.includes(phrase)?"Saved ✓":"Save phrase"}</button>}{onRemove&&<button aria-label={`Remove highlight: ${phrase}`} onClick={()=>onRemove(phrase)}>×</button>}</div>)}</section>}
   {audioUnavailable&&<p role="status">Audio is unavailable. You can review the transcript now and try listening later.</p>}
-  <button className="closer-finish-simple" disabled={!open&&!completed} onClick={()=>onComplete(audioUnavailable||highlights.length?"New expression":"I understood it")}>Continue to Retell practice →</button>
+  <button className="closer-finish-simple" onClick={()=>onComplete(audioUnavailable||highlights.length?"New expression":"I understood it")}>Continue to Retell practice →</button>
   {completed&&<p className="closer-complete" role="status">Your earlier review is complete ✓ Your highlights are kept.</p>}
  </section>;
 }
