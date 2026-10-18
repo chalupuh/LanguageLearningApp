@@ -1,3 +1,4 @@
+import {validComprehension} from "../../../lib/comprehension";
 import { guardAiRequest, fetchAi } from "../ai-guard";
 import {retellMeaningPolicy} from "../../../lib/retell-policy";
 
@@ -40,6 +41,8 @@ export async function POST(request: Request) {
   const result = await response.json() as { output?: Array<{ content?: Array<{ type?: string; text?: string }> }> };
   const output = result.output?.flatMap(item => item.content || []).find(item => item.type === "output_text")?.text;
   if (!output) return Response.json({ error: "Comprehension feedback was empty." }, { status: 502 });
-  return Response.json(JSON.parse(output));
+  const feedback=JSON.parse(output);
+  if(!validComprehension(feedback))return Response.json({error:"Comprehension feedback was incomplete. Please retry."},{status:502});
+  return Response.json(feedback,{headers:{"Cache-Control":"private, no-store"}});
   } catch { return Response.json({error:"Coaching could not finish. Your summary is kept; please retry."},{status:502}); }
 }
