@@ -2,10 +2,34 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
-import {emptyCalendar,validCalendar,validWeek,weekStart,monthWeeks,monthShift,mainGoalFor,setMainGoal,mergeCalendar} from '../lib/calendar.ts';
+import {emptyCalendar,validCalendar,validDate,validWeek,weekStart,monthDays,dateFromKey,fullDateLabel,goalsOnDate,monthWeeks,monthShift,mainGoalFor,setMainGoal,mergeCalendar} from '../lib/calendar.ts';
 const url=s=>'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64');
 const root=new URL('../',import.meta.url),read=p=>readFile(new URL(p,root),'utf8');
 const goal=(id='goal-000000000001',text='Listen to a poem',week='2026-10-26')=>({id,text,week,done:false,createdAt:1});
+
+test('visual month cells match real Sunday–Saturday dates, leap years and four/six-row months',()=>{
+ assert.equal(monthDays('2026-10')[0],'2026-09-27');assert.equal(monthDays('2026-10')[4],'2026-10-01');
+ assert.equal(monthDays('2026-02').length,28);assert.equal(monthDays('2026-08').length,42);
+ assert.ok(monthDays('2024-02').includes('2024-02-29'));assert.ok(!monthDays('2100-02').includes('2100-02-29'));
+ assert.deepEqual(monthDays('bad'),[]);
+ for(const year of [1900,2000,2024,2026,2099,2100,2199])for(let number=1;number<=12;number++){
+  const month=year+'-'+String(number).padStart(2,'0'),days=monthDays(month),own=days.filter(date=>date.startsWith(month+'-'));
+  assert.equal(days.length%7,0);assert.equal(new Set(days).size,days.length);
+  assert.equal(own.length,new Date(Date.UTC(year,number,0)).getUTCDate());
+  days.forEach((date,index)=>assert.equal(dateFromKey(date).getUTCDay(),index%7));
+ }
+});
+
+test('dated checklists validate exact dates, preserve legacy weekly goals, and merge without losing completion',()=>{
+ const daily={...goal(),date:'2026-10-29'},weekly=goal('goal-000000000002'),base={...emptyCalendar(),goals:[daily,weekly]};
+ assert.equal(validCalendar(base),true);assert.deepEqual(goalsOnDate(base,'2026-10-29'),[daily]);assert.deepEqual(goalsOnDate(base,'2026-10-28'),[]);
+ for(const date of ['2026-02-30','2026-13-01','2026-2-01','1899-12-31','2200-01-01'])assert.equal(validDate(date),false);
+ for(const date of ['2026-10-31','2024-02-29','1900-01-01'])assert.equal(validDate(date),true);
+ assert.equal(validCalendar({...base,goals:[{...daily,date:'2026-11-04'}]}),false);
+ const local={...base,goals:[{...daily,done:true},weekly]},remote={...base,goals:[daily,{...weekly,text:'Changed weekly goal'}]};
+ const merged=mergeCalendar(base,local,remote);assert.equal(merged.conflict,false);assert.equal(goalsOnDate(merged.plan,daily.date)[0].done,true);assert.equal(merged.plan.goals[1].text,'Changed weekly goal');
+ const moved={...daily,date:'2026-11-04',week:'2026-11-02'};assert.equal(validCalendar({...base,goals:[moved]}),true);assert.equal(moved.done,false);
+});
 test('calendar weeks cross months and years once, including leap days and daylight-saving boundaries',()=>{
  assert.equal(weekStart('2026-11-01'),'2026-10-26');assert.ok(monthWeeks('2026-10').includes('2026-10-26'));assert.ok(monthWeeks('2026-11').includes('2026-10-26'));
  assert.equal(weekStart('2024-02-29'),'2024-02-26');assert.equal(weekStart('2026-03-08'),'2026-03-02');assert.equal(weekStart('2027-01-01'),'2026-12-28');assert.equal(monthShift('2026-12',1),'2027-01');
@@ -22,10 +46,12 @@ test('cross-device merging preserves unrelated edits and detects conflicting edi
 });
 test('goal editor uses a chosen day to move to the correct week, keeps the existing text, and supports cancel',async()=>{
  const page=await read('app/my-calendar.tsx');let source=page.slice(page.indexOf('function GoalEditor('),page.indexOf('export default function MyCalendar'));
- source='const {useState,useRef,useEffect,weekStart,weekLabel}=globalThis.__calendarEditor;'+source+'export {GoalEditor};';let cells=[],cursor=0,saved,closed=0;
- const {weekLabel}=await import('../lib/calendar.ts');globalThis.__calendarEditor={useState(v){const i=cursor++;if(!(i in cells))cells[i]=v;return[cells[i],v=>cells[i]=v]},useRef:()=>({current:null}),useEffect(){},weekStart,weekLabel};
+ source='const {useState,useRef,useEffect,weekStart,weekLabel,validDate,fullDateLabel}=globalThis.__calendarEditor;'+source+'export {GoalEditor};';let cells=[],cursor=0,saved,closed=0;
+ const {weekLabel}=await import('../lib/calendar.ts');globalThis.__calendarEditor={useState(v){const i=cursor++;if(!(i in cells))cells[i]=v;return[cells[i],v=>cells[i]=v]},useRef:()=>({current:null}),useEffect(){},weekStart,weekLabel,validDate,fullDateLabel};
  try{const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText.replace('"react/jsx-runtime"',JSON.stringify(import.meta.resolve('react/jsx-runtime'))),{GoalEditor}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));let tree;const render=()=>{cursor=0;tree=GoalEditor({goal:goal(),week:goal().week,onSave:(text,week)=>{saved={text,week};return true},onClose:()=>closed++})},nodes=(n=tree)=>Array.isArray(n)?n.flatMap(x=>nodes(x??null)):n&&typeof n==='object'?[n,...nodes(n.props?.children??null)]:[];
  render();nodes().find(n=>n.type==='input'&&n.props.type==='date').props.onInput({currentTarget:{value:'2026-11-04'}});render();nodes().find(n=>n.type==='form').props.onSubmit({preventDefault(){}});assert.deepEqual(saved,{text:goal().text,week:'2026-11-02'});assert.equal(closed,1);nodes().find(n=>n.type==='button'&&n.props.type==='button').props.onClick();assert.equal(closed,2);
+ cells=[];const dated={...goal(),date:"2026-10-29"};const renderDated=()=>{cursor=0;tree=GoalEditor({goal:dated,week:dated.week,onSave:(text,week,date)=>{saved={text,week,date};return true},onClose:()=>closed++})};renderDated();nodes().find(n=>n.type==="input"&&n.props.type==="date").props.onInput({currentTarget:{value:"2026-11-04"}});renderDated();nodes().find(n=>n.type==="form").props.onSubmit({preventDefault(){}});assert.deepEqual(saved,{text:dated.text,week:"2026-11-02",date:"2026-11-04"});
+ nodes().find(n=>n.type==="input"&&n.props.type==="radio"&&!n.props.checked).props.onChange();renderDated();nodes().find(n=>n.type==="form").props.onSubmit({preventDefault(){}});assert.equal(saved.date,undefined);
  }finally{delete globalThis.__calendarEditor}
 });
 test('calendar API uses real SQLite, isolates accounts and languages, and rejects stale writes and invalid origins',async()=>{
@@ -36,7 +62,7 @@ test('calendar API uses real SQLite, isolates accounts and languages, and reject
  for(const [from,to] of Object.entries({'../learning-track':auth,'../../../db':url('export const getDb=()=>globalThis.__calendarDb;'),'../../../db/schema':schema,'../../../lib/calendar':url(await read('lib/calendar.ts')),'drizzle-orm':import.meta.resolve('drizzle-orm')}))source=source.replaceAll(JSON.stringify(from),JSON.stringify(to));
  const {GET,PUT}=await import(url(source)),request=(body,user='nikki',language='fr',origin='https://app.test')=>new Request('https://app.test/api/calendar?language='+language,{method:body?'PUT':'GET',headers:{'oai-authenticated-user-id':user,'oai-authenticated-user-email':user+'@example.com',origin},...(body?{body:JSON.stringify(body)}:{})});
  assert.equal((await GET(new Request('https://app.test/api/calendar'))).status,401);assert.equal((await GET(request(null,'outsider'))).status,403);
- const state={...emptyCalendar(),goals:[goal()]},body={state,revision:0};assert.equal((await PUT(request(body,'nikki','fr','https://evil.test'))).status,403);assert.equal((await PUT(request({...body,state:{}}))).status,400);assert.equal((await PUT(request(body))).status,200);assert.equal((await PUT(request(body))).status,409);
+ const state={...emptyCalendar(),goals:[{...goal(),date:'2026-10-29'}]},body={state,revision:0};assert.equal((await PUT(request(body,'nikki','fr','https://evil.test'))).status,403);assert.equal((await PUT(request({...body,state:{}}))).status,400);assert.equal((await PUT(request({...body,state:{...state,goals:[{...state.goals[0],date:'2026-11-04'}]}}))).status,400);assert.equal((await PUT(request(body))).status,200);assert.equal((await PUT(request(body))).status,409);
  let r=await GET(request());assert.equal(r.headers.get('cache-control'),'private, no-store');assert.deepEqual((await r.json()).state,state);
  assert.equal((await (await GET(request(null,'owner'))).json()).state.goals.length,0);assert.equal((await (await GET(request(null,'nikki','sv'))).json()).state.goals.length,0);
  assert.equal((await PUT(request({...body,state:{...state,goals:[{...goal(),done:true}]},revision:1}))).status,200);assert.equal((await PUT(request(body,'nikki','sv'))).status,200);assert.equal((await (await GET(request(null,'nikki','sv'))).json()).state.goals[0].done,false);assert.equal((await (await GET(request())).json()).state.goals[0].done,true);
@@ -58,7 +84,7 @@ test('calendar sync keeps offline changes, recovers after remount, combines anot
  assert.equal(result.plan.goals.length,1);
  remote={state:emptyCalendar(),revision:2};for(let i=0;i<10;i++){intervals.forEach(fn=>fn());await settle()}
  assert.equal(result.plan.goals.length,0);
- offline=true;result.change(p=>({...p,goals:[goal()]}));await settle();assert.match(result.status,/waiting to sync/);assert.equal(remote.state.goals.length,0);unmount();offline=false;mount();await settle();assert.equal(remote.state.goals.length,1);assert.equal(result.plan.goals.length,1);
+ offline=true;result.change(p=>({...p,goals:[{...goal(),date:"2026-10-29"}]}));await settle();assert.match(result.status,/waiting to sync/);assert.equal(remote.state.goals.length,0);unmount();offline=false;mount();await settle();assert.equal(remote.state.goals.length,1);assert.equal(result.plan.goals.length,1);assert.equal(result.plan.goals[0].date,"2026-10-29");
  remote={state:{...remote.state,goals:[...remote.state.goals,goal('goal-000000000002','From the other device')]},revision:remote.revision+1};result.change(p=>({...p,goals:p.goals.map(g=>({...g,done:true}))}));await settle();intervals.forEach(fn=>fn());await settle();assert.equal(remote.state.goals.length,2);assert.equal(remote.state.goals[0].done,true);
  remote={state:{...remote.state,goals:remote.state.goals.map(g=>g.id===goal().id?{...g,text:'Remote change'}:g)},revision:remote.revision+1};result.change(p=>({...p,goals:p.goals.map(g=>g.id===goal().id?{...g,text:'My conflicting change'}:g)}));await settle();assert.equal(result.conflict,true);assert.equal(result.plan.goals[0].text,'My conflicting change');assert.equal(remote.state.goals[0].text,'Remote change');assert.equal(result.change(p=>p),false);
  }finally{unmount();globalThis.setInterval=oldSetInterval;globalThis.clearInterval=oldClearInterval;for(const [k,v] of Object.entries(globals))if(v===undefined)delete globalThis[k];else globalThis[k]=v}

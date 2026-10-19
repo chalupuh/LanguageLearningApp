@@ -95,6 +95,11 @@ export const releases = [
   {mark:"03",title:"Keep your recordings",body:"Download an original take or save its audio while coaching is still running. Your recording journal includes search, refresh, downloads, and available slots."},
   {mark:"04",title:"More dependable saving",body:"Save messages distinguish device storage from work that only exists in an open tab. Your calendar checks for other-device changes, and daily practice rewards use Eastern time consistently."},
  ]},
+ {id:"2026-10-19-visual-calendar",date:"October 19, 2026",title:"See your study days take shape",summary:"A real monthly calendar, with your own checklist on every day.",items:[
+  {mark:"01",title:"Your month, laid out clearly",body:"My Calendar now opens with a Sunday–Saturday month view. Choose a day, add study items, and check them off on the calendar or in the full daily checklist."},
+  {mark:"02",title:"Give a goal a day",body:"Your main goal and weekly plans are still below the calendar. Edit any weekly goal and choose On a specific day to place it in the month view. Items can be moved without losing their completion state."},
+  {mark:"03",title:"A useful view on your phone",body:"Small screens show your planned and completed items as dots. Tap a date for its full checklist. Your French and Swedish calendars still save separately across devices."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
