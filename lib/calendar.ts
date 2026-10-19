@@ -9,9 +9,9 @@ export function weekStart(key:string){const d=dateFromKey(key);return addDays(ke
 export function validDate(v:unknown):v is string{return typeof v==="string"&&validMonth(v.slice(0,7))&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(dateFromKey(v).getTime())&&dateKey(dateFromKey(v))===v}
 // Calendar rows start on Sunday. UTC noon keeps date-only arithmetic stable
 // through daylight-saving changes and in every browser timezone.
-export function monthDays(month:string){
+export function monthDays(month:string,startsOn:0|1=0){
  if(!validMonth(month))return [];
- const first=month+"-01",start=addDays(first,-dateFromKey(first).getUTCDay()),next=monthShift(month,1)+"-01";
+ const first=month+"-01",start=addDays(first,-((dateFromKey(first).getUTCDay()-startsOn+7)%7)),next=monthShift(month,1)+"-01";
  const count=Math.ceil((dateFromKey(next).getTime()-dateFromKey(start).getTime())/86400000/7)*7;
  return Array.from({length:count},(_,index)=>addDays(start,index));
 }

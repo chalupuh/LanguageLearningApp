@@ -1,6 +1,6 @@
 # Visual monthly calendar
 
-My Calendar leads with a Sunday–Saturday month table, followed by the selected
+My Calendar leads with a Sunday–Saturday (or Monday–Sunday) month table, followed by the selected
 day's checklist, the main monthly goal, and the existing weekly checklist sections.
 The month grid includes neighboring dates to complete each week. Today and the
 selected date have separate visual treatments. Arrow keys move by day/week;
@@ -25,3 +25,22 @@ dated items, not inferred lesson attendance.
 Regression coverage checks month/day alignment, four- and six-row months,
 century leap-year rules, supported date boundaries, legacy records, moving
 items, conflict merges, API persistence and account/language isolation.
+
+## Display and holidays
+
+The browser display preference supports Sunday/Monday week starts and U.S.,
+France, or hidden holiday annotations. Home/End follow the chosen row layout.
+Changing display settings never changes task dates or Monday-based weekly keys.
+Draft quick-add text is held separately for each date during a mounted visit;
+unsubmitted drafts are not saved after reload. Full holiday names appear in the
+selected-day panel; phones use a gold marker to keep the grid uncluttered.
+
+Holiday annotations use current recurring national rules, with selected common
+observances. They are not an exhaustive regional or historical holiday database.
+U.S. actual dates and Friday/Monday observed dates are separate, including
+New Year’s Day observed in the previous December. France uses Gregorian Easter
+for Easter Monday, Ascension and Whit Monday. Annotations never enter the saved
+plan, checkbox totals, or manually tracked study-day counts.
+
+Date references checked against [OPM’s federal holiday schedule](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/)
+and [Service Public’s French 2026 holiday dates](https://www.service-public.gouv.fr/particuliers/actualites/A18558).

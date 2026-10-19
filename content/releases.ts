@@ -100,6 +100,11 @@ export const releases = [
   {mark:"02",title:"Give a goal a day",body:"Your main goal and weekly plans are still below the calendar. Edit any weekly goal and choose On a specific day to place it in the month view. Items can be moved without losing their completion state."},
   {mark:"03",title:"A useful view on your phone",body:"Small screens show your planned and completed items as dots. Tap a date for its full checklist. Your French and Swedish calendars still save separately across devices."},
  ]},
+ {id:"2026-10-19-calendar-polish",date:"October 19, 2026",title:"A calmer calendar, with the little details included",summary:"Holidays, flexible week layouts, and a clearer view of your study plans.",items:[
+  {mark:"01",title:"Holidays at a glance",body:"Choose U.S. or French holidays and common observances, or hide them. On phones, a small gold marker leads to the full holiday name when you select the day."},
+  {mark:"02",title:"Make the week feel familiar",body:"Start your calendar on Sunday or Monday. Your display choices stay on this browser, and existing weekly goals keep their dates."},
+  {mark:"03",title:"A more useful study planner",body:"A new monthly progress strip, clearer day headings, and a quieter two-column weekly notebook make plans easier to scan. Unfinished quick-add text stays with its day while you navigate this calendar."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
