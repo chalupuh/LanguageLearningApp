@@ -12,6 +12,8 @@ export async function passagePlayback(passage:Passage,excerpt:string|undefined,r
  }
  const parts:Blob[]=[];
  // Sequential on purpose: the speech service never assigns turns itself.
- for(const turn of turns)parts.push(await loadTurn(turn.text,turn.voice,language));
- return parts.length===1?parts[0]:assemble(parts);
+ for(const turn of turns){const blob=await loadTurn(turn.text,turn.voice,language);if(!blob.size)throw Error("A speaker turn returned empty audio");parts.push(blob);}
+ const result=parts.length===1?parts[0]:await assemble(parts);
+ if(!result.size)throw Error("Conversation assembly returned empty audio");
+ return result;
 }

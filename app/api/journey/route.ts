@@ -1,3 +1,5 @@
+import {frenchCourseContext} from "../french-course";
+import {frenchAccess} from "../../../lib/french-progression";
 import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
 import { earnedXp, rewards, localDay } from "../../../lib/journey";
 import { passages } from "../../../content/passages";
@@ -24,9 +26,11 @@ async function context(userId: string, accountUserId=userId) {
 export async function GET(request: Request) {
   const auth = authorizeAppRequest(request); if (!auth.identity) return reply({error:"Sign in to see your journey."},auth.status);
   try {
+    const course=auth.language==="fr"?await frenchCourseContext(auth.identity.userId):null;
     const {events,profile,legacy,collectionXp,frenchXp,swedishXp,accountEvents} = await context(auth.identity.userId,auth.accountUserId);
     const used = new Set(events.filter(e=>e.kind==="checkpoint").map(e=>e.source));
-    const next = auth.language==="sv"?undefined:checkpoints.find(c=>!used.has(c.id));
+    const candidate=auth.language==="sv"?undefined:checkpoints.find(c=>!used.has(c.id));
+    const next=candidate&&(!course||frenchAccess(candidate.level.startsWith("B2")?"B2":"B1",course.course,course.completed))?candidate:undefined;
     const last = Math.max(0,...events.filter(e=>e.kind==="checkpoint").map(e=>e.createdAt));
     return reply({...profile,collectionXp,frenchXp,swedishXp,userId:undefined,releases:unseenReleases(accountEvents,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
   } catch { return reply({error:"Your journey could not be loaded. Please retry."},503); }
@@ -38,6 +42,12 @@ export async function POST(request: Request) {
   if (!body || typeof body.kind!=="string" || typeof body.source!=="string" || !body.source || body.source.length>240) return reply({error:"Invalid activity."},400);
   try {
     const userId=auth.identity.userId, c=await context(userId,auth.accountUserId), now=Date.now(), day=localDay(new Date(now));
+    if(auth.language==="fr"){
+      const course=await frenchCourseContext(userId);
+      const lesson=passages.find(p=>body.source==="library:"+p.id);
+      const checkpoint=checkpoints.find(check=>check.id===body.source);
+      if((lesson&&!frenchAccess(lesson.level,course.course,course.completed))||(body.kind==="checkpoint"&&!frenchAccess(checkpoint?.level.startsWith("B2")?"B2":"B1",course.course,course.completed)))return reply({error:"Complete the previous course stage first."},403);
+    }
     let kind=body.kind, xp=0, id="", data:Record<string,unknown>={};
     const confirmUsage=async()=>{
       const usageId=typeof body.usageSessionId==="string"&&/^[-\w]{36}$/.test(body.usageSessionId)?body.usageSessionId:`confirmed:${auth.language}:${body.source}:${day}`;
@@ -69,7 +79,7 @@ export async function POST(request: Request) {
     const studio=/^studio:[\w-]{11}:\d+:\d+$/.test(body.source);
     if (kind==="loop" || kind==="review") {
       // Accept earlier clients/drafts during rollout; new sessions use rehearsed.
-      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<(auth.language==="sv"?5:15) || body.summary.length>1200 || typeof body.retell!=="string" || body.retell.trim().length<(auth.language==="sv"?5:15) || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, Listen closer activity, rehearsal, and retell first."},400);
+      if ((!passage&&!studio) || typeof body.summary!=="string" || body.summary.trim().length<(auth.language==="sv"||passage?.level==="A1"?5:15) || body.summary.length>1200 || typeof body.retell!=="string" || body.retell.trim().length<(auth.language==="sv"||passage?.level==="A1"?5:15) || body.retell.length>10000 || body.decoded!==true || !(body.rehearsed===true || (body.rehearsed===undefined && body.shadowed===true))) return reply({error:"Complete your summary, Listen closer activity, rehearsal, and retell first."},400);
       const prior=c.events.find(e=>e.source===body.source&&(e.kind==="loop"||e.kind==="review"));
       const legacyDone=passage&&c.legacy.completed?.includes(passage.id);
       if (prior || legacyDone || kind==="review") {

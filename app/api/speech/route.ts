@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   const normalizedText = text.trim();
   const voice = requestedVoice && ALLOWED_VOICES.has(requestedVoice) ? requestedVoice : VOICE;
   const language=requestedLanguage==="sv"?"sv":"fr";
-  const style=language==="fr"&&requestedStyle==="parisian"?"parisian":undefined;
+  const style=language==="fr"&&(requestedStyle==="parisian"||requestedStyle==="beginner")?requestedStyle:undefined;
   const cacheKey = await speechCacheKey(request, normalizedText, voice, language,style);
   const edgeCache = (globalThis.caches as EdgeCacheStorage | undefined)?.default;
   const cached = await edgeCache?.match(cacheKey).catch(() => undefined);

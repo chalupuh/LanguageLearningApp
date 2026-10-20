@@ -135,7 +135,7 @@ export function SessionRecoveryGate({ recovery, onLeave }: { recovery: ReturnTyp
   </section>;
 }
 
-export function ContinueSessions({ onContinue, language="fr" }: { onContinue: (source: string) => void; language?:"fr"|"sv" }) {
+export function ContinueSessions({ onContinue, language="fr", allowSource=()=>true }: { onContinue: (source: string) => void; language?:"fr"|"sv";allowSource?:(source:string)=>boolean }) {
   const [drafts, setDrafts] = useState<Saved[]>([]), [error, setError] = useState("");
   useEffect(() => {
     let active = true;
@@ -143,6 +143,7 @@ export function ContinueSessions({ onContinue, language="fr" }: { onContinue: (s
     void load(); const timer = window.setInterval(load, 5000); window.addEventListener("focus", load);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", load); };
   }, []);
-  if (!drafts.length && !error) return null;
-  return <section className="continue-sessions" aria-label="Continue your session"><p className="eyebrow">Right where you left off</p><h2>Continue your session</h2>{error && <p role="status">{error}</p>}{drafts.slice(0, 6).map(draft => <button key={draft.source} onClick={() => onContinue(draft.source)}><strong>{draft.state.title}</strong><span>{stages[draft.state.step]} · Step {draft.state.step + 1} of 4 →</span></button>)}</section>;
+  const visibleDrafts=drafts.filter(draft=>allowSource(draft.source));
+  if (!visibleDrafts.length && !error) return null;
+  return <section className="continue-sessions" aria-label="Continue your session"><p className="eyebrow">Right where you left off</p><h2>Continue your session</h2>{error && <p role="status">{error}</p>}{visibleDrafts.slice(0, 6).map(draft => <button key={draft.source} onClick={() => onContinue(draft.source)}><strong>{draft.state.title}</strong><span>{stages[draft.state.step]} · Step {draft.state.step + 1} of 4 →</span></button>)}</section>;
 }

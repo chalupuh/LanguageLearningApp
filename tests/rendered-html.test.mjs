@@ -174,7 +174,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(page, /getDuration/);
   assert.match(page, /onStateChange:report/);
   assert.match(page, /function FeedbackNotebook/);
-  assert.match(page, /Nikki’s notebook/);
+  assert.match(page, /My notebook/);
   assert.match(page, /feedbackNotes/);
   assert.match(page, /RequestCenter language=/);
   assert.match(page, /function AccessGate/);

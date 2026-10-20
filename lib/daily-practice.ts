@@ -1,6 +1,6 @@
 import type {Passage} from "../content/passages";
-export type LearningPreferences={minutes:5|10|15;level:string;interest:string;goal:string};
-export const defaultPreferences:LearningPreferences={minutes:10,level:"B1",interest:"any",goal:"everyday"};
+export type LearningPreferences={minutes:5|10|15;level:string;interest:string;goal:string;showBeginnerContent?:boolean};
+export const defaultPreferences:LearningPreferences={minutes:10,level:"B1",interest:"any",goal:"everyday",showBeginnerContent:false};
 type Options={preferences?:LearningPreferences;observations?:{source:string;createdAt:number;details:string}[];reflections?:{createdAt:string;patterns:string[]}[]};
 export function dailyPractice(catalog:Passage[],completed:string[],reviews:Record<string,string>,patterns:Record<string,number>,now=Date.now(),options:Options={}){
  const due=catalog.filter(p=>Date.parse(reviews[p.id]||"")<=now).sort((a,b)=>Date.parse(reviews[a.id])-Date.parse(reviews[b.id]));
@@ -11,7 +11,7 @@ export function dailyPractice(catalog:Passage[],completed:string[],reviews:Recor
  const observations=(options.observations||[]).filter(o=>now-o.createdAt<30*86400000).sort((a,b)=>b.createdAt-a.createdAt);
  const evidence=new Map<string,any>();for(const o of observations)if(!evidence.has(o.source)){try{evidence.set(o.source,JSON.parse(o.details));}catch{}}
  const unseen=catalog.filter(p=>!completed.includes(p.id)),pool=unseen.length?unseen:catalog;
- const pref=options.preferences,rank:Record<string,number>={A1:0,B1:1,"B1+":2,B2:3,"B2+":4};
+ const pref=options.preferences,rank:Record<string,number>={A1:0,A2:1,B1:2,"B1+":3,B2:4,"B2+":5};
  const ranked=pool.map(p=>{
   const matches=Boolean(focus&&tags[focus]?.test(p.challenges.join(" ")+" "+p.topic));
   const interest=Boolean(pref&&pref.interest!=="any"&&(p.category===pref.interest||p.topic.toLowerCase().includes(pref.interest)));

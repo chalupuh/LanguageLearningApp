@@ -1,7 +1,9 @@
+import {frenchCourseContext} from "../french-course";
+import {frenchAccess} from "../../../lib/french-progression";
 import { authorizeLearningRequest as authorizeAppRequest } from "../learning-track";
 import { announcements } from "../../../content/announcements";
 import {situations} from "../../../content/situations";
-import {isListeningDifficulty,listeningQuestions,scoreListening} from "../../../content/listening-challenges";
+import {challengeDetails,isListeningDifficulty,listeningQuestions,scoreListening} from "../../../content/listening-challenges";
 import { getDb } from "../../../db";
 import { journeyEvents } from "../../../db/schema";
 import { and, eq } from "drizzle-orm";
@@ -11,8 +13,9 @@ export async function GET(request:Request){
  const difficulty=new URL(request.url).searchParams.get("difficulty")||"standard";
  if(!isListeningDifficulty(difficulty)||(auth.language==="sv"&&difficulty!=="standard"))return Response.json({error:"Choose a supported listening level."},{status:400,headers});
  try{const events=await getDb().select().from(journeyEvents).where(eq(journeyEvents.userId,auth.identity.userId));
+ const course=auth.language==="fr"?await frenchCourseContext(auth.identity.userId):null;
  const catalog=new URL(request.url).searchParams.get("category")==="situations"?situations:announcements;
- return Response.json({items:catalog.filter(a=>(a.language||"fr")===auth.language).map(item=>({id:item.id,title:item.title,level:item.level,text:item.text,questions:listeningQuestions(item,difficulty).map(q=>({skill:q.skill,prompt:q.prompt,...(difficulty==="write"?{}:{options:q.options})}))})),completed:events.filter(e=>e.kind==="announcement").map(e=>e.source),attempts:events.filter(e=>e.kind==="announcement-attempt").sort((a,b)=>b.createdAt-a.createdAt).map(e=>({id:e.id,source:e.source,createdAt:e.createdAt,...JSON.parse(e.details)}))},{headers});
+ return Response.json({items:catalog.filter(a=>(a.language||"fr")===auth.language&&(!course||frenchAccess(a.level,course.course,course.completed))&&(difficulty==="standard"||!!challengeDetails(a))).map(item=>({id:item.id,title:item.title,level:item.level,text:item.text,questions:listeningQuestions(item,difficulty).map(q=>({skill:q.skill,prompt:q.prompt,...(difficulty==="write"?{}:{options:q.options})}))})),completed:events.filter(e=>e.kind==="announcement").map(e=>e.source),attempts:events.filter(e=>e.kind==="announcement-attempt").sort((a,b)=>b.createdAt-a.createdAt).map(e=>({id:e.id,source:e.source,createdAt:e.createdAt,...JSON.parse(e.details)}))},{headers});
  }catch{return Response.json({error:"Could not load announcement practice."},{status:503,headers})}
 }
 export async function POST(request:Request){
@@ -25,6 +28,7 @@ export async function POST(request:Request){
  const result={...graded,condition:body.listens===1?"first":"replay",level:item.level,difficulty};
  if(body.attemptId!==undefined&&(typeof body.attemptId!=="string"||!/^[-\w]{16,80}$/.test(body.attemptId)))return Response.json({error:"Invalid attempt."},{status:400,headers});
  try{const db=getDb(),createdAt=Date.now();
+ if(auth.language==="fr"){const course=await frenchCourseContext(auth.identity.userId);if(!frenchAccess(item.level,course.course,course.completed))return Response.json({error:"Complete the previous course stage first."},{status:403,headers});}
  const prior=await db.select().from(journeyEvents).where(and(eq(journeyEvents.userId,auth.identity.userId),eq(journeyEvents.id,"announcement:"+item.id)));
  if(prior.length)result.condition="familiar";
  const rows=await db.insert(journeyEvents).values({userId:auth.identity.userId,id:"announcement:"+item.id,kind:"announcement",source:item.id,xp:25,createdAt,details:JSON.stringify(result)}).onConflictDoNothing().returning();

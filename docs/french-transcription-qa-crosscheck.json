@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-10-20T19:07:45.935Z",
+  "model": "whisper-1",
+  "method": "Unprompted whole-scene French ASR, case/accent/punctuation normalized; token edit distance. Numeric spelling differences require manual comparison. ASR is not human pronunciation or voice-identity review.",
+  "documentation": "https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create",
+  "scenes": [
+    {
+      "id": "fr-a1-gare",
+      "sha256": "d106fcb57bc226894c32bb7293bcd14e09cbfeb0ca7b0aaf6270dec30202a05d",
+      "expected": "Bonjour. Le train pour Lyon, s’il vous plaît ? Il part à dix heures, voie trois. Voie trois ? Oui. Le billet, s’il vous plaît. Voilà mon billet. Merci !",
+      "transcribed": "Bonjour, le train pour Lyon, s'il vous plaît. Il part à 10 heures, voie 3. Voie 3. Oui, le billet, s'il vous plaît. Voilà mon billet. Merci.",
+      "wordEdits": 3,
+      "expectedWords": 29,
+      "wordErrorRate": 0.10344827586206896,
+      "status": "REVIEW DIFFERENCES"
+    },
+    {
+      "id": "fr-a2-dejeuner",
+      "sha256": "260245a0181feac4f8411ef389a3a795fa254b63e6da065ed8d9ee3ac55d0ce4",
+      "expected": "Je voudrais la soupe et du pain, s’il vous plaît. Je suis désolé, il n’y a plus de soupe. Il reste une salade ou une omelette. L’omelette est servie avec des légumes ? Oui, avec des tomates. Vous voulez aussi du pain ? Oui, merci. Je prends l’omelette et un verre d’eau. Très bien. Je vous apporte ça.",
+      "transcribed": "Je voudrais la soupe et du pain, s'il vous plaît. Je suis désolé, il n'y a plus de soupe. Il reste une salade ou une omelette. L'omelette est servie avec des légumes ? Oui, avec des tomates. Vous voulez aussi du pain ? Oui, merci. Je prends l'omelette et un verre d'eau. Très bien. Je vous apporte ça.",
+      "wordEdits": 0,
+      "expectedWords": 61,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "fr-a2-retour",
+      "sha256": "7af84f29bb76c2adc7e2857a8f8755bad3350235d0cf4eb7064e5c0a4225b15c",
+      "expected": "Bonjour. J’ai acheté ce pull hier, mais il est trop petit. Vous avez le ticket de caisse ? Oui, le voici. Je voudrais la taille au-dessus. Nous avons la même couleur en taille moyenne. Vous voulez l’essayer ? Oui, merci. Où sont les cabines ? Au fond, à droite. Si la taille vous convient, nous faisons l’échange ici.",
+      "transcribed": "Bonjour. J'ai acheté ce pull hier, mais il est trop petit. Vous avez le ticket de caisse ? Oui, le voici. Je voudrais la taille au-dessus. Nous avons la même couleur en taille moyenne. Vous voulez l'essayer ? Oui, merci. Où sont les cabines ? Au fond, à droite. Si la taille vous convient, nous faisons l'échange ici.",
+      "wordEdits": 0,
+      "expectedWords": 59,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "announcement:fr-a1-shop",
+      "sha256": "4fdfe3e0f888dcbfc649134a00d30322f8f7b5ea1238e20f814e230b334757a9",
+      "expected": "Le magasin ferme dans cinq minutes. Allez à la caisse, s’il vous plaît. La sortie est à droite.",
+      "transcribed": "Le magasin ferme dans cinq minutes. Allez à la caisse, s'il vous plaît. La sortie est à droite.",
+      "wordEdits": 0,
+      "expectedWords": 19,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "announcement:fr-a1-platform",
+      "sha256": "f83d2e19232f7017ff50491562e68f343924bd3520c6427fddeb918d38f818d4",
+      "expected": "Le train pour Lyon part à dix heures. Il part de la voie trois. Préparez votre billet, s’il vous plaît.",
+      "transcribed": "Le train pour Lyon part à dix heures, il part de la voie 3, préparez votre billet s'il vous plaît.",
+      "wordEdits": 1,
+      "expectedWords": 21,
+      "wordErrorRate": 0.047619047619047616,
+      "status": "REVIEW DIFFERENCES"
+    }
+  ]
+}

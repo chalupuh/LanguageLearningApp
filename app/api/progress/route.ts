@@ -1,3 +1,5 @@
+import {frenchAccess,frenchStage} from "../../../lib/french-progression";
+import {frenchCourseContext} from "../french-course";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { learnerProgress } from "../../../db/schema";
@@ -8,8 +10,13 @@ export async function GET(request: Request) {
   const user = auth.identity;
   if (!user) return Response.json({ error: auth.status === 403 ? "This account is not invited." : "Sign in to sync progress." }, { status: auth.status });
   try {
+    const course=auth.language==="fr"?await frenchCourseContext(user.userId):null;
     const [record] = await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId, user.userId)).limit(1);
     let state=record?JSON.parse(record.state):null;
+    if(course){
+      state={...(state||{}),frenchCourse:course.course,courseCompleted:course.completed};
+      if(course.course!=="legacy")state.preferences={minutes:10,interest:"any",goal:"everyday",...state.preferences,level:frenchAccess(state.preferences?.level,course.course,course.completed)?state.preferences.level:frenchStage(course.course,course.completed)};
+    }
     if(auth.language==="sv"){
       const [base]=await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId,auth.accountUserId!)).limit(1);
       const theme=base?JSON.parse(base.state).holidayTheme:undefined;
@@ -31,9 +38,15 @@ export async function PUT(request: Request) {
   const match=request.headers.get("If-Match");
   if(match===null)return Response.json({error:"Refresh the app before saving. This version protects newer progress on your other devices."},{status:428});
   const expected=Number(match);if(!Number.isSafeInteger(expected)||expected<0)return Response.json({error:"Invalid progress revision."},{status:400});
+  try {
+  if(auth.language==="fr"){
+    const course=await frenchCourseContext(user.userId,false);
+    state.frenchCourse=course.course;
+    state.courseCompleted=course.completed;
+    if(course.course!=="legacy")state.completed=course.completed;
+  }
   const serialized = JSON.stringify(state);
   if (new TextEncoder().encode(serialized).length > 250_000) return Response.json({ error: "Progress data is too large. Export a backup and shorten older notes before retrying." }, { status: 413 });
-  try {
     const updatedAt = Math.max(Date.now(),expected+1);
     const db=getDb();
     const written=expected===0?await db.insert(learnerProgress).values({userId:user.userId,email:user.email,state:serialized,updatedAt}).onConflictDoNothing().returning():await db.update(learnerProgress).set({email:user.email,state:serialized,updatedAt}).where(and(eq(learnerProgress.userId,user.userId),eq(learnerProgress.updatedAt,expected))).returning();

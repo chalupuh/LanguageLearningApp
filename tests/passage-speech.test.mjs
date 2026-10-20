@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {passages} from '../content/passages.ts';
 import {parisianVariant} from '../content/parisian-french.ts';
 import {speechTurns,recordingSignature,pcmWave} from '../lib/passage-speech.ts';
+import {validateRecordingAssembly} from '../lib/audio-recording-validation.ts';
 import {passagePlayback} from '../lib/passage-playback.ts';
 import {audioRecordings} from '../content/audio-recordings.ts';
 import {announcements} from '../content/announcements.ts';
@@ -44,11 +45,12 @@ test('PCM assembly retains all samples in one seekable WAV container',()=>{
  assert.equal(new TextDecoder().decode(wave.slice(0,4)),'RIFF');assert.equal(view.getUint32(4,true),42);assert.equal(view.getUint32(40,true),6);assert.equal(view.getUint32(24,true),24000);assert.deepEqual(wave.slice(44),Uint8Array.from([1,2,3,4,5,6]));
 });
 test('all 97 catalog recordings contain every assigned turn in order, with valid audio samples and WAV lengths',async()=>{
- const catalog=[...passages,...passages.flatMap(p=>{const v=parisianVariant(p);return v?[v]:[]}),...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speaker:{name:'Narrator',voice:'marin'}}))];
+ const catalog=[...passages.filter(p=>p.speechStyle!=='beginner'),...passages.flatMap(p=>{const v=parisianVariant(p);return v?[v]:[]}),...[...announcements,...situations].filter(p=>!(p.language==="fr"&&["A1","A2"].includes(p.level))).map(p=>({...p,id:'announcement:'+p.id,speaker:{name:'Narrator',voice:'marin'}}))];
  assert.equal(catalog.length,97);
  for(const passage of catalog){
   const record=audioRecordings[passage.id];assert.ok(record,passage.id);assert.equal(record.signature,recordingSignature(passage),passage.id);
   const data=await readFile(new URL('../public'+record.file,import.meta.url));
+  assert.equal(validateRecordingAssembly(passage,record,data).length,speechTurns(passage).length);
   assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WAVE');assert.equal(data.readUInt32LE(4)+8,data.length);assert.equal(data.readUInt32LE(40)+44,data.length);
   assert.deepEqual(record.turns.map(({role,text,voice})=>({role,text,voice})),speechTurns(passage));
   let end=0;for(const turn of record.turns){assert.ok(turn.start>=end);assert.ok(turn.end>turn.start);const samples=data.subarray(44+Math.round(turn.start*48000),44+Math.round(turn.end*48000));assert.ok(samples.some(b=>b!==0),passage.id+' silent turn');end=turn.end;}

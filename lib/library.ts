@@ -8,7 +8,7 @@ export function isNewRelease(p:Passage,now=Date.now()) {
  const date=Date.parse(p.releasedAt||"");return Number.isFinite(date)&&now>=date&&now-date<30*86400000;
 }
 export function selectLessons(catalog:Passage[],options:{category:string;status:LibraryStatus;sort:LibrarySort;completed:string[];started:string[];reviews:Record<string,string>},now=Date.now()) {
- const rank:Record<string,number>={A1:0,B1:1,"B1+":2,B2:3,"B2+":4};
+ const rank:Record<string,number>={A1:0,A2:1,B1:2,"B1+":3,B2:4,"B2+":5};
  const result=catalog.filter(p=>(options.category==="all"||(p.category||"everyday")===options.category)&&(options.status==="all"||lessonStatus(p.id,options.completed,options.started)===options.status));
  return result.sort((a,b)=>{
   if(options.sort==="title")return a.title.localeCompare(b.title,"fr");

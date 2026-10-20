@@ -1,6 +1,7 @@
 import { servicePassages } from "./service-passages.ts";
 import { poetryPassages } from "./poetry-passages.ts";
 import { swedishPassages } from "./swedish-passages.ts";
+import { frenchBeginnerPassages } from "./french-beginner.ts";
 export type Speaker = {
   name: string;
   age: number;
@@ -11,7 +12,7 @@ export type Speaker = {
 
 export type Passage = {
   id: string;
-  level: "A1" | "B1" | "B1+" | "B2" | "B2+";
+  level: "A1" | "A2" | "B1" | "B1+" | "B2" | "B2+";
   language?: "fr" | "sv";
   title: string;
   topic: string;
@@ -23,12 +24,13 @@ export type Passage = {
   meaning: string;
   speaker: Speaker;
   audioFile?: string;
-  speechStyle?: "parisian";
+  speechStyle?: "parisian" | "beginner";
   challenges: string[];
   comprehensionPoints: string[];
   category?: "everyday" | "poetry";
   releasedAt?: string;
-  dialogue?: { role: string; text: string; voice: string }[];
+  cast?: Record<string,{name:string;role:string;voice:string}>;
+  dialogue?: { id?:string;character?:string;role: string; text: string; voice: string }[];
   poem?: { author:string; year:number; source:string; notes:string; vocabulary:{word:string;meaning:string}[] };
 };
 
@@ -38,6 +40,7 @@ const ines: Speaker = { name: "Inès", age: 26, location: "Lille", voice: "coral
 const malik: Speaker = { name: "Malik", age: 38, location: "Nantes", voice: "onyx", initials: "M" };
 
 export const passages: Passage[] = [
+  ...frenchBeginnerPassages,
   ...servicePassages,
   ...poetryPassages,
   ...swedishPassages,

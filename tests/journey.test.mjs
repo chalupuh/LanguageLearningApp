@@ -50,7 +50,8 @@ test("new persistent APIs protect revisions, quotas, request ownership, release 
  try{
   const progress=await import(await moduleUrl("app/api/progress/route.ts"));
   assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe"]}))).status,428);
-  const saved=await progress.PUT(req("progress","PUT",{completed:["cafe"]},"nikki",0));assert.equal(saved.status,200);const rev=(await saved.json()).syncedAt;
+  sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({completed:[]}),1);
+  const saved=await progress.PUT(req("progress","PUT",{completed:["cafe"]},"nikki",1));assert.equal(saved.status,200);const rev=(await saved.json()).syncedAt;
   assert.equal((await progress.PUT(req("progress","PUT",{completed:[]},"nikki",0))).status,409);
   assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe","train"]},"nikki",rev))).status,200);
   assert.equal((await progress.PUT(req("progress","PUT",{completed:[]},"nikki",rev))).status,409);
@@ -127,12 +128,14 @@ test("language progress is isolated, appearance shared, and announcement XP is i
  const req=(path,method="GET",body)=>new Request("https://example.com/api/"+path,{method,headers:{"oai-authenticated-user-id":"nikki","oai-authenticated-user-email":"nikki@example.com",origin:"https://example.com","Content-Type":"application/json","If-Match":"0"},...(body?{body:JSON.stringify(body)}:{})});
  try{
   const progress=await import(await moduleUrl("app/api/progress/route.ts")),ann=await import(await moduleUrl("app/api/announcements/route.ts"));
-  assert.equal((await progress.PUT(req("progress","PUT",{completed:["cafe"],holidayTheme:"classic"}))).status,200);
+  sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({completed:[]}),1);
+  const initial=req("progress","PUT",{completed:["cafe"],holidayTheme:"classic"});initial.headers.set("If-Match","1");
+  assert.equal((await progress.PUT(initial)).status,200);
   assert.equal((await progress.PUT(req("progress?language=sv","PUT",{completed:["sv-hej"],holidayTheme:"winter"}))).status,200);
   const fr=await(await progress.GET(req("progress"))).json(),sv=await(await progress.GET(req("progress?language=sv"))).json();
   assert.deepEqual(fr.state.completed,["cafe"]);assert.deepEqual(sv.state.completed,["sv-hej"]);assert.equal(fr.state.holidayTheme,"winter");
   assert.equal((await ann.GET(new Request("https://example.com/api/announcements"))).status,401);
-  const catalog=await(await ann.GET(req("announcements"))).json();assert.equal(catalog.items.length,12);assert.ok(catalog.items.every(a=>a.questions.every(q=>!("answer"in q))));
+  const catalog=await(await ann.GET(req("announcements"))).json();assert.equal(catalog.items.length,20);assert.ok(catalog.items.every(a=>a.questions.every(q=>!("answer"in q))));
   assert.equal((await(await ann.GET(req("announcements?language=sv"))).json()).items.length,3);
   const body={id:"mall-closing",answers:[1,0,2],listens:1};
   assert.equal((await(await ann.POST(req("announcements","POST",body))).json()).awarded,25);
@@ -217,6 +220,7 @@ test("owner usage API denies learners, saves idempotent intervals, and confirms 
   assert.equal((await telemetry.POST(req("usage","nikki",{...body,id:id2}))).status,200);
   // Owner activity must not contaminate Nikki's dashboard, even with a matching session id.
   assert.equal((await telemetry.POST(req("usage","owner",body))).status,200);
+  sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({completed:[]}),1);
   const loop={kind:"loop",source:"library:cafe",usageSessionId:id,summary:"The speaker ordered a coffee.",retell:"Elle commande un café à emporter.",decoded:true,shadowed:true};
   let r=await journey.POST(req("journey","nikki",loop));assert.equal((await r.json()).awarded,40);
   r=await journey.POST(req("journey","nikki",{...loop,usageSessionId:id2}));assert.equal((await r.json()).awarded,0);
@@ -302,6 +306,8 @@ async function moduleUrl(path){
  if(moduleUrls.has(path))return moduleUrls.get(path);
  let source=await readFile(new URL(path,root),"utf8");
  const replacements={
+  "../../content/releases":"content/releases.ts",
+  "../french-course":"app/api/french-course.ts", "../../lib/french-progression":"lib/french-progression.ts", "../../../lib/french-progression":"lib/french-progression.ts", "./french-beginner.ts":"content/french-beginner.ts",
   "../lib/speech-policy.ts":"lib/speech-policy.ts",
   "../../../lib/retell-policy":"lib/retell-policy.ts",
   "./service-passages.ts":"content/service-passages.ts", "./poetry-passages.ts":"content/poetry-passages.ts", "./swedish-passages.ts":"content/swedish-passages.ts", "../learning-track":"app/api/learning-track.ts", "./app-auth":"app/api/app-auth.ts",
@@ -431,4 +437,56 @@ test("loop drafts and review saves remain independent",async()=>{
  const sync=await readFile(new URL("app/use-progress-sync.ts",root),"utf8");
  assert.match(sync,/put.status===202/);assert.match(sync,/If-Match/);
  assert.doesNotMatch(page,/localStorage.getItem\(PROGRESS_KEY\)/);
+});
+
+
+test("new French accounts stay isolated, cannot forge unlocks, and progress through verified A1/A2/B1 loops",async()=>{
+ const sqlite=new DatabaseSync(":memory:");const {readdir}=await import("node:fs/promises");
+ for(const name of (await readdir(new URL("drizzle/",root))).filter(n=>n.endsWith(".sql")).sort())sqlite.exec(await readFile(new URL("drizzle/"+name,root),"utf8"));
+ globalThis.__journeyTestDb=drizzle(d1Adapter(sqlite));
+ const previous=process.env.ALLOWED_USER_EMAILS;process.env.ALLOWED_USER_EMAILS="sister@example.com,other@example.com,nikki@example.com,prior@example.com,starter@example.com";
+ const req=(path,user="sister",body,revision)=>new Request("https://example.com/api/"+path,{method:body?"POST":"GET",headers:{"oai-authenticated-user-id":user,"oai-authenticated-user-email":user+"@example.com","Content-Type":"application/json",...(revision!==undefined?{"If-Match":String(revision)}:{})},...(body?{body:JSON.stringify(body)}:{})});
+ try{
+  const progress=await import(await moduleUrl("app/api/progress/route.ts")),journey=await import(await moduleUrl("app/api/journey/route.ts")),ann=await import(await moduleUrl("app/api/announcements/route.ts")),requests=await import(await moduleUrl("app/api/requests/route.ts"));
+  const {requirements,starterRequirements,frenchStage}=await import(await moduleUrl("lib/french-progression.ts"));
+  let saved=await(await progress.GET(req("progress"))).json();assert.equal(saved.state.frenchCourse,"beginner-v2");assert.equal(saved.state.preferences.level,"A1");assert.ok(saved.state.lastSeenUpdateId);assert.equal((await(await journey.GET(req("journey"))).json()).releases.length,0);
+  const fake=req("progress","sister",{frenchCourse:"legacy",completed:[...requirements.A1,...requirements.A2,...requirements.B1],courseCompleted:requirements.A1,beginnerTutorial:4},saved.syncedAt);
+  const put=new Request(fake,{method:"PUT"});assert.equal((await progress.PUT(put)).status,200);
+  saved=await(await progress.GET(req("progress"))).json();assert.equal(saved.state.frenchCourse,"beginner-v2");assert.deepEqual(saved.state.completed,[]);assert.deepEqual(saved.state.courseCompleted,[]);assert.equal(saved.state.beginnerTutorial,4);
+  const loop=id=>({kind:"loop",source:"library:"+id,summary:"They arrange a visit to the café.",retell:"Ils vont au café demain.",decoded:true,rehearsed:true});
+  assert.equal((await journey.POST(req("journey","sister",loop("cafe")))).status,403);
+  assert.equal((await journey.POST(req("journey","sister",{kind:"checkpoint",source:"checkpoint-1"}))).status,403);
+  assert.equal((await ann.POST(req("announcements","sister",{id:"mall-closing",answers:[1,0,2],listens:1}))).status,403);
+  assert.equal((await(await ann.GET(req("announcements"))).json()).items.length,4);
+  assert.equal((await journey.POST(req("journey","sister",{...loop(requirements.A1[0]),rehearsed:false}))).status,400);
+  for(const level of ["A1","A2","B1"]){
+   for(const id of requirements[level])assert.equal((await journey.POST(req("journey","sister",loop(id)))).status,200,id);
+   if(level==="A2")assert.equal((await journey.POST(req("journey","sister",{kind:"checkpoint",source:"town-transport"}))).status,403);
+   saved=await(await progress.GET(req("progress"))).json();assert.equal(frenchStage(saved.state.frenchCourse,saved.state.courseCompleted),level==="A1"?"A2":level==="A2"?"B1":"B2");
+  }
+  const other=await(await progress.GET(req("progress","other"))).json();assert.equal(other.state.frenchCourse,"beginner-v2");assert.deepEqual(other.state.courseCompleted,[]);assert.equal(other.state.beginnerTutorial,undefined);
+  assert.equal((await journey.POST(req("journey","other",loop("cafe")))).status,403);
+  assert.equal((await requests.POST(req("requests","sister",{id:"beginner-feedback-001",kind:"idea",language:"fr",text:"[fr · A1 · library] Please explain the transcript button."}))).status,200);
+  assert.equal((await(await requests.GET(req("requests","other"))).json()).requests.length,0);
+  assert.equal((await(await requests.GET(req("requests","sister"))).json()).requests.length,1);
+  sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("nikki","nikki@example.com",JSON.stringify({xp:825,completed:["cafe"],preferences:{level:"B2"}}),1);
+  const nikki=await(await progress.GET(req("progress","nikki"))).json();assert.equal(nikki.state.frenchCourse,"legacy");assert.equal(nikki.state.xp,825);assert.deepEqual(nikki.state.completed,["cafe"]);assert.equal(nikki.state.preferences.level,"B2");
+  const preserve=req("progress","nikki",{...nikki.state,frenchCourse:"beginner-v2"},nikki.syncedAt);
+  assert.equal((await progress.PUT(new Request(preserve,{method:"PUT"}))).status,200);
+  let retained=await(await progress.GET(req("progress","nikki"))).json();assert.equal(retained.state.frenchCourse,"legacy");assert.equal(retained.state.xp,825);
+  for(const showBeginnerContent of [true,false]){
+   const update=req("progress","nikki",{...retained.state,preferences:{...retained.state.preferences,showBeginnerContent}},retained.syncedAt);
+   assert.equal((await progress.PUT(new Request(update,{method:"PUT"}))).status,200);
+   retained=await(await progress.GET(req("progress","nikki"))).json();
+   assert.equal(retained.state.preferences.showBeginnerContent,showBeginnerContent);assert.equal(retained.state.xp,825);assert.deepEqual(retained.state.completed,["cafe"]);assert.equal(retained.state.preferences.level,"B2");
+   assert.equal((await(await progress.GET(req("progress","other"))).json()).state.preferences?.showBeginnerContent,undefined);
+  }
+  assert.equal((await journey.POST(req("journey","nikki",loop("train")))).status,200);
+  sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("prior","prior@example.com",JSON.stringify({holidayTheme:"winter"}),1);
+  sqlite.prepare("INSERT INTO journey_events VALUES(?,?,?,?,?,?,?)").run("prior","old-loop","loop","library:cafe",40,Date.now(),"{}");
+  assert.equal((await(await progress.GET(req("progress","prior"))).json()).state.frenchCourse,"legacy");
+  sqlite.prepare("INSERT INTO learner_progress VALUES(?,?,?,?)").run("starter","starter@example.com",JSON.stringify({frenchCourse:"beginner-v1"}),1);
+  for(const id of starterRequirements.A1)sqlite.prepare("INSERT INTO journey_events VALUES(?,?,?,?,?,?,?)").run("starter","loop:"+id,"loop","library:"+id,40,Date.now(),"{}");
+  const early=await(await progress.GET(req("progress","starter"))).json();assert.equal(early.state.frenchCourse,"beginner-v1");assert.equal(frenchStage(early.state.frenchCourse,early.state.courseCompleted),"A2");
+ }finally{if(previous===undefined)delete process.env.ALLOWED_USER_EMAILS;else process.env.ALLOWED_USER_EMAILS=previous;delete globalThis.__journeyTestDb;sqlite.close();}
 });
