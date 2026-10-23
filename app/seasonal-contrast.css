@@ -1,0 +1,40 @@
+/* Decoration and reading surfaces are separate contracts. Never put study text
+   directly on a translucent surface over the variable seasonal wallpaper.
+   Keep ink dark on paper/cards/white fields; use paired colors for dark buttons. */
+html[data-holiday-theme="classic"] { --paper:#fff5f8; --card:#fffafd; --ink:#382b33; --muted:#65545e; --study-accent:#804461; }
+html[data-holiday-theme="autumn"] { --paper:#fff4e5; --card:#fffaf1; --ink:#3d3027; --muted:#6d5544; --study-accent:#864326; }
+html[data-holiday-theme="halloween"] { --paper:#fff3df; --card:#fff9f2; --ink:#2d1935; --muted:#66516d; --study-accent:#69327e; }
+html[data-holiday-theme="winter"] { --paper:#f7efe0; --card:#fffdf5; --ink:#173924; --muted:#596043; --study-accent:#962532; }
+html[data-holiday-theme="valentine"] { --paper:#fff3f5; --card:#fffafb; --ink:#482d37; --muted:#73505e; --study-accent:#9b3151; }
+html[data-holiday-theme="spring"] { --paper:#f5f7ef; --card:#fffdf8; --ink:#2f4138; --muted:#506455; --study-accent:#725080; }
+html[data-holiday-theme="summer"] { --paper:#eff8fc; --card:#fffdf5; --ink:#29434c; --muted:#49636d; --study-accent:#21677c; }
+
+/* Opaque foundations protect every descendant, including legacy fixed colors.
+   The wallpaper remains visible in the page gutters, never behind reading text. */
+html[data-holiday-theme] :is(.workspace,.home-view,.standalone-view,.about-view,.calendar-view,.session-loading) {
+  background:var(--paper); color:var(--ink);
+}
+html[data-holiday-theme] .topbar { background:var(--paper); color:var(--ink); }
+html[data-holiday-theme] .session-rail { background:var(--card); color:var(--ink); }
+html[data-holiday-theme] :is(.parisian-test,.dual-summary,.poetry-notes,.practice-tools,.beginner-support,.daily-mix,.request-center) {
+  background:var(--paper); color:var(--ink);
+}
+html[data-holiday-theme] :is(.full-transcript,.parisian-transcript,.studio-transcript) {
+  background:var(--card); color:var(--ink);
+}
+html[data-holiday-theme] :is(.full-transcript p,.parisian-transcript p,.parisian-transcript span) { color:var(--ink); }
+html[data-holiday-theme] :is(.full-transcript p>span:not(.closer-line-text),.parisian-transcript strong) { color:var(--study-accent); }
+html[data-holiday-theme] :is(.practice>h1,.session-rail h2,.home-intro h1,.standalone-view>h1) { color:var(--ink); }
+html[data-holiday-theme] :is(.intro,.stage-label,.session-rail .eyebrow,.steps li,.session-stats span,.response-block label span,.challenge-note,.full-transcript summary,.home-intro>p:last-child) { color:var(--muted); }
+html[data-holiday-theme] :is(.steps li.current,.steps li.complete) { color:var(--ink); }
+html[data-holiday-theme] :is(.step-icon,.stage-label span,.meta span) { color:var(--study-accent); background:var(--card); }
+html[data-holiday-theme] .steps li.current .step-icon { background:var(--study-accent); border-color:var(--study-accent); color:#fff; }
+html[data-holiday-theme] .steps li.complete .step-icon { background:var(--ink); border-color:var(--ink); color:#fff; }
+html[data-holiday-theme] :is(.topbar nav button,.topbar .streak,.topbar .xp-pill span,.topbar .xp-pill strong) { color:var(--muted); }
+html[data-holiday-theme] .topbar nav button.active { color:var(--study-accent); }
+html[data-holiday-theme] textarea { background:#fff; color:var(--ink); }
+html[data-holiday-theme] textarea::placeholder { color:var(--muted); opacity:1; }
+html[data-holiday-theme] .language-switch { background:var(--paper); color:var(--ink); }
+html[data-holiday-theme] .language-switch button[aria-pressed=true] { background:var(--study-accent); color:#fff; }
+/* Listen closer's generic button rule must not darken the dark audio control. */
+html[data-holiday-theme] .listen-closer .play { background:var(--study-accent); color:#fff; }
