@@ -1,9 +1,9 @@
 import {guardAiRequest,fetchAi} from "../ai-guard";
 import {validWritingFeedback} from "../../../lib/writing-feedback";
 export async function POST(request:Request){
- if(Number(request.headers.get("content-length"))>5000)return Response.json({error:"Keep your French summary under 500 characters."},{status:400});
+ if(Number(request.headers.get("content-length"))>7000)return Response.json({error:"Keep your French summary under 1,200 characters."},{status:400});
  const body=await request.json().catch(()=>null),text=typeof body?.text==="string"?body.text.trim():"";
- if(text.length<5||text.length>500)return Response.json({error:"Write a French sentence of 5–500 characters."},{status:400});
+ if(text.length<5||text.length>1200)return Response.json({error:"Write a French response of 5–1,200 characters."},{status:400});
  const denied=await guardAiRequest(request);if(denied)return denied;
  const key=process.env.OPENAI_API_KEY;if(!key)return Response.json({error:"Writing feedback is not configured."},{status:503});
  try{
