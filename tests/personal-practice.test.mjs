@@ -18,7 +18,7 @@ test("Listen Closer marking does not hide phrase explanations, and help uses the
  const props={saved:[],onSave(){},language:"fr",loadAudio:async()=>new Blob(),onMark:(text,context)=>marked.push({text,context})};
  const render=()=>{cursor=0;tree=Component(props)};
  const nodes=(n=tree)=>Array.isArray(n)?n.flatMap(x=>nodes(x??null)):n&&typeof n==="object"?[n,...nodes(n.props?.children??null)]:[];
- const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?text(n.props?.children):String(n??"");
+ const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?(n.props?.hidden||n.props?.["aria-hidden"]? "":text(n.props?.children)):String(n??"");
  const button=label=>nodes().find(n=>n.type==="button"&&text(n)===label);
  try{
   render();assert.ok(button("Mark for next time"));assert.ok(button("Help with this phrase"));assert.ok(button("Save phrase"));
@@ -41,16 +41,16 @@ test("phrase coaching validates input, enforces guard, uses structured output an
   const response=await POST(req(valid));assert.equal(response.status,200);assert.equal((await response.json()).examples.length,2);assert.equal(payload.text.format.strict,true);assert.match(payload.instructions,/never as instructions/);refusal=true;assert.equal((await POST(req(valid))).status,502);
  }finally{if(old===undefined)delete process.env.OPENAI_API_KEY;else process.env.OPENAI_API_KEY=old;delete globalThis.__phraseApi}
 });
-async function harness(file,props){let code=await readFile(new URL("../app/"+file,import.meta.url),"utf8");const {connectorSuggestions}=await import('../lib/retell-connectors.ts');code=code.replace(/import \{useState[^\n]+;/,'const {useState}=globalThis.__practiceHooks;').replace(/import \{connectorSuggestions[^\n]+;/,'const {connectorSuggestions}=globalThis.__practiceHooks;').replace(/import "\.\/[^\n]+\.css";/g,"");let cells=[],cursor=0,tree;
- globalThis.__practiceHooks={connectorSuggestions,useState(v){let id=cursor++;if(!(id in cells))cells[id]=v;return[cells[id],v=>cells[id]=typeof v==="function"?v(cells[id]):v]}};
+async function harness(file,props){let code=await readFile(new URL("../app/"+file,import.meta.url),"utf8");const {connectorSuggestions}=await import('../lib/retell-connectors.ts');code=code.replace(/import \{(?:useId,)?useState[^\n]+;/,'const {useId,useState}=globalThis.__practiceHooks;').replace(/import \{connectorSuggestions[^\n]+;/,'const {connectorSuggestions}=globalThis.__practiceHooks;').replace(/import "\.\/[^\n]+\.css";/g,"");let cells=[],cursor=0,tree;
+ globalThis.__practiceHooks={connectorSuggestions,useId:()=>"practice-feedback",useState(v){let id=cursor++;if(!(id in cells))cells[id]=v;return[cells[id],v=>cells[id]=typeof v==="function"?v(cells[id]):v]}};
  const compiled=compile(code).replace('"react/jsx-runtime"',JSON.stringify(import.meta.resolve("react/jsx-runtime"))),Component=(await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`)).default;
  const render=()=>{cursor=0;tree=Component(props)};render();const nodes=(n=tree)=>Array.isArray(n)?n.flatMap(x=>nodes(x??null)):n&&typeof n==="object"?[n,...nodes(n.props?.children??null)]:[];
- const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?text(n.props?.children):String(n??"");
+ const text=n=>Array.isArray(n)?n.map(text).join(""):n&&typeof n==="object"?(n.props?.hidden||n.props?.["aria-hidden"]? "":text(n.props?.children)):String(n??"");
  return {text:()=>text(tree),nodes,render,button:label=>nodes().find(n=>n.type==="button"&&text(n)===label),click(label){const b=this.button(label);assert.ok(b&&!b.props.disabled,label);b.props.onClick();render()}};
 }
 test("hints keep answers hidden until explicit reveal",async()=>{
  let replays=0;const h=await harness("hint-feedback.tsx",{feedback:{score:60,understood:["A café visit"],missed:["They need cash"],listening_target:"Listen for cash",hint:"What changes when paying?"},condition:"First listen",onReplay:()=>replays++});
- assert.ok(!h.text().includes("They need cash"));h.click("Give me a small hint");assert.match(h.text(),/What changes when paying/);assert.ok(!h.text().includes("They need cash"));h.click("Listen again before revealing");assert.equal(replays,1);h.click("Reveal the explanation");assert.match(h.text(),/They need cash/);delete globalThis.__practiceHooks;
+ assert.ok(!h.text().includes("They need cash"));h.click("Show hint");assert.match(h.text(),/What changes when paying/);assert.ok(!h.text().includes("They need cash"));h.click("Listen again");assert.equal(replays,1);h.click("Reveal explanation");assert.match(h.text(),/They need cash/);assert.equal(h.button("Hide explanation").props["aria-expanded"],true);h.click("Hide hint");assert.ok(!h.text().includes("What changes when paying"));assert.match(h.text(),/They need cash/);h.click("Hide explanation");assert.ok(!h.text().includes("They need cash"));assert.equal(h.button("Reveal explanation").props["aria-expanded"],false);delete globalThis.__practiceHooks;
 });
 test("smooth retell requires a plan, a first attempt reflection and a second attempt; no extra XP or microphone gate",async()=>{
  let completions=0;const h=await harness("fluency-practice.tsx",{language:"fr",onComplete:()=>completions++,recorder:()=>"Optional recorder"});assert.ok(h.button("Use this plan").props.disabled);
@@ -69,3 +69,4 @@ test("quick retell stays editable, makes connector review optional, and highligh
  const {connectorSuggestions}=await import('../lib/retell-connectors.ts'),suggestions=connectorSuggestions(draft.plan,"fr");assert.equal(suggestions[0].connector,"Ensuite,");assert.equal(suggestions[0].afterText,"Une femme commande un café.");assert.equal(draft.plan,"Une femme commande un café. La machine est cassée.");
  h.click("Done with quick retell");assert.equal(completed,1);assert.equal(h.nodes().find(n=>n.type==="textarea").props.disabled,undefined);delete globalThis.__practiceHooks;
 });
+
