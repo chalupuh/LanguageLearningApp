@@ -137,3 +137,33 @@ html[data-holiday-theme="summer"]{--season-page:#bfeaf2;--season-wash:radial-gra
 .phrase-library article .phrase-edit,.phrase-context-editor button{font:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:8px;color:var(--ink);width:max-content;max-width:100%}
 .phrase-library input:focus-visible,.phrase-context-editor textarea:focus-visible{outline:3px solid var(--pink-deep);outline-offset:3px}
 @media(max-width:700px){.phrase-library{grid-template-columns:minmax(0,1fr)}.phrase-library>label{grid-column:1}.phrase-library article{min-width:0}}
+
+/* Listening coaching: separate actions from progressively revealed guidance. */
+.coaching-feedback{grid-template-columns:110px minmax(0,1fr);gap:22px;padding:24px;background:var(--card);border-color:var(--line)}
+.coaching-feedback .coaching-score{justify-content:flex-start;padding:6px 18px 0 0;border-color:var(--line)}
+.coaching-feedback .coaching-score strong{font-size:32px}
+.coaching-feedback .coaching-score span{margin-top:8px;line-height:1.6}
+.coaching-content{min-width:0}
+.coaching-feedback h3{color:var(--muted);font-size:10px;font-weight:700;line-height:1.5;letter-spacing:1px;margin:0 0 8px}
+.coaching-feedback ul{font-size:13px;line-height:1.7;margin:0;padding-left:18px}
+.coaching-caught{padding-bottom:20px}
+.coaching-practice{border-top:1px solid var(--line);padding-top:20px}
+.coaching-practice h4{margin:0 0 6px;font:normal 20px/1.3 Georgia,serif;color:var(--ink)}
+.coaching-feedback p{font:13px/1.65 Arial,Helvetica,sans-serif}
+.coaching-feedback .coaching-guidance{color:var(--muted)}
+.coaching-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.coaching-feedback .coaching-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:11px 16px;border:1px solid var(--line-strong);border-radius:10px;font:600 13px/1.4 Arial,Helvetica,sans-serif;cursor:pointer;text-align:center;background:var(--card);color:var(--ink)}
+.coaching-feedback .coaching-hint-button{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.coaching-button span{font-size:18px;line-height:1}
+.coaching-feedback .coaching-button:hover{box-shadow:0 2px 6px #00000014;border-color:var(--ink)}
+.coaching-feedback .coaching-hint-button:hover{opacity:.9}
+.coaching-feedback .coaching-button:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.coaching-hint{margin-top:16px;padding:16px 18px;border-left:3px solid var(--coral);border-radius:0 10px 10px 0;background:color-mix(in srgb,var(--coral) 9%,var(--card))}
+.coaching-hint p{color:var(--ink)}
+.coaching-reveal-row{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.coaching-feedback .coaching-reveal-button{width:100%;justify-content:space-between;text-align:left}
+.coaching-explanation{padding-top:20px}
+.coaching-target{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--paper) 65%,var(--card))}
+.coaching-feedback .coaching-note{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.6}
+@media(max-width:700px){.coaching-feedback{grid-template-columns:1fr;gap:18px;padding:20px}.coaching-feedback .coaching-score{flex-direction:row;justify-content:flex-start;gap:16px;padding:0 0 16px;border-right:0;border-bottom:1px solid var(--line)}.coaching-feedback .coaching-score span{text-align:left;margin:0;max-width:230px}}
+@media(max-width:420px){.coaching-feedback{padding:16px}.coaching-actions{flex-direction:column}.coaching-actions .coaching-button{width:100%}}
