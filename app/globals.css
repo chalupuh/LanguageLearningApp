@@ -170,3 +170,7 @@ html[data-holiday-theme="summer"]{--season-page:#bfeaf2;--season-wash:radial-gra
 
 /* Keep the profile above study content; low-specificity wallpaper defaults preserve overlay layers. */
 .app-shell>.topbar{position:relative;z-index:100}
+
+/* Dark panels need their own foreground instead of the global heading ink. */
+.about-letter h1{color:#f9f4f6}
+.topbar nav{overflow-y:hidden}
