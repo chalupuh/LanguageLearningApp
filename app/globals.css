@@ -174,3 +174,4 @@ html[data-holiday-theme="summer"]{--season-page:#bfeaf2;--season-wash:radial-gra
 /* Dark panels need their own foreground instead of the global heading ink. */
 .about-letter h1{color:#f9f4f6}
 .topbar nav{overflow-y:hidden}
+@media(min-width:851px){.topbar{grid-template-columns:auto minmax(0,1fr) auto;column-gap:24px}.topbar nav{min-width:0}}
