@@ -17,7 +17,7 @@ export function useJourney(language:"fr"|"sv"="fr"){
    setJourney(data);setLoaded(true);setLoadError("");
   }catch(e){if(request===reads.current)setLoadError(e instanceof Error?e.message:"Could not load your journey.")}
  },[endpoint]);
- useEffect(()=>{void refresh();const focus=()=>{void refresh()};window.addEventListener("focus",focus);return()=>{reads.current++;window.removeEventListener("focus",focus)}},[refresh]);
+ useEffect(()=>{void refresh();const focus=()=>{void refresh()},invalidate=()=>{reads.current++};window.addEventListener("focus",focus);return()=>{invalidate();window.removeEventListener("focus",focus)}},[refresh]);
  const record=useCallback(async(body:Activity)=>{
   writes.current++;reads.current++;setPending(true);
   try{
