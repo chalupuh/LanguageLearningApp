@@ -20,6 +20,34 @@ configuration is managed by Sites. `ALLOWED_USER_EMAILS` controls invitations,
 coaching. Never commit those values. Localhost uses a separate development identity.
 No AI key is needed for bundled lesson audio or mocked automated tests.
 
+## Working across devices
+
+The shared source repository is [chalupuh/LanguageLearningApp](https://github.com/chalupuh/LanguageLearningApp).
+The repository workflow for coding agents is in [AGENTS.md](AGENTS.md).
+
+On a new device:
+
+```sh
+git clone https://github.com/chalupuh/LanguageLearningApp.git
+cd LanguageLearningApp
+npm ci
+```
+
+Before each work session, preserve any local edits and run `git fetch origin`.
+On a clean `main`, run `git pull --ff-only origin main`. If it cannot fast-forward,
+reconcile the changes before continuing; do not overwrite work from another device.
+
+After verifying changes, commit them and run `git push origin main` (or push the
+feature branch you are using). Fetch again and confirm the remote branch contains
+the commit before switching devices. Avoid editing the same branch simultaneously
+on multiple devices; use separate feature branches for concurrent work.
+
+GitHub and Sites are separate destinations: Sites publication does not push to
+GitHub, and a GitHub push does not publish the app. Push the source commits created
+by the Sites workflow to GitHub as well. Local `.env*`, dependencies, build outputs,
+and development databases are intentionally excluded. Configure each device locally;
+production learning data remains in the hosted app.
+
 ## Prerequisites
 
 - Node.js `>=22.13.0`
