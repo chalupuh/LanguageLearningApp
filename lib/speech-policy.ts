@@ -1,6 +1,8 @@
 export const SWEDISH_SPEECH_VERSION="sv-native-v3";
-export function speechVersion(language:string,style?:string){return style==="beginner"?"beginner-fr-v1":language==="sv"?SWEDISH_SPEECH_VERSION:style==="parisian"?"parisian-fr-v1":"multilingual-v2"}
+export const SPANISH_SPEECH_VERSION="es-latam-beginner-v1";
+export function speechVersion(language:string,style?:string){return language==="es"?SPANISH_SPEECH_VERSION:style==="beginner"?"beginner-fr-v1":language==="sv"?SWEDISH_SPEECH_VERSION:style==="parisian"?"parisian-fr-v1":"multilingual-v2"}
 export function speechInstructions(language:string,style?:string){
+ if(language==="es")return "Lee solamente las palabras proporcionadas en español latinoamericano neutro. Usa una pronunciación clara y natural, ritmo tranquilo para principiantes y pausas breves entre oraciones. Mantén el seseo y evita rasgos regionales muy marcados, jerga o explicaciones. No traduzcas ni agregues palabras.";
  if(language==="fr"&&style==="beginner")return "Read only the supplied French words with a native French accent. Use a calm, slow beginner pace, clear word boundaries and short pauses between sentences. Preserve natural French pronunciation and liaison. Do not add explanations or translations.";
  if(language!=="sv"&&style==="parisian")return "Speak as one native metropolitan French speaker in a lively everyday conversation in Paris. Brisk connected delivery, noticeably faster than learner audio, with natural elision, liaison and casual contractions already written in the text. Read exactly the supplied words in order. Do not add slang, invent another speaker, change the meaning, explain the text, or exaggerate the accent. Keep numbers and important distinctions intelligible.";
  return language==="sv"

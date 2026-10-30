@@ -1,7 +1,7 @@
 "use client";
 import {useState} from "react";
 export type NativeNote={id:string;url:string;title:string;summary:string;createdAt:string};
-export default function NativeListening({language,notes,onNotes}:{language:"fr"|"sv";notes:NativeNote[];onNotes:(notes:NativeNote[])=>void}){
+export default function NativeListening({language,notes,onNotes}:{language:"fr"|"sv"|"es";notes:NativeNote[];onNotes:(notes:NativeNote[])=>void}){
  const [url,setUrl]=useState(""),[title,setTitle]=useState(""),[summary,setSummary]=useState(""),[error,setError]=useState("");
  const resources=language==="fr"?[{title:"TV5MONDE · authentic video exercises",url:"https://apprendre.tv5monde.com/fr/collection-all",description:"Choose a B1 or B2 exercise and a topic you enjoy. Listen before reading."}]:[{title:"Radio Sweden på lätt svenska",url:"https://www.sverigesradio.se/radio-sweden-pa-latt-svenska",description:"Human-presented news in easier Swedish. This can be a stretch at A1: start with 10–20 seconds and one familiar detail."}];
  const save=()=>{try{const parsed=new URL(url);if(parsed.protocol!=="https:"||parsed.username||parsed.password)throw Error();onNotes([{id:crypto.randomUUID(),url:parsed.href,title:title.trim(),summary:summary.trim(),createdAt:new Date().toISOString()},...notes].slice(0,50));setUrl("");setTitle("");setSummary("");setError("")}catch{setError("Enter a valid HTTPS link without credentials.")}};

@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from "react";
 import {emptyCalendar,validCalendar,mergeCalendar,type CalendarPlan} from "../lib/calendar";
 
 type Entry={user:string;revision:number;base:CalendarPlan;latest:CalendarPlan;closed:boolean;busy:boolean;blocked:boolean;flush:()=>Promise<void>};
-export function useCalendar(language:"fr"|"sv"){
+export function useCalendar(language:"fr"|"sv"|"es"){
  const [plan,setPlan]=useState<CalendarPlan>(emptyCalendar),[ready,setReady]=useState(false),[status,setStatus]=useState("Opening your calendar…"),[error,setError]=useState(""),[conflict,setConflict]=useState(false),[user,setUser]=useState(""),[reload,setReload]=useState(0);const current=useRef<Entry|null>(null);
  const endpoint="/api/calendar?language="+language,key=(u:string)=>"a-loreille-calendar:"+u;
  useEffect(()=>{

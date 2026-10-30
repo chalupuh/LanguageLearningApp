@@ -2,7 +2,7 @@ export type ConnectorSuggestion={afterText:string;connector:string;reason:string
 
 const existing=/\b(d'abord|ensuite|puis|donc|mais|en fait|par exemple|finalement|pour finir|först|sedan|därefter|så|men|till exempel|till sist)\b/i;
 
-export function connectorSuggestions(text:string,language:"fr"|"sv"):ConnectorSuggestion[]{
+export function connectorSuggestions(text:string,language:"fr"|"sv"|"es"):ConnectorSuggestion[]{
  const matches=[...text.matchAll(/[^.!?\n]+[.!?]+(?=\s|$)/g)];
  const links=language==="fr"?["Ensuite,","Donc,","Pour finir,"]:["Sedan,","Så,","Till sist,"];
  return matches.slice(0,3).flatMap((match,index)=>{

@@ -22,7 +22,7 @@ export function practiceMilestone(xp: number) {
   const total = Number.isFinite(xp) ? Math.max(0, xp) : 0;
   return { total, percent: Math.min(100, total / PRACTICE_GOAL * 100), remaining: Math.max(0, PRACTICE_GOAL - total) };
 }
-export default function ProgressJourney({ language="fr", xp, frenchXp=0, swedishXp=0, completed, saved, days, speaking, onPractice }: { language?:"fr"|"sv"; xp: number; frenchXp?:number; swedishXp?:number; completed: number; saved: number; days: number; speaking: number; onPractice: () => void }) {
+export default function ProgressJourney({ language="fr", xp, frenchXp=0, swedishXp=0, completed, saved, days, speaking, onPractice }: { language?:"fr"|"sv"|"es"; xp: number; frenchXp?:number; swedishXp?:number; completed: number; saved: number; days: number; speaking: number; onPractice: () => void }) {
   const swedish=language==="sv";
   const { total, percent, remaining } = practiceMilestone(xp);
   return <section className="progress-journey" aria-labelledby="journey-title">

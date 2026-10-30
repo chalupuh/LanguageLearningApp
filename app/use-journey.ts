@@ -4,10 +4,10 @@ import {emptyJourney,type Journey} from "../lib/journey";
 import type {Release} from "../content/releases";
 export type JourneyState=Journey & {collectionXp?:number;frenchXp?:number;swedishXp?:number;releases?:Release[];checkpoint?:{id:string;title:string;level:string;text:string;questions:{skill:string;prompt:string;options:string[]}[]}|null;checkpointAvailableAt?:number};
 type Activity=Record<string,unknown>;
-export function useJourney(language:"fr"|"sv"="fr"){
+export function useJourney(language:"fr"|"sv"|"es"="fr"){
  const [journey,setJourney]=useState<JourneyState>(emptyJourney),[notice,setNotice]=useState(""),[loadError,setLoadError]=useState(""),[saveError,setSaveError]=useState(""),[loaded,setLoaded]=useState(false),[pending,setPending]=useState(false);
  const failed=useRef<{body:Activity;message:string}[]>([]),reads=useRef(0),writes=useRef(0);
- const endpoint="/api/journey"+(language==="sv"?"?language=sv":"");
+ const endpoint="/api/journey"+(language==="fr"?"":"?language="+language);
  const refresh=useCallback(async()=>{
   const request=++reads.current;
   try{

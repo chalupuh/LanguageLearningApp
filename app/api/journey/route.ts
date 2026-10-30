@@ -7,6 +7,7 @@ import { checkpoints } from "../../../content/checkpoints";
 import { releases, unseenReleases } from "../../../content/releases";
 const headers = { "Cache-Control": "private, no-store" };
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers });
+const spanishLesson=(source:unknown)=>{const id=typeof source==="string"&&/^library:es-[a-z]+$/.test(source)?source.slice(8):"";if(!id)return undefined;const a1=new Set(["es-hola","es-cafe","es-desayuno","es-precio","es-direccion","es-restaurante"]);return{id,language:"es",level:a1.has(id)?"A1":"A2",topic:"Spanish beginner",speaker:{name:"Sofía y Mateo"}} as const};
 async function context(userId: string, accountUserId=userId) {
   const [{ getDb }, schema, ops] = await Promise.all([import("../../../db"), import("../../../db/schema"), import("drizzle-orm")]);
   const db = getDb();
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
       await c.db.update(c.schema.journeyProfiles).set({weeklyGoal:body.goal}).where(c.ops.eq(c.schema.journeyProfiles.userId,userId));
       return reply({saved:true});
     }
-    const passage=passages.find(p=>"library:"+p.id===body.source&&(p.language||"fr")===auth.language);
+    const passage=passages.find(p=>"library:"+p.id===body.source&&(p.language||"fr")===auth.language)||(auth.language==="es"?spanishLesson(body.source):undefined);
     const studio=/^studio:[\w-]{11}:\d+:\d+$/.test(body.source);
     if (kind==="loop" || kind==="review") {
       // Accept earlier clients/drafts during rollout; new sessions use rehearsed.

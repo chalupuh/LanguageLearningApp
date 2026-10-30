@@ -6,7 +6,7 @@ import {passages} from "../content/passages";
 import {captureActive,holdAppPlayback,CAPTURE_PLAYBACK_EVENT} from "../lib/audio-capture";
 import "./phrase-tools.css";
 type Capture={text:string;context:PhraseContext};
-export default function PhraseTools({saved,onSave,language,loadAudio,onMark,marked=[]}:{saved:string[];onSave:(text:string,context:PhraseContext)=>void;language:"fr"|"sv";loadAudio:(text:string,source?:string)=>Promise<Blob>;onMark?:(text:string,context:PhraseContext)=>void;marked?:string[]}){
+export default function PhraseTools({saved,onSave,language,loadAudio,onMark,marked=[]}:{saved:string[];onSave:(text:string,context:PhraseContext)=>void;language:"fr"|"sv"|"es";loadAudio:(text:string,source?:string)=>Promise<Blob>;onMark?:(text:string,context:PhraseContext)=>void;marked?:string[]}){
  const [capture,setCapture]=useState<Capture|null>(null),[open,setOpen]=useState(false),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[help,setHelp]=useState<{meaning:string;form:string;examples:string[]}|null>(null);
  const current=useRef<Capture|null>(null),controller=useRef<AbortController|null>(null),audio=useRef<HTMLAudioElement|null>(null),url=useRef(""),generation=useRef(0),panel=useRef<HTMLElement|null>(null),returnFocus=useRef<HTMLElement|null>(null),selectionOrigin=useRef<HTMLElement|null>(null);
  const stop=()=>{generation.current++;audio.current?.pause();audio.current=null;if(url.current)URL.revokeObjectURL(url.current);url.current=""};

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       state={...(state||{}),frenchCourse:course.course,courseCompleted:course.completed};
       if(course.course!=="legacy")state.preferences={minutes:10,interest:"any",goal:"everyday",...state.preferences,level:frenchAccess(state.preferences?.level,course.course,course.completed)?state.preferences.level:frenchStage(course.course,course.completed)};
     }
-    if(auth.language==="sv"){
+    if(auth.language!=="fr"){
       const [base]=await getDb().select().from(learnerProgress).where(eq(learnerProgress.userId,auth.accountUserId!)).limit(1);
       const theme=base?JSON.parse(base.state).holidayTheme:undefined;
       if(theme)state={...(state||{}),holidayTheme:theme};
@@ -51,7 +51,7 @@ export async function PUT(request: Request) {
     const db=getDb();
     const written=expected===0?await db.insert(learnerProgress).values({userId:user.userId,email:user.email,state:serialized,updatedAt}).onConflictDoNothing().returning():await db.update(learnerProgress).set({email:user.email,state:serialized,updatedAt}).where(and(eq(learnerProgress.userId,user.userId),eq(learnerProgress.updatedAt,expected))).returning();
     if(!written.length)return Response.json({error:"Progress changed on another device. Merge and retry."},{status:409});
-    if(auth.language==="sv"&&["auto","classic","autumn","halloween","winter","valentine","spring","summer"].includes(state.holidayTheme)){
+    if(auth.language!=="fr"&&["auto","classic","autumn","halloween","winter","valentine","spring","summer"].includes(state.holidayTheme)){
       // Update only the shared appearance preference, never the French lessons.
       await getDb().insert(learnerProgress).values({userId:auth.accountUserId!,email:user.email,state:JSON.stringify({holidayTheme:state.holidayTheme}),updatedAt}).onConflictDoUpdate({target:learnerProgress.userId,set:{state:sql`json_set(${learnerProgress.state}, '$.holidayTheme', ${state.holidayTheme})`,updatedAt:sql`max(${learnerProgress.updatedAt} + 1, ${updatedAt})`}});
     }

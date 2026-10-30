@@ -10,7 +10,7 @@ export function restoreFluencyDraft(value:unknown):FluencyDraft{
  const phase=Number.isInteger(v.phase)&&Number(v.phase)>=0&&Number(v.phase)<=3?Number(v.phase):0;
  return {plan,gap,phase:plan.trim().length<5?0:!gap.trim()&&phase>1?1:phase,quiet:v.quiet===true,result:typeof v.result==="string"?v.result.slice(0,100):""};
 }
-export default function FluencyPractice({language,onComplete,recorder,draft,onDraft,quick=false}:{language:"fr"|"sv";onComplete:()=>void;recorder:(plan:string)=>ReactNode;draft?:FluencyDraft;onDraft?:(update:(previous:FluencyDraft)=>FluencyDraft)=>void;quick?:boolean}){
+export default function FluencyPractice({language,onComplete,recorder,draft,onDraft,quick=false}:{language:"fr"|"sv"|"es";onComplete:()=>void;recorder:(plan:string)=>ReactNode;draft?:FluencyDraft;onDraft?:(update:(previous:FluencyDraft)=>FluencyDraft)=>void;quick?:boolean}){
  const [local,setLocal]=useState<FluencyDraft>(emptyFluencyDraft),[record,setRecord]=useState(false),[suggestions,setSuggestions]=useState<ConnectorSuggestion[]|null>(null);
  const state=draft||local,{plan,phase,gap,quiet,result}=state;
  const setField=<K extends keyof FluencyDraft,>(key:K,value:FluencyDraft[K]|((previous:FluencyDraft[K])=>FluencyDraft[K]))=>{const update=(previous:FluencyDraft)=>({...previous,[key]:typeof value==="function"?(value as (p:FluencyDraft[K])=>FluencyDraft[K])(previous[key]):value});if(onDraft)onDraft(update);else setLocal(update)};

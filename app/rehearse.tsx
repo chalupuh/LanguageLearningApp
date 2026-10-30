@@ -5,7 +5,7 @@ import {rehearsalPhrases, phraseChunks, suggestedRehearsal, correctlyBuilt, rehe
 import "./rehearse.css";
 
 const names = {echo:"Listen, then echo",build:"Build the phrase",rhythm:"Notice the rhythm"};
-type Props = {language?:"fr"|"sv";text:string; source:string; completed:boolean; onComplete:()=>void; loadAudio:(text:string)=>Promise<Blob>; recorder:(phrase:string)=>ReactNode; onRetry:()=>Promise<unknown>};
+type Props = {language?:"fr"|"sv"|"es";text:string; source:string; completed:boolean; onComplete:()=>void; loadAudio:(text:string)=>Promise<Blob>; recorder:(phrase:string)=>ReactNode; onRetry:()=>Promise<unknown>};
 
 // The parent keys this component by passage/transcript so changing a Studio
 // selection cannot carry a completed exercise over to different material.

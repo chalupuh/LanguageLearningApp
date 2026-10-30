@@ -4,7 +4,7 @@ import {frenchAccess,frenchContentVisible} from "../lib/french-progression";
 import {useEffect,useRef,useState} from "react";
 import "./listening-challenge.css";
 type Item={id:string;title:string;level:string;text:string;questions:{skill:string;prompt:string;options?:string[]}[]};
-export default function Announcements({loadAudio,onSaved,language="fr",mode="announcements"}:{mode?:"announcements"|"situations";language?:"fr"|"sv";loadAudio:(text:string)=>Promise<Blob>;onSaved:()=>void}){
+export default function Announcements({loadAudio,onSaved,language="fr",mode="announcements"}:{mode?:"announcements"|"situations";language?:"fr"|"sv"|"es";loadAudio:(text:string)=>Promise<Blob>;onSaved:()=>void}){
  const course=useFrenchCourse();const starter=language==="fr"&&!frenchAccess("B1",course.course,course.completed);
  const [difficulty,setDifficulty]=useState("standard");
  const [items,setItems]=useState<Item[]>([]),[completed,setCompleted]=useState<string[]>([]),[selected,setSelected]=useState<Item|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true),[audioUrl,setAudioUrl]=useState(""),[busy,setBusy]=useState(false),[answers,setAnswers]=useState<(number|string)[]>([]),[listens,setListens]=useState(0),[heard,setHeard]=useState(false),[result,setResult]=useState<any>(null),[filter,setFilter]=useState("all");

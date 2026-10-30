@@ -6,7 +6,7 @@ type Callbacks={apply:(state:State)=>void;onReady:(ready:boolean)=>void;onStatus
 export function useProgressSync(state:State,callbacks:Callbacks,language:string){
  const current=useRef(state),cb=useRef(callbacks),base=useRef<State>({}),revision=useRef<number|null>(null),ready=useRef(false),busy=useRef(false),alive=useRef(false),cache=useRef("");
  current.current=state;cb.current=callbacks;
- const endpoint="/api/progress"+(language==="sv"?"?language=sv":"");
+ const endpoint="/api/progress"+(language==="fr"?"":"?language="+language);
  const cachePending=()=>{if(!cache.current)return false;try{localStorage.setItem(cache.current,JSON.stringify({base:base.current,local:current.current}));return true}catch{return false}};
  const save=async()=>{
   if(!ready.current||busy.current)return;busy.current=true;

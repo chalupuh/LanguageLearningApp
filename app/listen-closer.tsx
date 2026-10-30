@@ -2,7 +2,7 @@
 import {useState,type ReactNode} from "react";
 import {highlightedParts} from "../lib/closer-highlights";
 import "./listen-closer.css";
-type Props={text:string;language:"fr"|"sv";completed:boolean;onComplete:(reflection:string)=>void;player?:ReactNode;source?:string;roles?:string[];revealed?:boolean;onReveal?:(value:boolean)=>void;highlights?:string[];onRemove?:(phrase:string)=>void;onSave?:(phrase:string)=>void;saved?:string[];audioUnavailable?:boolean};
+type Props={text:string;language:"fr"|"sv"|"es";completed:boolean;onComplete:(reflection:string)=>void;player?:ReactNode;source?:string;roles?:string[];revealed?:boolean;onReveal?:(value:boolean)=>void;highlights?:string[];onRemove?:(phrase:string)=>void;onSave?:(phrase:string)=>void;saved?:string[];audioUnavailable?:boolean};
 export default function ListenCloser({text,language,completed,onComplete,player,source,roles,revealed,onReveal,highlights=[],onRemove,onSave,saved=[],audioUnavailable=false}:Props){
  const [localReveal,setLocalReveal]=useState(false),open=revealed??localReveal;
  const reveal=(value:boolean)=>{setLocalReveal(value);onReveal?.(value)};

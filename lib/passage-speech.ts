@@ -4,7 +4,7 @@ export const RECORDING_VERSION="aligned-turns-v1";
 export const SPEECH_VOICES=new Set(["marin","cedar","coral","onyx"]);
 export type SpeechTurn={id?:string;character?:string;role:string;text:string;voice:string};
 export function speechTurns(passage:Passage,excerpt?:string):SpeechTurn[]{
- if(!passage.id?.trim()||!passage.text?.trim()||!["fr","sv"].includes(passage.language||"fr")||!["A1","A2","B1","B1+","B2","B2+"].includes(passage.level))throw Error(`Invalid audio content metadata: ${passage.id}`);
+ if(!passage.id?.trim()||!passage.text?.trim()||!["fr","sv","es"].includes(passage.language||"fr")||!["A1","A2","B1","B1+","B2","B2+"].includes(passage.level))throw Error(`Invalid audio content metadata: ${passage.id}`);
  const ids=new Set<string>();
  if(passage.cast){
   if(!passage.dialogue?.length||!Object.keys(passage.cast).length)throw Error(`Missing cast or dialogue: ${passage.id}`);

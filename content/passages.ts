@@ -13,7 +13,7 @@ export type Speaker = {
 export type Passage = {
   id: string;
   level: "A1" | "A2" | "B1" | "B1+" | "B2" | "B2+";
-  language?: "fr" | "sv";
+  language?: "fr" | "sv" | "es";
   title: string;
   topic: string;
   xp: number;

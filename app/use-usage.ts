@@ -1,14 +1,14 @@
 "use client";
 import {useEffect,useRef} from "react";
 import {activeSlice,pruneUsageQueue,validUsageSample} from "../lib/usage";
-type Sample={seq:number;start:number;end:number;stage:number;feature:string;language:"fr"|"sv"};
+type Sample={seq:number;start:number;end:number;stage:number;feature:string;language:"fr"|"sv"|"es"};
 // Memory survives route changes when storage is disabled; it remains account-scoped.
 const memoryQueues=new Map<string,any[]>();
 const memoryOnly=new Set<string>();
 function readQueue(key:string){if(memoryOnly.has(key))return memoryQueues.get(key)||[];try{const raw=localStorage.getItem(key);if(raw){const value=JSON.parse(raw);if(Array.isArray(value)){memoryQueues.set(key,value);return value}}}catch{memoryOnly.add(key)}return memoryQueues.get(key)||[]}
 function writeQueue(key:string,queue:any[]){memoryQueues.set(key,queue);try{localStorage.setItem(key,JSON.stringify(queue))}catch{memoryOnly.add(key)}}
 // Account-scoped, timestamp-only retry queue. Never phrases or recordings.
-export function useUsage(source:string|null,stage:number,media=false,feature="practice",language:"fr"|"sv"="fr"){
+export function useUsage(source:string|null,stage:number,media=false,feature="practice",language:"fr"|"sv"|"es"="fr"){
  const state=useRef({stage,media,feature,language}),current=useRef<{id:string;flush:()=>void}|null>(null);
  useEffect(()=>{current.current?.flush();state.current={stage,media,feature,language}},[stage,media,feature,language]);
  useEffect(()=>{

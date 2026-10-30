@@ -10,7 +10,7 @@ export async function POST(request:Request){
   if(Number(request.headers.get("content-length"))>12000)return reply({error:"Payload too large."},413);
   const text=await request.text();if(text.length>12000)return reply({error:"Payload too large."},413);
   let body:any;try{body=JSON.parse(text)}catch{return reply({error:"Invalid request."},400)}
-  const now=Date.now(), validSource=body?.source==="app"||passages.some(p=>"library:"+p.id===body?.source)||/^studio:[\w-]{11}:\d{1,6}:\d{1,6}$/.test(body?.source);
+  const now=Date.now(), validSource=body?.source==="app"||passages.some(p=>"library:"+p.id===body?.source)||/^library:es-[a-z]+$/.test(body?.source)||/^studio:[\w-]{11}:\d{1,6}:\d{1,6}$/.test(body?.source);
   if(!body||typeof body.id!=="string"||!/^[\w-]{36}$/.test(body.id)||!validSource||!Number.isInteger(body.stage)||body.stage<0||body.stage>3||!Array.isArray(body.samples)||!body.samples.length||body.samples.length>16)return reply({error:"Invalid usage data."},400);
   for(const s of body.samples)if(!validUsageSample(s,now))return reply({error:"Invalid activity interval."},400);
   try{

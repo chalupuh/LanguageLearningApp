@@ -3,12 +3,12 @@ export const USAGE_TIMEZONE = "America/New_York";
 export const usageStages = ["First listen", "Listen closer", "Retell practice / Rehearse", "Retell"];
 export type UsageSession = { id: string; source: string; startedAt: number; lastActiveAt: number; stage: number; completedAt: number | null };
 export type UsageSample = { sessionId: string; start: number; end: number; stage?:number|null;feature?:string|null;language?:string|null };
-export const usageFeatures=["today","library","phrase-review","phrase-help","fluency","listening-lab","announcements","situations","recordings","original-voices","swedish-lab","progress","collection","about","studio","practice"] as const;
+export const usageFeatures=["today","library","phrase-review","phrase-help","fluency","listening-lab","announcements","situations","recordings","original-voices","swedish-lab","spanish-lab","progress","collection","about","studio","practice"] as const;
 
 // Prune individual expired/invalid samples, rather than keeping an entire
 // poisoned queue because one newer sample remains. Matches the API contract.
 export function validUsageSample(s:any,now:number){
- return !!s&&Number.isSafeInteger(s.seq)&&s.seq>=0&&s.seq<=1000000&&Number.isSafeInteger(s.start)&&Number.isSafeInteger(s.end)&&s.end>s.start&&s.end-s.start<=10000&&s.start>=now-86400000&&s.start<now&&s.end<=now+5000&&(s.stage===undefined||Number.isInteger(s.stage)&&s.stage>=0&&s.stage<=3)&&(s.feature===undefined||usageFeatures.includes(s.feature))&&(s.language===undefined||["fr","sv"].includes(s.language));
+return !!s&&Number.isSafeInteger(s.seq)&&s.seq>=0&&s.seq<=1000000&&Number.isSafeInteger(s.start)&&Number.isSafeInteger(s.end)&&s.end>s.start&&s.end-s.start<=10000&&s.start>=now-86400000&&s.start<now&&s.end<=now+5000&&(s.stage===undefined||Number.isInteger(s.stage)&&s.stage>=0&&s.stage<=3)&&(s.feature===undefined||usageFeatures.includes(s.feature))&&(s.language===undefined||["fr","sv","es"].includes(s.language));
 }
 export function pruneUsageQueue(queue:any[],now:number){
  return queue.filter(r=>r&&typeof r.id==="string"&&/^[\w-]{36}$/.test(r.id)&&typeof r.source==="string"&&Number.isInteger(r.stage)&&r.stage>=0&&r.stage<=3&&Array.isArray(r.samples)).map(r=>({...r,samples:r.samples.filter((s:any)=>validUsageSample(s,now))})).filter(r=>r.samples.length).slice(-20);
