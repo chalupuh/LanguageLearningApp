@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {createHash} from "node:crypto";
 import {frenchBeginnerPassages,frenchBeginnerCharacters} from "../content/french-beginner.ts";
+import {spanishBeginnerPassages} from "../content/spanish-beginner.ts";
 import {speechTurns,recordingSignature,pcmWave} from "../lib/passage-speech.ts";
 import {validateAudioCatalog,validatePcmTurn,validateTurnReceipt,validateRecordingAssembly} from "../lib/audio-recording-validation.ts";
 import {passagePlayback} from "../lib/passage-playback.ts";
@@ -50,7 +51,20 @@ test("runtime sends the right voices sequentially and rejects missing turn or as
 test("the production preflight runs successfully with all network requests forbidden",async()=>{
  const {execFileSync}=await import("node:child_process");const {fileURLToPath}=await import("node:url");
  const output=execFileSync(process.execPath,["--experimental-strip-types","--import","data:text/javascript,globalThis.fetch=()=>{throw Error('Network forbidden in preflight')}",fileURLToPath(new URL("../scripts/rebuild-aligned-audio.mjs",import.meta.url)),"--check"],{encoding:"utf8",env:{...process.env,OPENAI_API_KEY:""}});
- assert.match(output,/PASS: 121 authored audio scenes/);assert.match(output,/No audible correctness/);
+ assert.match(output,/PASS: 133 authored audio scenes/);assert.match(output,/No audible correctness/);
+});
+
+test("all twelve Spanish starter recordings have exact turns, checksums and usable local playback",async()=>{
+ const {readFile}=await import("node:fs/promises"),{audioRecordings}=await import("../content/audio-recordings.ts");
+ assert.equal(spanishBeginnerPassages.length,12);validateAudioCatalog(spanishBeginnerPassages);let count=0;
+ for(const p of spanishBeginnerPassages){
+  const recording=audioRecordings[p.id];assert.ok(recording,p.id);assert.equal(recording.signature,recordingSignature(p),p.id);
+  const wave=await readFile(new URL("../public"+recording.file,import.meta.url)),clips=validateRecordingAssembly(p,recording,wave);
+  for(const [i,pcm] of clips.entries())assert.equal(hash(pcm),recording.turns[i].pcmSha256,p.id+" turn "+i);
+  const played=await passagePlayback(p,undefined,audioRecordings,async()=>assert.fail("Unexpected API call"),async()=>assert.fail("Unexpected reassembly"),async()=>new Response(wave,{headers:{"Content-Type":"audio/wav"}}));
+  assert.equal(played.size,wave.length);count+=clips.length;
+ }
+ assert.equal(count,65);
 });
 
 test("all twenty-four generated French starter recordings have exact turns, checksums and usable local playback",async()=>{

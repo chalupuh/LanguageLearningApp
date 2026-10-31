@@ -2,13 +2,14 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {audioRecordings as existingRecordings} from '../content/audio-recordings.ts';
 import {passages} from '../content/passages.ts';
+import {spanishBeginnerPassages} from '../content/spanish-beginner.ts';
 import {parisianVariant} from '../content/parisian-french.ts';
 import {announcements} from '../content/announcements.ts';
 import {situations} from '../content/situations.ts';
 import {speechTurns,recordingSignature,pcmWave,RECORDING_VERSION} from '../lib/passage-speech.ts';
 import {validateAudioCatalog,validatePcmTurn,validateTurnReceipt,validateRecordingAssembly} from '../lib/audio-recording-validation.ts';
 import {speechInstructions} from '../lib/speech-policy.ts';
-const catalog=[...passages,...passages.flatMap(p=>{const v=parisianVariant(p);return v?[v]:[]}),...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speechStyle:p.language==='fr'&&['A1','A2'].includes(p.level)?'beginner':undefined,speaker:{name:'Narrator',voice:'marin'}}))];
+const catalog=[...passages,...spanishBeginnerPassages,...passages.flatMap(p=>{const v=parisianVariant(p);return v?[v]:[]}),...[...announcements,...situations].map(p=>({...p,id:'announcement:'+p.id,speechStyle:p.language==='fr'&&['A1','A2'].includes(p.level)?'beginner':undefined,speaker:{name:'Narrator',voice:'marin'}}))];
 // Preflight the entire batch before reading credentials or making any paid call.
 validateAudioCatalog(catalog);
 if(process.argv.includes('--check')){
