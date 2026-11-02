@@ -6,6 +6,7 @@ const root=new URL("../",import.meta.url);
 test("Today greets learners in the selected language",async()=>{
  const page=await readFile(new URL("app/page.tsx",root),"utf8");
  assert.match(page,/language==="sv"\?"Hej!":language==="es"\?"¡Hola!":"Bonjour !"/);
+ assert.match(page,/const returnTo=encodeURIComponent\(trackUrl\("\/"\)\)/,"Sign-in must preserve the selected learning language");
 });
 
 test("first-time tutorial explains navigation, syncing, feedback and can be reopened",async()=>{

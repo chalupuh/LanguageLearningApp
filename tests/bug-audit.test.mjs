@@ -18,7 +18,7 @@ test("access gate distinguishes service outages from sign-out and offers a retry
  const h=hooks(),oldFetch=globalThis.fetch;let status=503;
  globalThis.__accessAudit={...h,OwnerFeedbackLink:()=>null};globalThis.fetch=async()=>new Response(null,{status});
  try{
-  const {AccessGate}=await load('const {useState,useEffect,OwnerFeedbackLink}=globalThis.__accessAudit;'+source+'export {AccessGate};');
+  const {AccessGate}=await load('const {useState,useEffect,OwnerFeedbackLink}=globalThis.__accessAudit;const trackUrl=path=>path;'+source+'export {AccessGate};');
   const render=()=>h.render(()=>AccessGate({children:"Learning content"}));
   render();h.effects[0]();await tick();let tree=render();
   assert.match(text(tree),/Retry connection/);assert.doesNotMatch(text(tree),/Continue with ChatGPT/);
