@@ -117,6 +117,11 @@ export const releases = [
   {mark:"03",title:"Reuse a Calendar checklist item",body:"When you add a day or weekly plan, recent checklist text appears as a reusable choice. Selecting it creates a new item and leaves the earlier one unchanged."},
   {mark:"04",title:"Finish an announcement cleanly",body:"After checking an announcement, choose Done to return to Today, or retry the same recording."},
  ]},
+ {id:"2026-11-02-hands-free-listening",date:"November 2, 2026",title:"Listening that can stay hands-free",summary:"Prepare a safe listening queue while parked, then control it with your headset, lock screen, or a small set of spoken commands.",items:[
+  {mark:"01",title:"Prepare before you move",body:"Choose a 5, 10, or 15 minute session while parked. The app prepares the complete audio queue before playback begins so the session does not depend on another network request."},
+  {mark:"02",title:"Simple controls, spoken aloud",body:"Pause, continue, repeat, change speed, move between lessons, or stop with large controls, supported media buttons, or one clearly requested voice command."},
+  {mark:"03",title:"Practice stays honest",body:"Passive listening never marks a lesson complete or awards XP. Detailed answers and corrections remain in the normal lesson flow for review when parked."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
