@@ -18,22 +18,23 @@ async function context(userId: string, accountUserId=userId) {
   const [profile] = await db.select().from(schema.journeyProfiles).where(ops.eq(schema.journeyProfiles.userId,userId));
   await db.insert(schema.journeyProfiles).values({userId:accountUserId,historicalXp:0}).onConflictDoNothing();
   const [appearance]=await db.select().from(schema.journeyProfiles).where(ops.eq(schema.journeyProfiles.userId,accountUserId));
-  const combined=await db.select().from(schema.journeyEvents).where(ops.or(ops.eq(schema.journeyEvents.userId,accountUserId),ops.eq(schema.journeyEvents.userId,`track:sv:${accountUserId}`)));
+  const combined=await db.select().from(schema.journeyEvents).where(ops.or(ops.eq(schema.journeyEvents.userId,accountUserId),ops.eq(schema.journeyEvents.userId,`track:sv:${accountUserId}`),ops.eq(schema.journeyEvents.userId,`track:es:${accountUserId}`)));
   const collectionXp=earnedXp(combined);
   const frenchXp=earnedXp(combined.filter(event=>event.userId===accountUserId));
   const swedishXp=earnedXp(combined.filter(event=>event.userId===`track:sv:${accountUserId}`));
-  return {db,schema,ops,events,accountEvents:combined,profile:{...profile,avatar:appearance.avatar,frame:appearance.frame,background:appearance.background},legacy,collectionXp,frenchXp,swedishXp};
+  const spanishXp=earnedXp(combined.filter(event=>event.userId===`track:es:${accountUserId}`));
+  return {db,schema,ops,events,accountEvents:combined,profile:{...profile,avatar:appearance.avatar,frame:appearance.frame,background:appearance.background},legacy,collectionXp,frenchXp,swedishXp,spanishXp};
 }
 export async function GET(request: Request) {
   const auth = authorizeAppRequest(request); if (!auth.identity) return reply({error:"Sign in to see your journey."},auth.status);
   try {
     const course=auth.language==="fr"?await frenchCourseContext(auth.identity.userId):null;
-    const {events,profile,legacy,collectionXp,frenchXp,swedishXp,accountEvents} = await context(auth.identity.userId,auth.accountUserId);
+    const {events,profile,legacy,collectionXp,frenchXp,swedishXp,spanishXp,accountEvents} = await context(auth.identity.userId,auth.accountUserId);
     const used = new Set(events.filter(e=>e.kind==="checkpoint").map(e=>e.source));
-    const candidate=auth.language==="sv"?undefined:checkpoints.find(c=>!used.has(c.id));
+    const candidate=auth.language==="fr"?checkpoints.find(c=>!used.has(c.id)):undefined;
     const next=candidate&&(!course||frenchAccess(candidate.level.startsWith("B2")?"B2":"B1",course.course,course.completed))?candidate:undefined;
     const last = Math.max(0,...events.filter(e=>e.kind==="checkpoint").map(e=>e.createdAt));
-    return reply({...profile,collectionXp,frenchXp,swedishXp,userId:undefined,releases:unseenReleases(accountEvents,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
+    return reply({...profile,collectionXp,frenchXp,swedishXp,spanishXp,userId:undefined,releases:unseenReleases(accountEvents,legacy.lastSeenUpdateId),events:events.map(({userId,...e})=>e).sort((a,b)=>b.createdAt-a.createdAt),checkpoint:next?{...next,questions:next.questions.map(({answer,...q})=>q)}:null,checkpointAvailableAt:last?last+7*86400000:0});
   } catch { return reply({error:"Your journey could not be loaded. Please retry."},503); }
 }
 export async function POST(request: Request) {
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
       const familiar=c.events.some(e=>e.source===body.source&&(e.kind==="observation"||e.kind==="loop"||e.kind==="review"))||(passage&&c.legacy.completed?.includes(passage.id));
       id="observation:"+body.source+":"+day; data={score:body.score,condition:familiar?"familiar":body.condition,level:passage?.level||"Uncalibrated Studio",topic:passage?.topic||"Personal video",day};
     } else if (kind==="checkpoint") {
-      const check=auth.language==="sv"?undefined:checkpoints.find(c=>c.id===body.source);
+      const check=auth.language==="fr"?checkpoints.find(c=>c.id===body.source):undefined;
       if (!check||!Array.isArray(body.answers)||body.answers.length!==check.questions.length||body.answers.some((a:unknown)=>!Number.isInteger(a)||Number(a)<0||Number(a)>2)||!Number.isInteger(body.listens)||body.listens<1||body.listens>100) return reply({error:"Listen and answer all checkpoint questions."},400);
       const previous=c.events.find(e=>e.kind==="checkpoint"&&e.source===check.id);
       if(previous)return reply({awarded:0,result:JSON.parse(previous.details),message:"Already recorded — no duplicate XP."});

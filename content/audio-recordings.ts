@@ -4594,5 +4594,229 @@ export const audioRecordings:Record<string,{signature:string;file:string;turns:{
         "end": 21.800000000000004
       }
     ]
+  },
+  "es-lab-recibo": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"el recibo\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/b3af0a22e869cbd48717029c.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "el recibo",
+        "voice": "coral",
+        "pcmSha256": "e8b0b0e8ab732020bf2bdea3ee11f2b7a33bfcf939cdeabf537f91ea11f67fc1",
+        "start": 0,
+        "end": 1.65
+      }
+    ]
+  },
+  "es-lab-garganta": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"la garganta\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/bba56b0fc200f5471788289f.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "la garganta",
+        "voice": "coral",
+        "pcmSha256": "7458a454bf0723313f5f0c3391c2f5c842fdf80f30208c8930892e374e876225",
+        "start": 0,
+        "end": 1.55
+      }
+    ]
+  },
+  "es-lab-estacion": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"la estación\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/65613ce4e3275b171e9c54eb.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "la estación",
+        "voice": "coral",
+        "pcmSha256": "871ac969d32ccb06091114e8ed73e55189fe953cde0536b309f8a86a3558bb27",
+        "start": 0,
+        "end": 1.8
+      }
+    ]
+  },
+  "es-lab-talla": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"la talla\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/7aabdc879a3e97bf0854ee8f.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "la talla",
+        "voice": "coral",
+        "pcmSha256": "45b823c3bf5f8fa0c233c79e27b9b66f5cdffac2221f0aece692ba04fcd85862",
+        "start": 0,
+        "end": 1.65
+      }
+    ]
+  },
+  "es-lab-desayuno": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"el desayuno\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/f52e631a5f21b035a3b5097e.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "el desayuno",
+        "voice": "coral",
+        "pcmSha256": "672114607166748914de1a220f0f488603187ba0fd65ca74c3c0577794f711e1",
+        "start": 0,
+        "end": 1.75
+      }
+    ]
+  },
+  "es-lab-fin-semana": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"el fin de semana\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/2bfd5d13f29afba0542918f7.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "el fin de semana",
+        "voice": "coral",
+        "pcmSha256": "af36e980a7cfb405ed3afbb6eb87ed303709005eb00235f0f612f5d6aad8d8f3",
+        "start": 0,
+        "end": 2.95
+      }
+    ]
+  },
+  "es-lab-perro": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"perro\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/a745d64031994bbdf567512b.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "perro",
+        "voice": "coral",
+        "pcmSha256": "4b017e29c7950e060b79bd4f1b9fe8ce7a0a89f98af844af4c2dd34ecc65fa35",
+        "start": 0,
+        "end": 1.1
+      }
+    ]
+  },
+  "es-lab-pero": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"pero\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/8617beedde002065dc5f1039.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "pero",
+        "voice": "coral",
+        "pcmSha256": "55260128cc0269b6fddf1e62da395c9bbb1dc979ca5302753a083e3abcfa690f",
+        "start": 0,
+        "end": 1.3
+      }
+    ]
+  },
+  "es-lab-pena": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"pena\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/40955325ca5f9d27233afe9f.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "pena",
+        "voice": "coral",
+        "pcmSha256": "dac889abee7fde3447c2dd7f06f44387131a25fa778a4db860ba5c4d9345f5f3",
+        "start": 0,
+        "end": 1.5
+      }
+    ]
+  },
+  "es-lab-pena-nye": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"peña\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/30ae263039e598be874cd198.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "peña",
+        "voice": "coral",
+        "pcmSha256": "bb6e05e887ffe5861598dde4d173c611743e650c058debaf36547f099dcfabc0",
+        "start": 0,
+        "end": 1.7
+      }
+    ]
+  },
+  "es-lab-publico-past": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"publicó\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/791b27ec2fe211b9cc677d1b.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "publicó",
+        "voice": "coral",
+        "pcmSha256": "315df5c14b7014d463f6f1124eda9b23096b08acdff45383bb882f56e8041b1e",
+        "start": 0,
+        "end": 1.7
+      }
+    ]
+  },
+  "es-lab-publico": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"público\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/1b0cf8819748f1b65aea11e7.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "público",
+        "voice": "coral",
+        "pcmSha256": "8ee7fc449c5df2633a7a32279163da00a9c94ae295f121510de0ad5704b6b923",
+        "start": 0,
+        "end": 2.3
+      }
+    ]
+  },
+  "es-lab-mision-cafe": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"Un café pequeño con leche para llevar, por favor.\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/16ba896a9e749a64dc865cc9.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "Un café pequeño con leche para llevar, por favor.",
+        "voice": "coral",
+        "pcmSha256": "b172f3f04fa4f87f27c5981d73d0b83749831b9eec8e9fb9ab015409fd777aa6",
+        "start": 0,
+        "end": 4.25
+      }
+    ]
+  },
+  "es-lab-mision-direcciones": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"¿Dónde está la estación? ¿Está lejos?\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/4e297b92b74a42e41e0b2e56.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "¿Dónde está la estación? ¿Está lejos?",
+        "voice": "coral",
+        "pcmSha256": "e2bfb4350d4d72420816c8cb46084297270ae093c502a4f5de003ae0c87d17d9",
+        "start": 0,
+        "end": 4.15
+      }
+    ]
+  },
+  "es-lab-dictado-estacion": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"¿Dónde está la estación?\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/8f2b883fc17850660f73de30.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "¿Dónde está la estación?",
+        "voice": "coral",
+        "pcmSha256": "837f2f69eb13bb28ab597ab240759bcc86e54d1f2820d0e9c755b23f7ff06093",
+        "start": 0,
+        "end": 2.25
+      }
+    ]
+  },
+  "es-lab-mision-planes": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Sofía\",\"text\":\"Trabajo hasta las cuatro. ¿Nos vemos a las cuatro y media?\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/ec60aa45db1785ea57818977.wav",
+    "turns": [
+      {
+        "role": "Sofía",
+        "text": "Trabajo hasta las cuatro. ¿Nos vemos a las cuatro y media?",
+        "voice": "coral",
+        "pcmSha256": "09a81acf30c71e2889c28d1ae1dc4ae239ff532becc11e92169266ecab2f4e82",
+        "start": 0,
+        "end": 6
+      }
+    ]
   }
 };

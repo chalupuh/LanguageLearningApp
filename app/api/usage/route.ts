@@ -23,7 +23,7 @@ export async function POST(request:Request){
     if(session.source!==body.source)return reply({error:"Session source cannot change."},409);
     // D1 allows 100 bound parameters per statement. Eight columns × sixteen
     // samples exceeded that limit after adding feature/step/language timing.
-    for(let offset=0;offset<body.samples.length;offset+=10)await db.insert(schema.usageSamples).values(body.samples.slice(offset,offset+10).map((s:any)=>({userId,sessionId:body.id,seq:s.seq,start:s.start,end:Math.min(s.end,now),stage:s.stage??null,feature:s.feature??null,language:s.language??null}))).onConflictDoNothing();
+    for(let offset=0;offset<body.samples.length;offset+=10)await db.insert(schema.usageSamples).values(body.samples.slice(offset,offset+10).map((s:any)=>{const end=Math.min(s.end,now);return{userId,sessionId:body.id,seq:s.seq,start:Math.min(s.start,end-1),end,stage:s.stage??null,feature:s.feature??null,language:s.language??null}})).onConflictDoNothing();
     // Fine-grained timing is needed only for the dashboard's 90-day window.
     if(body.samples.some((s:any)=>s.seq===0)){const {lt}=await import("drizzle-orm");await db.delete(schema.usageSamples).where(and(eq(schema.usageSamples.userId,userId),lt(schema.usageSamples.end,now-90*86400000)))}
     return reply({saved:true});

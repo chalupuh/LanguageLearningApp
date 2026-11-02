@@ -8,4 +8,5 @@ test("a mixed retry queue drops expired intervals without losing current practic
  assert.deepEqual(pruneUsageQueue(queue,now)[0].samples,[recent]);
  assert.equal(validUsageSample({...recent,end:recent.start},now),false);
  assert.equal(validUsageSample({...recent,end:now+10001},now),false);
+ assert.equal(validUsageSample({...recent,start:now+1000,end:now+2000},now),true,"Small client/server clock skew is accepted");
 });

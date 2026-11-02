@@ -102,12 +102,15 @@ test("Paris progress uses bounded practice milestones, not a B2 proficiency scor
   const renderedJs=ts.transpileModule(renderSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}}).outputText.replaceAll('"react/jsx-runtime"',JSON.stringify(import.meta.resolve("react/jsx-runtime")));
   const {default:ProgressJourney}=await import(`data:text/javascript;base64,${Buffer.from(renderedJs).toString("base64")}`);
   const {createElement}=await import("react"),{renderToStaticMarkup}=await import("react-dom/server");
-  for(const language of ["fr","sv"]){
-    const html=renderToStaticMarkup(createElement(ProgressJourney,{language,xp:2500,completed:1,saved:1,days:1,speaking:1,onPractice:()=>{}}));
+  for(const language of ["fr","sv","es"]){
+    const html=renderToStaticMarkup(createElement(ProgressJourney,{language,xp:2500,frenchXp:1000,swedishXp:750,spanishXp:750,completed:1,saved:1,days:1,speaking:1,onPractice:()=>{}}));
     assert.match(html,/aria-valuenow="2500"/);assert.match(html,/--tower-fill:50%/);
-    assert.match(html,language==="sv"?/class="swedish-fish"/:/class="eiffel-tower"/);
-    assert.doesNotMatch(html,language==="sv"?/class="eiffel-tower"/:/class="swedish-fish"/);
-    assert.match(html,/French \+ Swedish XP/);
+    assert.match(html,language==="sv"?/class="swedish-fish"/:language==="es"?/class="spanish-bubble"/:/class="eiffel-tower"/);
+    if(language!=="fr")assert.doesNotMatch(html,/class="eiffel-tower"/);
+    if(language!=="sv")assert.doesNotMatch(html,/class="swedish-fish"/);
+    if(language!=="es")assert.doesNotMatch(html,/class="spanish-bubble"/);
+    assert.match(html,/French \+ Swedish \+ Spanish XP/);assert.match(html,/Spanish <b>750 XP/);
+    if(language==="es"){assert.match(html,/Your Spanish journey/);assert.match(html,/Poco a poco/);assert.match(html,/>Hola</);}
   }
   assert.match(source, /🥐.*☕.*🧸/);
   assert.match(await readFile(new URL("app/progress-journey.css", root), "utf8"), /prefers-reduced-motion/);
@@ -199,6 +202,8 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(feedback, /word_accuracy/);
   assert.match(feedback, /liaison_practice/);
   assert.match(feedback, /replay_drill/);
+  assert.match(feedback, /Latin American Spanish/);
+  assert.match(feedback, /requestedLanguage==="sv"\|\|requestedLanguage==="es"/);
   assert.match(rehearsal, /lang=\{language\}>\{phrase\}/);
   assert.match(page, /measureSpeechTiming/);
   assert.match(page, /Liaison to practise/);
@@ -213,6 +218,7 @@ test("keeps the learning loop and AI routes honest", async () => {
   assert.match(feedbackInbox, /OWNER_EMAIL/);
   assert.match(feedbackInbox, /collectFeedbackNotes/);
   assert.match(comprehension, /0-100 percentage scale/);
+  assert.match(comprehension, /Latin American Spanish/);
   assert.match(guard, /Sign in to use AI coaching/);
 });
 

@@ -105,6 +105,12 @@ export const releases = [
   {mark:"02",title:"Make the week feel familiar",body:"Start your calendar on Sunday or Monday. Your display choices stay on this browser, and existing weekly goals keep their dates."},
   {mark:"03",title:"A more useful study planner",body:"A new monthly progress strip, clearer day headings, and a quieter two-column weekly notebook make plans easier to scan. Unfinished quick-add text stays with its day while you navigate this calendar."},
  ]},
+ {id:"2026-11-01-spanish-welcome",date:"November 1, 2026",title:"¡Hola! Spanish is ready",summary:"A complete Latin American Spanish beginning, with a clearer welcome for every new learner.",items:[
+  {mark:"01",title:"A1–A2 Spanish path",body:"Twelve practical conversations, words, sound contrasts, and missions build a neutral Latin American Spanish foundation."},
+  {mark:"02",title:"Audio ready when you are",body:"Spanish lessons and Lab practice use bundled recordings, so everyday playback is quick and does not use the AI coaching allowance."},
+  {mark:"03",title:"Progress that feels Spanish",body:"Spanish practice has its own XP history and a Hola progress marker, while collection rewards still celebrate practice across every language."},
+  {mark:"04",title:"A guide for your first visit",body:"A short welcome tour explains Today, the beginner Lab, Library, Calendar, Progress, syncing, and where to send a request or bug report."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

@@ -162,10 +162,15 @@ test("language progress is isolated, appearance shared, and announcement XP is i
   assert.deepEqual((await(await ann.GET(req("announcements?language=sv"))).json()).completed,[]);
   await ann.POST(req("announcements?language=sv","POST",{id:"sv-butik",answers:[0,1,2],listens:1}));
   const journey=await import(await moduleUrl("app/api/journey/route.ts"));
-  const frenchJourney=await(await journey.GET(req("journey"))).json(),swedishJourney=await(await journey.GET(req("journey?language=sv"))).json();
-  assert.equal(frenchJourney.collectionXp,50);assert.equal(swedishJourney.collectionXp,50);
+  const spanishLoop={kind:"loop",source:"library:es-hola",summary:"Two people meet.",retell:"Sofía y Mateo se presentan.",decoded:true,rehearsed:true};
+  assert.equal((await(await journey.POST(req("journey?language=es","POST",spanishLoop))).json()).awarded,40);
+  const frenchJourney=await(await journey.GET(req("journey"))).json(),swedishJourney=await(await journey.GET(req("journey?language=sv"))).json(),spanishJourney=await(await journey.GET(req("journey?language=es"))).json();
+  assert.equal(frenchJourney.collectionXp,90);assert.equal(swedishJourney.collectionXp,90);assert.equal(spanishJourney.collectionXp,90);
+  assert.equal(spanishJourney.frenchXp,25);assert.equal(spanishJourney.swedishXp,25);assert.equal(spanishJourney.spanishXp,40);
+  assert.equal(spanishJourney.checkpoint,null,"Spanish must not receive French listening checkpoints");
   assert.equal(frenchJourney.events.reduce((sum,e)=>sum+e.xp,0),25);
   assert.equal(swedishJourney.events.reduce((sum,e)=>sum+e.xp,0),25);
+  assert.equal(spanishJourney.events.reduce((sum,e)=>sum+e.xp,0),40);
   assert.equal(frenchJourney.events[0].source,"mall-closing");assert.equal(swedishJourney.events[0].source,"sv-butik");
  }finally{if(previous===undefined)delete process.env.ALLOWED_USER_EMAILS;else process.env.ALLOWED_USER_EMAILS=previous;delete globalThis.__journeyTestDb;sqlite.close()}
 });
@@ -214,7 +219,10 @@ test("owner usage API denies learners, saves idempotent intervals, and confirms 
   assert.equal((await telemetry.POST(new Request("https://example.com/api/usage",{method:"POST",body:JSON.stringify(body)}))).status,401);
   assert.equal((await telemetry.POST(req("usage","nikki",body,"https://evil.example"))).status,403);
   for(let i=0;i<2;i++)assert.equal((await telemetry.POST(req("usage","nikki",body))).status,200);
-  assert.equal(sqlite.prepare("select count(*) as n from usage_samples").get().n,1);
+  const skewed={...body,id:"55555555-5555-4555-8555-555555555555",samples:[{...body.samples[0],seq:0,start:clock+1000,end:clock+2000}]};
+  assert.equal((await telemetry.POST(req("usage","nikki",skewed))).status,200);
+  assert.equal(sqlite.prepare("select end-start as duration from usage_samples where session_id=?").get(skewed.id).duration,1,"Future-skewed timing is safely clamped");
+  assert.equal(sqlite.prepare("select count(*) as n from usage_samples").get().n,2);
   assert.equal((await telemetry.POST(req("usage","nikki",{...body,source:"studio:Zpcrn1b6baQ:0:60"}))).status,409);
   assert.equal((await telemetry.POST(req("usage","nikki",{...body,samples:[{seq:1,start:clock-3600000,end:clock}]}))).status,400);
   assert.equal((await telemetry.POST(req("usage","nikki",{...body,id:id2}))).status,200);
