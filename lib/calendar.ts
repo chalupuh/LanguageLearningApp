@@ -23,6 +23,9 @@ export function monthWeeks(month:string){const next=monthShift(month,1)+"-01",ou
 export const monthLabel=(month:string)=>dateFromKey(month+"-01").toLocaleDateString("en-US",{month:"long",year:"numeric",timeZone:"UTC"});
 export function weekLabel(week:string){const opts:Intl.DateTimeFormatOptions={month:"short",day:"numeric",timeZone:"UTC"};return dateFromKey(week).toLocaleDateString("en-US",opts)+" – "+dateFromKey(addDays(week,6)).toLocaleDateString("en-US",opts)}
 export function mainGoalFor(plan:CalendarPlan,month:string){return [...plan.mainGoals].filter(g=>g.month<=month).sort((a,b)=>b.month.localeCompare(a.month))[0]?.text||""}
+export function recentGoalSuggestions(plan:CalendarPlan,limit=8){
+ const seen=new Set<string>();return [...plan.goals].sort((a,b)=>b.createdAt-a.createdAt).flatMap(goal=>{const key=goal.text.trim().toLocaleLowerCase();if(!key||seen.has(key))return[];seen.add(key);return[goal.text.trim()]}).slice(0,Math.max(0,Math.min(20,limit)));
+}
 export function setMainGoal(plan:CalendarPlan,month:string,text:string):CalendarPlan{return {...plan,mainGoals:[...plan.mainGoals.filter(g=>g.month!==month),{month,text:text.trim()}]}}
 export function validCalendar(value:unknown):value is CalendarPlan{
  if(!value||typeof value!=="object")return false;const d=value as CalendarPlan;

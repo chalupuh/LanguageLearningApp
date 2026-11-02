@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
-import {emptyCalendar,validCalendar,validDate,validWeek,weekStart,monthDays,dateFromKey,fullDateLabel,goalsOnDate,monthWeeks,monthShift,mainGoalFor,setMainGoal,mergeCalendar} from '../lib/calendar.ts';
+import {emptyCalendar,validCalendar,validDate,validWeek,weekStart,monthDays,dateFromKey,fullDateLabel,goalsOnDate,monthWeeks,monthShift,mainGoalFor,recentGoalSuggestions,setMainGoal,mergeCalendar} from '../lib/calendar.ts';
 const url=s=>'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64');
 const root=new URL('../',import.meta.url),read=p=>readFile(new URL(p,root),'utf8');
 const goal=(id='goal-000000000001',text='Listen to a poem',week='2026-10-26')=>({id,text,week,done:false,createdAt:1});
@@ -29,6 +29,16 @@ test('dated checklists validate exact dates, preserve legacy weekly goals, and m
  const local={...base,goals:[{...daily,done:true},weekly]},remote={...base,goals:[daily,{...weekly,text:'Changed weekly goal'}]};
  const merged=mergeCalendar(base,local,remote);assert.equal(merged.conflict,false);assert.equal(goalsOnDate(merged.plan,daily.date)[0].done,true);assert.equal(merged.plan.goals[1].text,'Changed weekly goal');
  const moved={...daily,date:'2026-11-04',week:'2026-11-02'};assert.equal(validCalendar({...base,goals:[moved]}),true);assert.equal(moved.done,false);
+});
+
+test('recent checklist items are reusable, unique, and newest first',()=>{
+ const plan={...emptyCalendar(),goals:[
+  {id:'calendar-goal-00001',week:'2026-10-19',text:'Review ten saved phrases',done:true,createdAt:1},
+  {id:'calendar-goal-00002',week:'2026-10-26',text:'Complete a listening lesson',done:false,createdAt:3},
+  {id:'calendar-goal-00003',week:'2026-10-26',text:'review ten saved phrases',done:false,createdAt:2},
+ ]};
+ assert.deepEqual(recentGoalSuggestions(plan),['Complete a listening lesson','review ten saved phrases']);
+ assert.deepEqual(recentGoalSuggestions(plan,1),['Complete a listening lesson']);
 });
 test('calendar weeks cross months and years once, including leap days and daylight-saving boundaries',()=>{
  assert.equal(weekStart('2026-11-01'),'2026-10-26');assert.ok(monthWeeks('2026-10').includes('2026-10-26'));assert.ok(monthWeeks('2026-11').includes('2026-10-26'));

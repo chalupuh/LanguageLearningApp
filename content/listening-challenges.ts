@@ -41,9 +41,16 @@ export function normalizeListeningAnswer(value:string){
  const numbers:Record<string,string>={five:"5",cinq:"5",ten:"10",dix:"10",fifteen:"15",quinze:"15",twenty:"20",vingt:"20",three:"3",trois:"3",nine:"9",neuf:"9",two:"2",deux:"2"};
  const number=text.replace(/ (?:minutes?|mins?)$/,"");return numbers[number]||number;
 }
+export function listeningAnswerMatches(value:string,accepted:string[]){
+ const answer=normalizeListeningAnswer(value);if(!answer)return false;
+ if(accepted.some(candidate=>normalizeListeningAnswer(candidate)===answer))return true;
+ const ignored=new Set(["a","an","and","for","of","to","with","de","du","des","et","pour","en"]),tokens=(text:string)=>normalizeListeningAnswer(text).split(" ").filter(token=>token&&!ignored.has(token));
+ const learner=tokens(answer);if(!learner.length||learner.some(token=>/^\d+$/.test(token)))return false;
+ return accepted.some(candidate=>{const expected=tokens(candidate);if(!expected.length)return false;const overlap=learner.filter(token=>expected.includes(token)).length;return overlap===learner.length&&overlap/expected.length>=.5&&learner.some(token=>token.length>=4)});
+}
 export function scoreListening(item:Announcement,difficulty:ListeningDifficulty,answers:unknown[]){
  const questions=listeningQuestions(item,difficulty);
  if(answers.length!==questions.length||answers.some(a=>difficulty==="write"?typeof a!=="string"||!a.trim()||a.length>180:!Number.isInteger(a)||Number(a)<0||Number(a)>2))throw Error("Answer every question using the selected difficulty.");
- const skills=questions.map((q,i)=>({skill:q.skill,correct:difficulty==="write"?q.accepted.some(a=>normalizeListeningAnswer(a)===normalizeListeningAnswer(String(answers[i]))):q.answer===answers[i],answer:difficulty==="write"?q.accepted[0]:q.options[q.answer]}));
+ const skills=questions.map((q,i)=>({skill:q.skill,correct:difficulty==="write"?listeningAnswerMatches(String(answers[i]),q.accepted):q.answer===answers[i],answer:difficulty==="write"?q.accepted[0]:q.options[q.answer]}));
  return {score:Math.round(skills.filter(s=>s.correct).length/skills.length*100),skills};
 }

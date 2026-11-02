@@ -111,6 +111,12 @@ export const releases = [
   {mark:"03",title:"Progress that feels Spanish",body:"Spanish practice has its own XP history and a Hola progress marker, while collection rewards still celebrate practice across every language."},
   {mark:"04",title:"A guide for your first visit",body:"A short welcome tour explains Today, the beginner Lab, Library, Calendar, Progress, syncing, and where to send a request or bug report."},
  ]},
+ {id:"2026-11-02-listening-calendar-requests",date:"November 2, 2026",title:"More room to answer, less work to plan",summary:"Four learner requests make explanations, listening checks, and repeat practice easier.",items:[
+  {mark:"01",title:"Room for the whole explanation",body:"Lesson summaries and retells now allow up to 1,200 characters, matching the existing coaching and saving limits."},
+  {mark:"02",title:"Short answers count when the meaning matches",body:"Written announcement checks accept clear shortened equivalents such as “for work” when the authored answer is “business work,” while unrelated partial answers remain incorrect."},
+  {mark:"03",title:"Reuse a Calendar checklist item",body:"When you add a day or weekly plan, recent checklist text appears as a reusable choice. Selecting it creates a new item and leaves the earlier one unchanged."},
+  {mark:"04",title:"Finish an announcement cleanly",body:"After checking an announcement, choose Done to return to Today, or retry the same recording."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

@@ -2,13 +2,13 @@
 import {useEffect,useRef,useState,type KeyboardEvent} from "react";
 import {useCalendar} from "./use-calendar";
 import {useLearningLanguage,languageName} from "./learning-language";
-import {addDays,dateFromKey,fullDateLabel,goalsOnDate,mainGoalFor,monthDays,monthLabel,monthShift,monthWeeks,setMainGoal,validDate,validMonth,weekLabel,weekStart,type CalendarGoal} from "../lib/calendar";
+import {addDays,dateFromKey,fullDateLabel,goalsOnDate,mainGoalFor,monthDays,monthLabel,monthShift,monthWeeks,recentGoalSuggestions,setMainGoal,validDate,validMonth,weekLabel,weekStart,type CalendarGoal} from "../lib/calendar";
 import "./my-calendar.css";
 import {calendarHolidays,validHolidayRegion,type HolidayRegion} from "../lib/calendar-holidays";
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")};
 type GoalScope="day"|"week";
 
-function GoalEditor({goal,week,initialDay,defaultScope="week",onSave,onClose}:{goal:CalendarGoal|null;week:string;initialDay?:string;defaultScope?:GoalScope;onSave:(text:string,week:string,date?:string)=>boolean;onClose:()=>void}){
+function GoalEditor({goal,week,suggestions,initialDay,defaultScope="week",onSave,onClose}:{goal:CalendarGoal|null;week:string;suggestions:string[];initialDay?:string;defaultScope?:GoalScope;onSave:(text:string,week:string,date?:string)=>boolean;onClose:()=>void}){
  const [text,setText]=useState(goal?.text||""),[date,setDate]=useState(goal?.date||initialDay||goal?.week||week),[scope,setScope]=useState<GoalScope>(goal?.date?"day":defaultScope);
  const dialog=useRef<HTMLDialogElement|null>(null),input=useRef<HTMLInputElement|null>(null);
  useEffect(()=>{dialog.current?.showModal();input.current?.focus();return()=>dialog.current?.close()},[]);
@@ -16,7 +16,7 @@ function GoalEditor({goal,week,initialDay,defaultScope="week",onSave,onClose}:{g
   <form onSubmit={event=>{event.preventDefault();if(text.trim()&&validDate(date)&&onSave(text.trim(),weekStart(date),scope==="day"?date:undefined))onClose()}}>
    <h2 id="calendar-editor-title">{goal?"Edit your plan":"A little practice to plan"}</h2>
    <label>Checklist item<input ref={input} maxLength={180} required value={text} onChange={event=>setText(event.target.value)} placeholder="Complete a listening lesson"/></label>
-   {!goal&&<div className="calendar-suggestions" aria-label="Study suggestions">{["Complete a listening lesson","Practise a server conversation","Review ten saved phrases","Try a quick retell","Listen to a poem"].map(suggestion=><button type="button" key={suggestion} onClick={()=>setText(suggestion)}>{suggestion}</button>)}</div>}
+   {!goal&&<div className="calendar-suggestions" aria-label="Reusable checklist items">{suggestions.length>0&&<strong>Use a previous item</strong>}{suggestions.map(suggestion=><button type="button" key={suggestion} onClick={()=>setText(suggestion)}>{suggestion}</button>)}<strong>Or choose an idea</strong>{["Complete a listening lesson","Practise a server conversation","Review ten saved phrases","Try a quick retell","Listen to a poem"].filter(suggestion=>!suggestions.includes(suggestion)).map(suggestion=><button type="button" key={suggestion} onClick={()=>setText(suggestion)}>{suggestion}</button>)}</div>}
    <fieldset className="calendar-scope"><legend>When would you like to do it?</legend><label><input type="radio" name="goal-scope" checked={scope==="day"} onChange={()=>setScope("day")}/> On a specific day</label><label><input type="radio" name="goal-scope" checked={scope==="week"} onChange={()=>setScope("week")}/> Any day this week</label></fieldset>
    <label>{scope==="day"?"Day":"Choose a date in the week"}<input type="date" required min="1900-01-01" max="2199-12-31" value={date} onChange={event=>setDate(event.target.value)} onInput={event=>setDate(event.currentTarget.value)}/></label>
    <p>{validDate(date)?scope==="day"?fullDateLabel(date)+" · visible in your monthly calendar.":"Week of "+weekLabel(weekStart(date))+". Choose a specific day to place it on the calendar.":"Choose a valid date."}</p>
@@ -41,7 +41,7 @@ export default function MyCalendar(){
  useEffect(()=>{if(monthReady)try{localStorage.setItem("a-loreille-calendar-month:"+calendar.user,month)}catch{}},[month,monthReady,calendar.user]);
  const setDisplay=(start:0|1,holidays:HolidayRegion)=>{setStartsOn(start);setHolidayRegion(holidays);try{localStorage.setItem("a-loreille-calendar-display",JSON.stringify({startsOn:start,holidays}))}catch{/* Keep the display choice for this visit if storage is unavailable. */}};
  const activeDate=selectedDay.slice(0,7)===month?selectedDay:month===thisMonth?today:month+"-01";
- const days=monthDays(month,startsOn),weeks=monthWeeks(month),main=mainGoalFor(calendar.plan,month),dayGoals=goalsOnDate(calendar.plan,activeDate),itemText=drafts[activeDate]||"";
+ const days=monthDays(month,startsOn),weeks=monthWeeks(month),main=mainGoalFor(calendar.plan,month),dayGoals=goalsOnDate(calendar.plan,activeDate),itemText=drafts[activeDate]||"",priorItems=recentGoalSuggestions(calendar.plan);
  const setItemText=(text:string)=>setDrafts(previous=>({...previous,[activeDate]:text}));
  const holidays=[...new Set(days.map(date=>Number(date.slice(0,4))))].flatMap(year=>calendarHolidays(year,holidayRegion));
  const dayHolidays=holidays.filter(holiday=>holiday.date===activeDate),weekdays=startsOn===0?["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -95,7 +95,7 @@ export default function MyCalendar(){
     {goals.length?<GoalChecklist goals={goals} blocked={calendar.conflict} onToggle={toggle} onEdit={(button,goal)=>openEditor(button,goal,goal.week)} onDelete={remove}/>:<p className="calendar-empty">Add a weekly goal, then choose a day when it suits you.</p>}
     <button className="calendar-add" disabled={calendar.conflict} onClick={event=>openEditor(event.currentTarget,null,week)}>+ Add weekly goal<span className="sr-only"> for {weekLabel(week)}</span></button>
    </section>})}</div><p className="calendar-footnote">Weekly goals stay flexible until you choose a day. Completed items keep their original date. Edit or move an item whenever your plans change.</p>
-   {editor&&<GoalEditor goal={editor.goal} week={editor.week} initialDay={editor.day} defaultScope={editor.scope} onClose={closeEditor} onSave={(text,week,date)=>{const changed=calendar.change(plan=>({...plan,goals:editor.goal?plan.goals.map(goal=>{if(goal.id!==editor.goal!.id)return goal;const next={...goal,text,week};if(date)next.date=date;else delete next.date;return next}):[...plan.goals,{id:crypto.randomUUID(),week,...(date?{date}:{}),text,done:false,createdAt:Date.now()}]}));if(changed){returnDate.current=date||null;if(date)selectDate(date);setNotice(date?"Item saved on "+fullDateLabel(date)+".":"Weekly goal saved. Choose a specific day to show it on the calendar.")}return changed}}/>}
+   {editor&&<GoalEditor goal={editor.goal} week={editor.week} suggestions={priorItems.filter(item=>item!==editor.goal?.text)} initialDay={editor.day} defaultScope={editor.scope} onClose={closeEditor} onSave={(text,week,date)=>{const changed=calendar.change(plan=>({...plan,goals:editor.goal?plan.goals.map(goal=>{if(goal.id!==editor.goal!.id)return goal;const next={...goal,text,week};if(date)next.date=date;else delete next.date;return next}):[...plan.goals,{id:crypto.randomUUID(),week,...(date?{date}:{}),text,done:false,createdAt:Date.now()}]}));if(changed){returnDate.current=date||null;if(date)selectDate(date);setNotice(date?"Item saved on "+fullDateLabel(date)+".":"Weekly goal saved. Choose a specific day to show it on the calendar.")}return changed}}/>}
   </>}
  </section>;
 }

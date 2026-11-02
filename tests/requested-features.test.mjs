@@ -9,7 +9,7 @@ import {parisianVariant} from '../content/parisian-french.ts';
 import {audioRecordings} from '../content/audio-recordings.ts';
 import {speechTurns,recordingSignature} from '../lib/passage-speech.ts';
 import {speechVersion,speechInstructions} from '../lib/speech-policy.ts';
-import {listeningQuestions,scoreListening,normalizeListeningAnswer,challengeDetails} from '../content/listening-challenges.ts';
+import {listeningQuestions,scoreListening,normalizeListeningAnswer,listeningAnswerMatches,challengeDetails} from '../content/listening-challenges.ts';
 import {listeningSummary,validWritingFeedback} from '../lib/writing-feedback.ts';
 
 test('all six poems have a new male recording; every everyday French passage has a separate Parisian adaptation with matching roles',()=>{
@@ -29,6 +29,9 @@ test('all 24 French checks have close distractors and independently authored wri
   assert.throws(()=>scoreListening(item,'write',['','','']));assert.throws(()=>scoreListening(item,'close',["0","1","2"]));
  }
  assert.equal(normalizeListeningAnswer('CÔRRIGÉE!'),'corrigee');
+ assert.equal(listeningAnswerMatches('For work',['business work']),true);
+ assert.equal(listeningAnswerMatches('parking',['north parking lot']),false);
+ assert.equal(listeningAnswerMatches('nineteen',['twenty']),false);
  const mall=announcements.find(p=>p.id==='mall-closing');assert.equal(scoreListening(mall,'write',['in five minutes','the checkouts','exit']).score,100);
  assert.throws(()=>listeningQuestions(announcements.find(p=>p.language==='sv'),'close'));
 });
