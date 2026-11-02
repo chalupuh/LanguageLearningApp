@@ -1,0 +1,327 @@
+{
+  "generatedAt": "2026-11-02T16:51:37.215Z",
+  "model": "gpt-4o-mini-transcribe",
+  "method": "Unprompted whole-scene Spanish ASR with case, accent, and punctuation normalization. Token differences require review; ASR is not a native-speaker pronunciation or voice-identity review.",
+  "scenes": [
+    {
+      "id": "es-hola",
+      "sha256": "408b61f27e82bb9bd616580f15598065509e544d1cbdd8b63a3eabd13fc8bac4",
+      "expected": "¡Hola! Me llamo Sofía. ¿Cómo te llamas? Me llamo Mateo. Mucho gusto. ¿De dónde eres? Soy de Colombia. ¿Y tú? Soy de México.",
+      "transcribed": "Hola, me llamo Sofía. ¿Cómo te llamas? Me llamo Mateo. Mucho gusto. ¿De dónde eres? Soy de Colombia. ¿Y tú? Soy de México.",
+      "wordEdits": 0,
+      "expectedWords": 23,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-cafe",
+      "sha256": "30f967641c1c8a4f1f1b0fc8d00a2af04ef7155816aafa3d13b9ccdf9f6a9c77",
+      "expected": "Buenos días. Un café, por favor. ¿Con leche o sin leche? Con un poco de leche, gracias. ¿Para aquí o para llevar? Para llevar, por favor.",
+      "transcribed": "Buenos días. Un café, por favor. ¿Con leche o sin leche? Con un poco de leche. Gracias. ¿Para aquí o para llevar? Para llevar, por favor.",
+      "wordEdits": 0,
+      "expectedWords": 26,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-desayuno",
+      "sha256": "6e600bdf79631cd8bae061cfd83f70bfc9fb681230d4b832b55eddc0b8da4411",
+      "expected": "Buenos días. ¿Dónde está el desayuno? Está en el primer piso. ¿A qué hora termina? Termina a las diez. Perfecto. Muchas gracias.",
+      "transcribed": "Buenos días. ¿Dónde está el desayuno? Está en el primer piso. ¿A qué hora termina? Termina a las diez. Perfecto. Muchas gracias.",
+      "wordEdits": 0,
+      "expectedWords": 22,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-precio",
+      "sha256": "1f4f2e3f4daba020f4ba21b1ce6648e204334a98bd5f4f32aa45336107c9b312",
+      "expected": "Disculpe, ¿cuánto cuesta esta camisa? Cuesta veinte dólares. ¿Tiene una talla más grande? Sí, aquí tiene. Me la llevo, gracias.",
+      "transcribed": "Disculpe, ¿cuánto cuesta esta camisa? Cuesta 20 dólares. ¿Tiene una talla más grande? Sí, aquí tiene. Me la llevo. Gracias.",
+      "wordEdits": 1,
+      "expectedWords": 20,
+      "wordErrorRate": 0.05,
+      "status": "REVIEW DIFFERENCES"
+    },
+    {
+      "id": "es-direccion",
+      "sha256": "2aa2cbcd79165a242380149e88a8e1a6c9f1abf1ce9f510225c722bd2da9a8f9",
+      "expected": "Disculpe, ¿dónde está la estación? Siga derecho y doble a la izquierda. ¿Está lejos? No, está a cinco minutos a pie. Muchas gracias por su ayuda.",
+      "transcribed": "Disculpe, ¿dónde está la estación? Siga derecho y doble a la izquierda. ¿Está lejos? No, está a cinco minutos a pie. Muchas gracias por su ayuda.",
+      "wordEdits": 0,
+      "expectedWords": 26,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-restaurante",
+      "sha256": "46bc62afe55b5aeb2fda710fa91f1d2a86aae3ac7ad277d422e917986b2ff491",
+      "expected": "Buenas noches. ¿Tiene una mesa para dos? Sí. ¿Adentro o afuera? Adentro, por favor. Aquí tienen el menú. Gracias. ¿Nos trae agua, por favor?",
+      "transcribed": "Buenas noches. ¿Tiene una mesa para dos? Sí, ¿adentro o afuera? Adentro, por favor. Aquí tienen el menú. Gracias. ¿Nos trae agua, por favor?",
+      "wordEdits": 0,
+      "expectedWords": 24,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-hotel",
+      "sha256": "78124d6afec4e71fdf44536c21bcbf1be947d9ebd7594700c11c0f77ee363fd5",
+      "expected": "Buenas tardes. Tengo una reservación a nombre de Ana Ruiz. Sí, señora Ruiz. Su habitación está en el tercer piso. ¿Hay ascensor? Sí, está al lado de la recepción. Muchas gracias.",
+      "transcribed": "Buenas tardes. Tengo una reservación a nombre de Ana Ruiz. Sí, señora Ruiz. Su habitación está en el tercer piso. ¿Hay ascensor? Sí, está al lado de la recepción. Muchas gracias.",
+      "wordEdits": 0,
+      "expectedWords": 31,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-taxi",
+      "sha256": "ae086e186fbe26fb656b8767fcb60ae265c0d49ac910e7d8f5c600fbab9173fd",
+      "expected": "Buenos días. Necesito un taxi al aeropuerto. Claro. ¿Para qué hora? Para las ocho, por favor. El taxi estará aquí a las siete y cuarenta y cinco. Perfecto, gracias.",
+      "transcribed": "Buenos días, necesito un taxi al aeropuerto. Claro, ¿para qué hora? Para las ocho, por favor. El taxi estará aquí a las 7:45. Perfecto, gracias.",
+      "wordEdits": 5,
+      "expectedWords": 29,
+      "wordErrorRate": 0.1724137931034483,
+      "status": "REVIEW DIFFERENCES"
+    },
+    {
+      "id": "es-planes",
+      "sha256": "14e34e8db55ba17acfd9604cff9eb0bf2d864959cdbe09aed99738474e2a2e0b",
+      "expected": "¿Nos vemos en el café a las tres? Lo siento, trabajo hasta las cuatro. Entonces, ¿a las cuatro y media? Sí, perfecto. Nos vemos frente a la estación. De acuerdo. Hasta luego.",
+      "transcribed": "Nos vemos en el café a las tres. Lo siento, trabajo hasta las cuatro. ¿Entonces a las cuatro y media? Sí, perfecto. Nos vemos frente a la estación. De acuerdo, hasta luego.",
+      "wordEdits": 0,
+      "expectedWords": 32,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-mercado",
+      "sha256": "20adeb5f051b084dc21443e755444a272f213f88d2dad6601e777287782c2f89",
+      "expected": "Quisiera un kilo de manzanas, por favor. Claro. ¿Quiere algo más? ¿Tiene peras maduras? Todavía no. Estarán listas mañana. Entonces, solo las manzanas. ¿Puedo pagar con tarjeta? Sí, por supuesto.",
+      "transcribed": "Quisiera un kilo de manzanas, por favor. Claro, ¿quiere algo más? ¿Tiene peras maduras? Todavía no. Estarán listas mañana. Entonces, sólo las manzanas. ¿Puedo pagar con tarjeta? Sí, por supuesto.",
+      "wordEdits": 0,
+      "expectedWords": 30,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-ayer",
+      "sha256": "ce4581cb7f7f92f8d8317c92c133561b95d9bea388879d04ee05ad89219e6b8f",
+      "expected": "¿Llegaste tarde ayer? Sí. Esperé el autobús durante veinte minutos. ¿Por qué no tomaste el metro? La estación estaba cerrada, así que caminé. ¿A qué hora llegaste? A las nueve y cuarto.",
+      "transcribed": "¿Llegaste tarde ayer? Sí, esperé el autobús durante veinte minutos. ¿Por qué no tomaste el metro? La estación estaba cerrada, así que caminé. ¿A qué hora llegaste? A las nueve y cuarto.",
+      "wordEdits": 0,
+      "expectedWords": 32,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-farmacia",
+      "sha256": "a8cdbbb3ac3bc1d7f88d593a96254b5454fcf3d82763e10544c0e75239a3a316",
+      "expected": "Buenos días. Me duele la garganta. ¿Tiene fiebre? No, pero tengo tos desde ayer. Puede tomar estas pastillas y descansar. ¿Cuántas debo tomar? Una cada ocho horas, después de comer.",
+      "transcribed": "Buenos días, me duele la garganta. ¿Tiene fiebre? No, pero tengo tos desde ayer. Puede tomar estas pastillas y descansar. ¿Cuántas debo tomar? Una cada ocho horas, después de comer.",
+      "wordEdits": 0,
+      "expectedWords": 30,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-devolucion",
+      "sha256": "ebfbbe1dba601103d9b5dd1fb79a1bbd7302f7f698141098f524058ad049d92a",
+      "expected": "Compré esta camisa ayer, pero me queda pequeña. ¿Tiene el recibo? Sí. Quisiera cambiarla por una talla más grande. Tenemos la misma camisa en talla mediana. Perfecto. ¿Puedo probármela? Claro. Los probadores están al fondo.",
+      "transcribed": "Compré esta camisa ayer, pero me queda pequeña. ¿Tiene el recibo? Sí. Quisiera cambiarla por una talla más grande. Tenemos la misma camisa en talla mediana. Perfecto. ¿Puedo probármela? Claro, los probadores están al fondo.",
+      "wordEdits": 0,
+      "expectedWords": 35,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-finsemana",
+      "sha256": "7c612830de34916138927ae0469b3cd8ac893dd4a848f087ce7b95db1f3a7cb0",
+      "expected": "¿Qué hiciste el fin de semana? Queríamos ir al parque, pero llovió mucho. ¿Qué hicieron entonces? Visitamos un museo cerca de casa. Después tomamos chocolate caliente. El próximo sábado vamos a intentar ir al parque otra vez.",
+      "transcribed": "¿Qué hiciste el fin de semana? Queríamos ir al parque, pero llovió mucho. ¿Qué hicieron entonces? Visitamos un museo cerca de casa. Después tomamos chocolate caliente. El próximo sábado vamos a intentar ir al parque otra vez.",
+      "wordEdits": 0,
+      "expectedWords": 37,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-aeropuerto",
+      "sha256": "1ecad88a489204d9df090f192a13ea10192eb8db332f0213e4e782ce915394c6",
+      "expected": "Buenas tardes. Quisiera documentar esta maleta. Claro. ¿Tiene su pasaporte y pase de abordar? Sí, aquí están. Su vuelo sale de la puerta veinticuatro. ¿A qué hora empieza el abordaje? A las cinco y media.",
+      "transcribed": "Buenas tardes. Quisiera documentar esta maleta. Claro, ¿tiene su pasaporte y pase de abordar? Sí, aquí están. Su vuelo sale de la puerta veinticuatro. ¿A qué hora empieza el abordaje? A las cinco y media.",
+      "wordEdits": 0,
+      "expectedWords": 35,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-habitacion",
+      "sha256": "8b100310a96dcafacf7f26b8efb367af88af60779ca593c46eceb151976c6a48",
+      "expected": "Disculpe, el aire acondicionado de mi habitación no funciona. Lo siento. Voy a llamar a mantenimiento. ¿Cuánto tiempo tardará? Aproximadamente veinte minutos. Si no pueden repararlo, ¿puedo cambiar de habitación? Sí, buscaremos otra habitación para usted.",
+      "transcribed": "Disculpe, el aire acondicionado de mi habitación no funciona. Lo siento, voy a llamar a mantenimiento. ¿Cuánto tiempo tardará? Aproximadamente veinte minutos. Si no pueden repararlo, ¿puedo cambiar de habitación? Sí, buscaremos otra habitación para usted.",
+      "wordEdits": 0,
+      "expectedWords": 36,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-cita",
+      "sha256": "0b7dbf5fed744ecee394f7ad49ee8233f25fa9ba892d0170c909c0111da976b1",
+      "expected": "Buenos días. Tengo una cita el martes, pero no puedo ir. ¿Quiere cambiarla para otro día? Sí. ¿Hay espacio el jueves por la tarde? Tenemos una cita a las tres y media. Esa hora me queda bien. Perfecto. La cambiamos al jueves.",
+      "transcribed": "Buenos días. Tengo una cita el martes, pero no puedo ir. ¿Quiere cambiarla para otro día? Sí. ¿Hay espacio el jueves por la tarde? Tenemos una cita a las tres y media. Esa hora me queda bien. Perfecto. La cambiamos al jueves.",
+      "wordEdits": 0,
+      "expectedWords": 42,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-cuenta",
+      "sha256": "e35531435cce1333438f2025c76af206c961d9eacab4324c5d61ccd4a33774d9",
+      "expected": "Disculpe, creo que hay un error en la cuenta. ¿Qué pasó? Nos cobraron tres cafés, pero pedimos dos. Tiene razón. Voy a corregirla ahora mismo. Gracias. También queremos pagar con tarjeta. Claro. Le traigo la terminal.",
+      "transcribed": "Disculpe, creo que hay un error en la cuenta. ¿Qué pasó? Nos cobraron tres cafés, pero pedimos dos. Tiene razón. Voy a corregirla ahora mismo. Gracias. También queremos pagar con tarjeta. Claro, le traigo la terminal.",
+      "wordEdits": 0,
+      "expectedWords": 36,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-a1-tienda",
+      "sha256": "da67429103e7cfda227e0981323b2fe690214eb1d0fca2a79abff7e54615d3de",
+      "expected": "Atención, por favor. La tienda cierra en diez minutos. Pasen a la caja para pagar. La salida está a la derecha.",
+      "transcribed": "Atención, por favor. La tienda cierra en diez minutos. Pasen a la caja para pagar. La salida está a la derecha.",
+      "wordEdits": 0,
+      "expectedWords": 21,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-a1-autobus",
+      "sha256": "9d097ab1e81210189991ffddd4425caffabf3cf475f90cd49fbea829bf15624a",
+      "expected": "El autobús número ocho no para aquí hoy. Tómenlo en la próxima parada, frente al banco. Sale en quince minutos.",
+      "transcribed": "El autobús número ocho no para aquí hoy. Tómenlo en la próxima parada, frente al banco. Sale en quince minutos.",
+      "wordEdits": 0,
+      "expectedWords": 20,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-a1-pedido",
+      "sha256": "578872db48d263d84d15ff452e08c902ab7de7f511ca93afc61bb4a8326a41b9",
+      "expected": "Pedido número treinta y uno. Su comida está lista. Recójala en el mostrador junto a la caja. Las bebidas están en la segunda mesa.",
+      "transcribed": "Querido número treinta y uno, su comida está lista. Recójala en el mostrador junto a la caja. Las bebidas están en la segunda mesa.",
+      "wordEdits": 1,
+      "expectedWords": 24,
+      "wordErrorRate": 0.041666666666666664,
+      "status": "REVIEW DIFFERENCES"
+    },
+    {
+      "id": "es-a2-vuelo",
+      "sha256": "c00422bcf1013ea3eeeda068ace582b24b6c48b2c7b20132004f94c01f4b0362",
+      "expected": "Atención, pasajeros del vuelo a Bogotá. La puerta de salida cambió de la doce a la dieciocho. El abordaje comienza a las seis y veinte. Tengan listos su pase de abordar y su identificación.",
+      "transcribed": "Atención, pasajeros del vuelo a Bogotá, la puerta de salida cambió de la 12 a la 18. El abordaje comienza a las 6:20. Tengan listos su pase de abordar y su identificación.",
+      "wordEdits": 5,
+      "expectedWords": 34,
+      "wordErrorRate": 0.14705882352941177,
+      "status": "REVIEW DIFFERENCES"
+    },
+    {
+      "id": "es-a2-museo",
+      "sha256": "f0225b7419b105c07edbf68a541b49e2fb892978fad3c5644e85627581636843",
+      "expected": "El museo cerrará en veinte minutos. La tienda permanecerá abierta hasta las siete. Por favor, diríjanse a la salida principal y recojan sus pertenencias del guardarropa.",
+      "transcribed": "El museo cerrará en veinte minutos. La tienda permanecerá abierta hasta las siete. Por favor, diríjanse a la salida principal y recojan sus pertenencias del guardarropa.",
+      "wordEdits": 0,
+      "expectedWords": 26,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "es-a2-metro",
+      "sha256": "c84131ae43920da568459cda76cf2d9704a044614b960aceed06c76db01a4afa",
+      "expected": "El servicio de metro está suspendido entre las estaciones Central y Universidad. Para continuar su viaje, usen el autobús gratuito que sale frente a la estación Central cada quince minutos.",
+      "transcribed": "El servicio de metro está suspendido entre las estaciones Central y Universidad. Para continuar su viaje, usen el autobús gratuito que sale frente a la estación Central cada 15 minutos.",
+      "wordEdits": 1,
+      "expectedWords": 30,
+      "wordErrorRate": 0.03333333333333333,
+      "status": "REVIEW DIFFERENCES"
+    },
+    {
+      "id": "situation-es-table-1",
+      "sha256": "cf0be519cea7cccaff74461efb88996146f62b372ccc3280d77d237f9e0ae657",
+      "expected": "Disculpen, esta mesa está reservada para las ocho. ¿Pueden pasar a la mesa junto a la ventana? Yo llevo sus platos.",
+      "transcribed": "Disculpen, esta mesa está reservada para las ocho. ¿Pueden pasar a la mesa junto a la ventana? Yo llevo sus platos.",
+      "wordEdits": 0,
+      "expectedWords": 21,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-table-2",
+      "sha256": "b862b3f37dfdc274107178417dea69e3275e2f1841fdf0bdf6a312c0a30daa03",
+      "expected": "Perdón, necesitamos esta mesa para un grupo. Les puedo ofrecer la mesa del fondo y voy a mover sus bebidas.",
+      "transcribed": "Perdón, necesitamos esta mesa para un grupo. Les puedo ofrecer la mesa del fondo y voy a mover sus bebidas.",
+      "wordEdits": 0,
+      "expectedWords": 20,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-milk-1",
+      "sha256": "e603e9def7777c4383c4bd2af76aa12eebbce93d4e0da1cfa4e272edbb02b778",
+      "expected": "Lo siento, no tenemos leche de avena. Tenemos leche de soya o puede pedir el café sin leche.",
+      "transcribed": "Lo siento, no tenemos leche de avena. Tenemos leche de soya o puede pedir el café sin leche.",
+      "wordEdits": 0,
+      "expectedWords": 18,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-milk-2",
+      "sha256": "ada91fb59562f40f6cf1732e7b8dbd9f8971c78bcd385c21a1c52ca0701ba438",
+      "expected": "Se terminó la leche de avena. ¿Prefiere leche de soya o café negro?",
+      "transcribed": "Se terminó la leche de avena. ¿Prefiere leche de soya o café negro?",
+      "wordEdits": 0,
+      "expectedWords": 13,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-cash-1",
+      "sha256": "b26cfee0bf2d3c28b02065c3cce41a8283bd737d27cf2dfbabacb7a529149432",
+      "expected": "Esta máquina solo acepta efectivo. Para pagar con tarjeta, haga su pedido en la caja.",
+      "transcribed": "Esta máquina solo acepta efectivo. Para pagar con tarjeta, haga su pedido en la caja.",
+      "wordEdits": 0,
+      "expectedWords": 15,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-cash-2",
+      "sha256": "1fd98d2c50f7bc2a004b5ad8d8ed1a2aab1aadd7e08efc287fa241aad162df34",
+      "expected": "Aquí no funciona la tarjeta. Puede usar monedas o pagar con tarjeta en el mostrador.",
+      "transcribed": "Aquí no funciona la tarjeta. Puede usar monedas o pagar con tarjeta en el mostrador.",
+      "wordEdits": 0,
+      "expectedWords": 15,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-kitchen-1",
+      "sha256": "a828a2600f8ae98ddd945d8acc47ba4eafa37210dd342b993b82a0bc9bb5ece1",
+      "expected": "La cocina cierra en diez minutos. Todavía puede pedir un plato, pero después solo habrá bebidas y postres.",
+      "transcribed": "La cocina cierra en diez minutos. Todavía puede pedir un plato, pero después sólo habrá bebidas y postres.",
+      "wordEdits": 0,
+      "expectedWords": 18,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    },
+    {
+      "id": "situation-es-kitchen-2",
+      "sha256": "195471ed583a11bff2ce98e1e54688da604c600901cdb1d646658aa17f726bae",
+      "expected": "Si quiere ordenar comida, tiene que hacerlo ahora. La cocina cerrará en diez minutos; el bar seguirá abierto.",
+      "transcribed": "Si quiere ordenar comida, tiene que hacerlo ahora. La cocina cerrará en diez minutos. El bar seguirá abierto.",
+      "wordEdits": 0,
+      "expectedWords": 18,
+      "wordErrorRate": 0,
+      "status": "EXACT NORMALIZED MATCH"
+    }
+  ]
+}

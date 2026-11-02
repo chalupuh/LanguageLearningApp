@@ -4818,5 +4818,577 @@ export const audioRecordings:Record<string,{signature:string;file:string;turns:{
         "end": 6
       }
     ]
+  },
+  "es-hotel": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"id\":\"es-hotel:t01\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Buenas tardes. Tengo una reservación a nombre de Ana Ruiz.\",\"voice\":\"coral\"},{\"id\":\"es-hotel:t02\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Sí, señora Ruiz. Su habitación está en el tercer piso.\",\"voice\":\"cedar\"},{\"id\":\"es-hotel:t03\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"¿Hay ascensor?\",\"voice\":\"coral\"},{\"id\":\"es-hotel:t04\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Sí, está al lado de la recepción.\",\"voice\":\"cedar\"},{\"id\":\"es-hotel:t05\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Muchas gracias.\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/56e1e53c74c7ea3cdbc4c10b.wav",
+    "turns": [
+      {
+        "id": "es-hotel:t01",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Buenas tardes. Tengo una reservación a nombre de Ana Ruiz.",
+        "voice": "coral",
+        "pcmSha256": "65470dd8448822245d914378d15983edb26f54b411b8da4c1e7fb0ad19e953a1",
+        "start": 0,
+        "end": 7.2
+      },
+      {
+        "id": "es-hotel:t02",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Sí, señora Ruiz. Su habitación está en el tercer piso.",
+        "voice": "cedar",
+        "pcmSha256": "4273aa38facf55a093be37a2b5d0f07ebf456014f1d1fd1e0f0812361b764e8b",
+        "start": 7.45,
+        "end": 12.15
+      },
+      {
+        "id": "es-hotel:t03",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "¿Hay ascensor?",
+        "voice": "coral",
+        "pcmSha256": "86f4b30d9d9534ea667f2f7ecd8c0aa1cbcfb63b4bfdaefa9e18ce5b5d8b8ad5",
+        "start": 12.4,
+        "end": 14.65
+      },
+      {
+        "id": "es-hotel:t04",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Sí, está al lado de la recepción.",
+        "voice": "cedar",
+        "pcmSha256": "0b2d57fe0b40c3ebf471e4282a0f48619a4e6838abc2a00f3d78a645436b79c9",
+        "start": 14.9,
+        "end": 17.8
+      },
+      {
+        "id": "es-hotel:t05",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Muchas gracias.",
+        "voice": "coral",
+        "pcmSha256": "4644459f6fc1fe653676d30cf5a2f7d4514de40f22ae1bedb646f939a8c29c9c",
+        "start": 18.05,
+        "end": 19.85
+      }
+    ]
+  },
+  "es-taxi": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"id\":\"es-taxi:t01\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Buenos días. Necesito un taxi al aeropuerto.\",\"voice\":\"coral\"},{\"id\":\"es-taxi:t02\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Claro. ¿Para qué hora?\",\"voice\":\"cedar\"},{\"id\":\"es-taxi:t03\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Para las ocho, por favor.\",\"voice\":\"coral\"},{\"id\":\"es-taxi:t04\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"El taxi estará aquí a las siete y cuarenta y cinco.\",\"voice\":\"cedar\"},{\"id\":\"es-taxi:t05\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Perfecto, gracias.\",\"voice\":\"coral\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/7be1403172d314c787d59c15.wav",
+    "turns": [
+      {
+        "id": "es-taxi:t01",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Buenos días. Necesito un taxi al aeropuerto.",
+        "voice": "coral",
+        "pcmSha256": "43bb52163e5c0e84c0c5d11e7bf001ffe80a311301ed4400c99d976c1d24fc38",
+        "start": 0,
+        "end": 4.3
+      },
+      {
+        "id": "es-taxi:t02",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Claro. ¿Para qué hora?",
+        "voice": "cedar",
+        "pcmSha256": "31a395b3e927fcd2ce5d16c187a11341b40c4212764ca07fd07c2bba5d70d453",
+        "start": 4.55,
+        "end": 6.75
+      },
+      {
+        "id": "es-taxi:t03",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Para las ocho, por favor.",
+        "voice": "coral",
+        "pcmSha256": "a478b552a6d62d4ec18e88ccd5154dd081ef18753a3bcfac8a068925a752c99c",
+        "start": 7,
+        "end": 10.9
+      },
+      {
+        "id": "es-taxi:t04",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "El taxi estará aquí a las siete y cuarenta y cinco.",
+        "voice": "cedar",
+        "pcmSha256": "979d476cab9d0b91780fb24a09a5ab5ecf839107de61b61fb0bfdeeb78486707",
+        "start": 11.15,
+        "end": 15.5
+      },
+      {
+        "id": "es-taxi:t05",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Perfecto, gracias.",
+        "voice": "coral",
+        "pcmSha256": "ea80fc11e61644b8e3fac06c386bb1d0ea6cfd9897dde395eae38eb9f506fe97",
+        "start": 15.75,
+        "end": 18.5
+      }
+    ]
+  },
+  "es-aeropuerto": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"id\":\"es-aeropuerto:t01\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Buenas tardes. Quisiera documentar esta maleta.\",\"voice\":\"coral\"},{\"id\":\"es-aeropuerto:t02\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Claro. ¿Tiene su pasaporte y pase de abordar?\",\"voice\":\"cedar\"},{\"id\":\"es-aeropuerto:t03\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Sí, aquí están.\",\"voice\":\"coral\"},{\"id\":\"es-aeropuerto:t04\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Su vuelo sale de la puerta veinticuatro.\",\"voice\":\"cedar\"},{\"id\":\"es-aeropuerto:t05\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"¿A qué hora empieza el abordaje?\",\"voice\":\"coral\"},{\"id\":\"es-aeropuerto:t06\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"A las cinco y media.\",\"voice\":\"cedar\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/f63499def52b2ab659ba0b61.wav",
+    "turns": [
+      {
+        "id": "es-aeropuerto:t01",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Buenas tardes. Quisiera documentar esta maleta.",
+        "voice": "coral",
+        "pcmSha256": "5851a3b2bc9936a5aed02426ea05bce4984bee87a56384602ec439da7c9109bd",
+        "start": 0,
+        "end": 4.35
+      },
+      {
+        "id": "es-aeropuerto:t02",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Claro. ¿Tiene su pasaporte y pase de abordar?",
+        "voice": "cedar",
+        "pcmSha256": "44186e33ad8c8ee2148555e2da4b7e1e16231ad27e3858d5120f3cb41b51cdd2",
+        "start": 4.6,
+        "end": 8.55
+      },
+      {
+        "id": "es-aeropuerto:t03",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Sí, aquí están.",
+        "voice": "coral",
+        "pcmSha256": "76e487e6a4a1aca7154f0dac963135672198d7b99bdb1c577e18fb697e18181f",
+        "start": 8.8,
+        "end": 11.3
+      },
+      {
+        "id": "es-aeropuerto:t04",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Su vuelo sale de la puerta veinticuatro.",
+        "voice": "cedar",
+        "pcmSha256": "7481667023bb348659a3d20b39c10b24510a1dbec89c45b6f23eaf3786dda751",
+        "start": 11.55,
+        "end": 15.100000000000001
+      },
+      {
+        "id": "es-aeropuerto:t05",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "¿A qué hora empieza el abordaje?",
+        "voice": "coral",
+        "pcmSha256": "14c02b11a844b1f796f3daff359fab80af9a619f86369896769ea1540635c18c",
+        "start": 15.350000000000001,
+        "end": 18.200000000000003
+      },
+      {
+        "id": "es-aeropuerto:t06",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "A las cinco y media.",
+        "voice": "cedar",
+        "pcmSha256": "b91b433642835435959b40f90e9f7d72cded2315f330a517ca6482db1fd464ef",
+        "start": 18.450000000000003,
+        "end": 20.300000000000004
+      }
+    ]
+  },
+  "es-habitacion": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"id\":\"es-habitacion:t01\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Disculpe, el aire acondicionado de mi habitación no funciona.\",\"voice\":\"coral\"},{\"id\":\"es-habitacion:t02\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Lo siento. Voy a llamar a mantenimiento.\",\"voice\":\"cedar\"},{\"id\":\"es-habitacion:t03\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"¿Cuánto tiempo tardará?\",\"voice\":\"coral\"},{\"id\":\"es-habitacion:t04\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Aproximadamente veinte minutos.\",\"voice\":\"cedar\"},{\"id\":\"es-habitacion:t05\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Si no pueden repararlo, ¿puedo cambiar de habitación?\",\"voice\":\"coral\"},{\"id\":\"es-habitacion:t06\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Sí, buscaremos otra habitación para usted.\",\"voice\":\"cedar\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/830f384a3de4d85c857ac33b.wav",
+    "turns": [
+      {
+        "id": "es-habitacion:t01",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Disculpe, el aire acondicionado de mi habitación no funciona.",
+        "voice": "coral",
+        "pcmSha256": "95b9de4cec326aba8aaa8c1aaf51e570927bf46fbd1a39bf21a16530bae6390b",
+        "start": 0,
+        "end": 5.2
+      },
+      {
+        "id": "es-habitacion:t02",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Lo siento. Voy a llamar a mantenimiento.",
+        "voice": "cedar",
+        "pcmSha256": "080492c1bfb910fc41f42769edc3064f97f78a1703b96bcf664eef8e60fa70a4",
+        "start": 5.45,
+        "end": 8.4
+      },
+      {
+        "id": "es-habitacion:t03",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "¿Cuánto tiempo tardará?",
+        "voice": "coral",
+        "pcmSha256": "866c8ec46c6b2db39efddca4c4645f07452d2dca89dcb23bf381a47db7d2e58f",
+        "start": 8.65,
+        "end": 11.7
+      },
+      {
+        "id": "es-habitacion:t04",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Aproximadamente veinte minutos.",
+        "voice": "cedar",
+        "pcmSha256": "ef025254ba35a33af836692ec71f0925404352780c01cdf57c10039bb9faeea6",
+        "start": 11.95,
+        "end": 15
+      },
+      {
+        "id": "es-habitacion:t05",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Si no pueden repararlo, ¿puedo cambiar de habitación?",
+        "voice": "coral",
+        "pcmSha256": "874188f7cd70be1ab2a4eaa1ccac99c4ac70c19739c3fab91ecd691cfbc2465a",
+        "start": 15.25,
+        "end": 20.35
+      },
+      {
+        "id": "es-habitacion:t06",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Sí, buscaremos otra habitación para usted.",
+        "voice": "cedar",
+        "pcmSha256": "2e13c446f62ce48cdc4c4dabb56c35522722b81335dc1e6070d270b814453bfe",
+        "start": 20.6,
+        "end": 23.650000000000002
+      }
+    ]
+  },
+  "es-cita": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"id\":\"es-cita:t01\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Buenos días. Tengo una cita el martes, pero no puedo ir.\",\"voice\":\"coral\"},{\"id\":\"es-cita:t02\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"¿Quiere cambiarla para otro día?\",\"voice\":\"cedar\"},{\"id\":\"es-cita:t03\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Sí. ¿Hay espacio el jueves por la tarde?\",\"voice\":\"coral\"},{\"id\":\"es-cita:t04\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Tenemos una cita a las tres y media.\",\"voice\":\"cedar\"},{\"id\":\"es-cita:t05\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Esa hora me queda bien.\",\"voice\":\"coral\"},{\"id\":\"es-cita:t06\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Perfecto. La cambiamos al jueves.\",\"voice\":\"cedar\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/15f79a560fd8b71c4ba23ffe.wav",
+    "turns": [
+      {
+        "id": "es-cita:t01",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Buenos días. Tengo una cita el martes, pero no puedo ir.",
+        "voice": "coral",
+        "pcmSha256": "17e746391a4b5958df4f2e4a0a7aa4f94daefe082352fb0f5fa1379db7996222",
+        "start": 0,
+        "end": 4.65
+      },
+      {
+        "id": "es-cita:t02",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "¿Quiere cambiarla para otro día?",
+        "voice": "cedar",
+        "pcmSha256": "17ceb4b48830ce7f601a01f137b55376bac0c52ae6ff352dda17f6c02ac41e2f",
+        "start": 4.9,
+        "end": 6.9
+      },
+      {
+        "id": "es-cita:t03",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Sí. ¿Hay espacio el jueves por la tarde?",
+        "voice": "coral",
+        "pcmSha256": "a106c11f59dab2f9441065d1b9c9f2b3abfe4be87d9872ba2412b0500e710c92",
+        "start": 7.15,
+        "end": 11.45
+      },
+      {
+        "id": "es-cita:t04",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Tenemos una cita a las tres y media.",
+        "voice": "cedar",
+        "pcmSha256": "983b40d9db483f59714a1799831a2e0262acedc9774e3f4d312e54eb67ac68f8",
+        "start": 11.7,
+        "end": 14.899999999999999
+      },
+      {
+        "id": "es-cita:t05",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Esa hora me queda bien.",
+        "voice": "coral",
+        "pcmSha256": "8050acf7d53dc190878014ae13c207d8b3309be369f59011c3d980cc6fa52842",
+        "start": 15.149999999999999,
+        "end": 17.849999999999998
+      },
+      {
+        "id": "es-cita:t06",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Perfecto. La cambiamos al jueves.",
+        "voice": "cedar",
+        "pcmSha256": "1c56d7c21753b23f0a53662dab0de859cba53bed9fdcc3ae042a78c7b10e0aad",
+        "start": 18.099999999999998,
+        "end": 21.299999999999997
+      }
+    ]
+  },
+  "announcement:es-a1-tienda": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Atención, por favor. La tienda cierra en diez minutos. Pasen a la caja para pagar. La salida está a la derecha.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/37893a4b5e46daaa79d40697.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Atención, por favor. La tienda cierra en diez minutos. Pasen a la caja para pagar. La salida está a la derecha.",
+        "voice": "marin",
+        "pcmSha256": "a2cefb7d3023d89605ea30193f92acc6881063230b71232be8d2e4605b9dd9b0",
+        "start": 0,
+        "end": 8.7
+      }
+    ]
+  },
+  "announcement:es-a1-autobus": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"El autobús número ocho no para aquí hoy. Tómenlo en la próxima parada, frente al banco. Sale en quince minutos.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/2a88fed4caa5cf2cbafe995c.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "El autobús número ocho no para aquí hoy. Tómenlo en la próxima parada, frente al banco. Sale en quince minutos.",
+        "voice": "marin",
+        "pcmSha256": "c8a1142a389e21605b4dbe668575c10860206af4f9581b7519bc836154a5af70",
+        "start": 0,
+        "end": 9.45
+      }
+    ]
+  },
+  "es-cuenta": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"id\":\"es-cuenta:t01\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Disculpe, creo que hay un error en la cuenta.\",\"voice\":\"coral\"},{\"id\":\"es-cuenta:t02\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"¿Qué pasó?\",\"voice\":\"cedar\"},{\"id\":\"es-cuenta:t03\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Nos cobraron tres cafés, pero pedimos dos.\",\"voice\":\"coral\"},{\"id\":\"es-cuenta:t04\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Tiene razón. Voy a corregirla ahora mismo.\",\"voice\":\"cedar\"},{\"id\":\"es-cuenta:t05\",\"character\":\"sofia\",\"role\":\"Sofía\",\"text\":\"Gracias. También queremos pagar con tarjeta.\",\"voice\":\"coral\"},{\"id\":\"es-cuenta:t06\",\"character\":\"mateo\",\"role\":\"Mateo\",\"text\":\"Claro. Le traigo la terminal.\",\"voice\":\"cedar\"}],\"beginner\"]",
+    "file": "/audio/passages/aligned-turns-v1/01bb9da81ed9408634d641c0.wav",
+    "turns": [
+      {
+        "id": "es-cuenta:t01",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Disculpe, creo que hay un error en la cuenta.",
+        "voice": "coral",
+        "pcmSha256": "66aa13d8e2d0530b440707595e0d7e0b69e6f962a5d9591fcf1bac17cd7619c1",
+        "start": 0,
+        "end": 3.5
+      },
+      {
+        "id": "es-cuenta:t02",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "¿Qué pasó?",
+        "voice": "cedar",
+        "pcmSha256": "850c77d4a5f2fe60715da7ad6e802696db5460125ec6f9ce5139a9bc77d213bc",
+        "start": 3.75,
+        "end": 5.55
+      },
+      {
+        "id": "es-cuenta:t03",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Nos cobraron tres cafés, pero pedimos dos.",
+        "voice": "coral",
+        "pcmSha256": "a5125d0751cf6638c5978377b0b92af72ddd487992e2084d1f953fb18e0f5737",
+        "start": 5.8,
+        "end": 10.1
+      },
+      {
+        "id": "es-cuenta:t04",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Tiene razón. Voy a corregirla ahora mismo.",
+        "voice": "cedar",
+        "pcmSha256": "a1b3ebe0d4d9caa86342a124d75e603a0dae34c0b4f0b85504fba9801b2a9a7d",
+        "start": 10.35,
+        "end": 14.2
+      },
+      {
+        "id": "es-cuenta:t05",
+        "character": "sofia",
+        "role": "Sofía",
+        "text": "Gracias. También queremos pagar con tarjeta.",
+        "voice": "coral",
+        "pcmSha256": "2fef00aa2dcf8f1c695108c7c1f84ca4da05d7ac75136bb5549db6057c485b56",
+        "start": 14.45,
+        "end": 18.4
+      },
+      {
+        "id": "es-cuenta:t06",
+        "character": "mateo",
+        "role": "Mateo",
+        "text": "Claro. Le traigo la terminal.",
+        "voice": "cedar",
+        "pcmSha256": "09a41d8a4ffad5036ad30b728738ee15659aee53cae4c5a2e3f653195887a716",
+        "start": 18.65,
+        "end": 20.849999999999998
+      }
+    ]
+  },
+  "announcement:es-a1-pedido": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Pedido número treinta y uno. Su comida está lista. Recójala en el mostrador junto a la caja. Las bebidas están en la segunda mesa.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/68ab0e5131a4155be49515e3.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Pedido número treinta y uno. Su comida está lista. Recójala en el mostrador junto a la caja. Las bebidas están en la segunda mesa.",
+        "voice": "marin",
+        "pcmSha256": "cd4537a9f296d4a6849aadbffa954222f6bb32d6e0be6640da3452a9c33bff21",
+        "start": 0,
+        "end": 9.6
+      }
+    ]
+  },
+  "announcement:es-a2-museo": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"El museo cerrará en veinte minutos. La tienda permanecerá abierta hasta las siete. Por favor, diríjanse a la salida principal y recojan sus pertenencias del guardarropa.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/4862debe5841704df6705b5b.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "El museo cerrará en veinte minutos. La tienda permanecerá abierta hasta las siete. Por favor, diríjanse a la salida principal y recojan sus pertenencias del guardarropa.",
+        "voice": "marin",
+        "pcmSha256": "7c450e528d1cc82b8780645658acc52bf33dbcb8ee8c72260b1266bebb54791d",
+        "start": 0,
+        "end": 11.65
+      }
+    ]
+  },
+  "announcement:es-a2-vuelo": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Atención, pasajeros del vuelo a Bogotá. La puerta de salida cambió de la doce a la dieciocho. El abordaje comienza a las seis y veinte. Tengan listos su pase de abordar y su identificación.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/39d2b36aa90d1affd15100e0.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Atención, pasajeros del vuelo a Bogotá. La puerta de salida cambió de la doce a la dieciocho. El abordaje comienza a las seis y veinte. Tengan listos su pase de abordar y su identificación.",
+        "voice": "marin",
+        "pcmSha256": "8549bca804c84f8f0842aebbc6dc77993221d6a9ab83aa7c25160d0fbbf266c8",
+        "start": 0,
+        "end": 13.4
+      }
+    ]
+  },
+  "announcement:es-a2-metro": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"El servicio de metro está suspendido entre las estaciones Central y Universidad. Para continuar su viaje, usen el autobús gratuito que sale frente a la estación Central cada quince minutos.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/bb9566f8ad329533f9d58ea5.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "El servicio de metro está suspendido entre las estaciones Central y Universidad. Para continuar su viaje, usen el autobús gratuito que sale frente a la estación Central cada quince minutos.",
+        "voice": "marin",
+        "pcmSha256": "f3048b8eddf133187c4a35230ae62644ce04d7e07541dbb4c9d0266719255f35",
+        "start": 0,
+        "end": 14.1
+      }
+    ]
+  },
+  "announcement:situation-es-table-1": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Disculpen, esta mesa está reservada para las ocho. ¿Pueden pasar a la mesa junto a la ventana? Yo llevo sus platos.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/7bd24e2d2f9f1674d4af689c.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Disculpen, esta mesa está reservada para las ocho. ¿Pueden pasar a la mesa junto a la ventana? Yo llevo sus platos.",
+        "voice": "marin",
+        "pcmSha256": "bd9eefd0581511f2dfefef5b608d44e77f26f65065072b73394e62a1f530ae54",
+        "start": 0,
+        "end": 7.9
+      }
+    ]
+  },
+  "announcement:situation-es-table-2": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Perdón, necesitamos esta mesa para un grupo. Les puedo ofrecer la mesa del fondo y voy a mover sus bebidas.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/57368c3a1a2bc2b8fe9d3d37.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Perdón, necesitamos esta mesa para un grupo. Les puedo ofrecer la mesa del fondo y voy a mover sus bebidas.",
+        "voice": "marin",
+        "pcmSha256": "636531462a872a42fba1171d2135100aae918644cad65f1c66f7a4696a020903",
+        "start": 0,
+        "end": 8.5
+      }
+    ]
+  },
+  "announcement:situation-es-milk-1": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Lo siento, no tenemos leche de avena. Tenemos leche de soya o puede pedir el café sin leche.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/a0997e1bded64301f732f143.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Lo siento, no tenemos leche de avena. Tenemos leche de soya o puede pedir el café sin leche.",
+        "voice": "marin",
+        "pcmSha256": "e9f8024c2a5f8153fa5c3734e6dc93dd9486d9374a5bf55095811958cdd9d832",
+        "start": 0,
+        "end": 7.2
+      }
+    ]
+  },
+  "announcement:situation-es-milk-2": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Se terminó la leche de avena. ¿Prefiere leche de soya o café negro?\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/6b1a7c8fa10adbd3f466985f.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Se terminó la leche de avena. ¿Prefiere leche de soya o café negro?",
+        "voice": "marin",
+        "pcmSha256": "795015b5f3773042b65375800f23797ac3ec3882bc0e7b5b487c4f47d28ccab1",
+        "start": 0,
+        "end": 5.55
+      }
+    ]
+  },
+  "announcement:situation-es-cash-1": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Esta máquina solo acepta efectivo. Para pagar con tarjeta, haga su pedido en la caja.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/82ba727181d737124b208f47.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Esta máquina solo acepta efectivo. Para pagar con tarjeta, haga su pedido en la caja.",
+        "voice": "marin",
+        "pcmSha256": "6792f5eaf9f00e3cc509a3868ddd1d63851f582139c3c79a80cefa96bc3c34f9",
+        "start": 0,
+        "end": 5.8
+      }
+    ]
+  },
+  "announcement:situation-es-cash-2": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Aquí no funciona la tarjeta. Puede usar monedas o pagar con tarjeta en el mostrador.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/b393ac4e678f85094b801015.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Aquí no funciona la tarjeta. Puede usar monedas o pagar con tarjeta en el mostrador.",
+        "voice": "marin",
+        "pcmSha256": "c19f8c2ec47d37d9ec061c2b9f30ca2a22b0e31c966bfbc6e01f968f5b031aa7",
+        "start": 0,
+        "end": 6.1
+      }
+    ]
+  },
+  "announcement:situation-es-kitchen-1": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"La cocina cierra en diez minutos. Todavía puede pedir un plato, pero después solo habrá bebidas y postres.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/0e90fb98832a70febbc1516f.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "La cocina cierra en diez minutos. Todavía puede pedir un plato, pero después solo habrá bebidas y postres.",
+        "voice": "marin",
+        "pcmSha256": "7afa962aab59ebd1664d4279183b3ff4dd1a7f5a6f8a5828455239623707fb34",
+        "start": 0,
+        "end": 8.4
+      }
+    ]
+  },
+  "announcement:situation-es-kitchen-2": {
+    "signature": "[\"aligned-turns-v1\",\"es\",[{\"role\":\"Narrator\",\"text\":\"Si quiere ordenar comida, tiene que hacerlo ahora. La cocina cerrará en diez minutos; el bar seguirá abierto.\",\"voice\":\"marin\"}]]",
+    "file": "/audio/passages/aligned-turns-v1/b968e7183a86e5a9b4e1bc50.wav",
+    "turns": [
+      {
+        "role": "Narrator",
+        "text": "Si quiere ordenar comida, tiene que hacerlo ahora. La cocina cerrará en diez minutos; el bar seguirá abierto.",
+        "voice": "marin",
+        "pcmSha256": "cf3512711b19d41ccc2a1a01c2ecc9ab908b4b9d5df0b61fff0f0583550cb085",
+        "start": 0,
+        "end": 7.65
+      }
+    ]
   }
 };
