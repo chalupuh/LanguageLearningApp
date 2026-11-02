@@ -1,6 +1,6 @@
 # À l’Oreille
 
-A French and Swedish listening-practice app running on Vinext, React, Cloudflare
+A French, spanish, and Swedish listening-practice app running on Vinext, React, Cloudflare
 D1, and R2. Lessons combine listening, contextual phrase review, rehearsal, and
 retelling. French and Swedish learning data is isolated; appearance is shared.
 
