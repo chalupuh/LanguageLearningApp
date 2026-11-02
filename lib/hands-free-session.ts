@@ -18,3 +18,9 @@ export function applyHandsFreeCommand(state:HandsFreeSession,command:HandsFreeCo
 }
 export function recordHandsFreeRecognitionFailure(state:HandsFreeSession,now=Date.now()){const failures=Math.min(2,state.recognitionFailures+1);return update(state,{recognitionFailures:failures,...(failures>=2?{status:"paused" as const}:{})},now)}
 export function trimHandsFreeQueue(queue:HandsFreeQueueItem[],minutes:number){const max=Math.max(5,Math.min(60,minutes))*60;let total=0;return queue.filter(item=>{const duration=item.durationSeconds||0;if(total&&total+duration>max)return false;total+=duration;return true})}
+export function buildHandsFreeQueue<T extends {durationSeconds?:number}>(queue:T[],minutes:number){
+ const source=queue.filter(item=>item&&typeof item==="object");if(!source.length)return [];
+ const target=Math.max(5,Math.min(60,minutes))*60,result:T[]=[];let total=0,cursor=0;
+ while(total<target&&result.length<180){const item=source[cursor%source.length],duration=Math.max(1,item.durationSeconds||60);if(result.length&&total+duration>target&&total>=target*.9)break;result.push(item);total+=duration;cursor++}
+ return result;
+}

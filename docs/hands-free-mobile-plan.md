@@ -4,6 +4,12 @@
 
 Give learners such as Brandon a safe, low-attention way to listen and respond without operating the screen. This is a learning mode, not a driving aid: setup happens while parked or with a passenger, and the moving experience is deliberately limited to audio and a small command vocabulary.
 
+## Development status — November 2, 2026
+
+Phases 0–4 are implemented. The app preflights bundled audio, builds sessions from actual recording durations, supports lock-screen/headset media actions where the browser exposes them, restores the current item and playback position, bounds command and answer windows, stores transcripts rather than raw audio, and never awards completion or XP from hands-free playback.
+
+Phase 5 is an external real-device pilot, not unfinished application code. Brandon still needs to validate the published build on his actual phone, browser, headset, and car. The acceptance targets for road noise, calls/navigation interruptions, screen lock, Bluetooth behavior, and 95% command recognition cannot be certified by automated browser tests.
+
 ## Experience principles
 
 - Start from a dedicated **Hands-free session** entry point, with an explicit “Set up while parked” screen.

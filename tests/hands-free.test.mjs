@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {parseHandsFreeCommand,normalizeHandsFreeUtterance,handsFreeConfirmation} from '../lib/hands-free-commands.ts';
-import {createHandsFreeSession,beginHandsFreeSession,markHandsFreePlaying,applyHandsFreeCommand,recordHandsFreeRecognitionFailure,recordHandsFreePosition,restoreHandsFreeSession,trimHandsFreeQueue,validHandsFreeSession} from '../lib/hands-free-session.ts';
+import {createHandsFreeSession,beginHandsFreeSession,markHandsFreePlaying,applyHandsFreeCommand,recordHandsFreeRecognitionFailure,recordHandsFreePosition,restoreHandsFreeSession,trimHandsFreeQueue,buildHandsFreeQueue,validHandsFreeSession} from '../lib/hands-free-session.ts';
 const queue=[{id:'one',title:'At the café',audioUrl:'/audio/one.mp3',language:'es',durationSeconds:300,offline:true},{id:'two',title:'At the station',audioUrl:'/audio/two.mp3',language:'es',durationSeconds:420,offline:true}];
 
 test('bounded command parser accepts explicit commands and rejects conversation or answers',()=>{
@@ -36,11 +36,19 @@ test('session length trims at item boundaries while always retaining the first i
  assert.deepEqual(trimHandsFreeQueue(queue,5).map(item=>item.id),['one']);assert.deepEqual(trimHandsFreeQueue(queue,15).map(item=>item.id),['one','two']);
 });
 
+test('short bundled clips repeat into the requested session duration without another download',()=>{
+ const clips=[{...queue[0],durationSeconds:20},{...queue[1],durationSeconds:25}],planned=buildHandsFreeQueue(clips,5);
+ assert.ok(planned.length>clips.length);assert.ok(planned.reduce((sum,item)=>sum+(item.durationSeconds||0),0)>=270);
+ assert.deepEqual(planned.slice(0,4).map(item=>item.id),['one','two','one','two']);
+ assert.equal(buildHandsFreeQueue([],15).length,0);
+});
+
 test('the app exposes a parked, preflighted hands-free mode without progress awards',async()=>{
  const [page,view]=await Promise.all([readFile(new URL('../app/page.tsx',import.meta.url),'utf8'),readFile(new URL('../app/hands-free-session.tsx',import.meta.url),'utf8')]);
  assert.match(page,/"handsfree"/);assert.match(page,/HandsFreeSession/);
- assert.match(view,/Set up while parked/);assert.match(view,/for\(const item of queue\).*await loadAudio\(item\)/s);
+ assert.match(view,/Set up while parked/);assert.match(view,/for\(const item of items\.slice\(0,uniqueCount\)\).*await loadAudio\(item\)/s);
  assert.match(view,/mediaSession\.setActionHandler/);assert.match(view,/parseHandsFreeCommand/);
+ assert.match(view,/setPositionState/);assert.match(view,/positionSeconds/);assert.match(view,/buildHandsFreeQueue/);
  assert.match(view,/No lesson completion or XP was awarded/);assert.doesNotMatch(view,/record\(|onComplete=/);
 });
 

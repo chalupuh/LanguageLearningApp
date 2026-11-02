@@ -128,6 +128,12 @@ export const releases = [
   {mark:"03",title:"A stronger Spanish Lab",body:"Follow the complete lesson path, cycle through four dictations, open richer word help, and finish three-turn real-life missions. Your practice evidence now suggests a useful next step."},
   {mark:"04",title:"Answer aloud when parked",body:"Hands-free sessions can offer a short spoken-recall prompt with one 20-second response window. Only the transcript is kept for parked review; it never awards XP or completes a lesson."},
  ]},
+ {id:"2026-11-02-hands-free-resilience",date:"November 2, 2026",title:"Hands-free sessions now last—and come back safely",summary:"Session timing, interruption recovery, and spoken controls are ready for real-device pilot testing.",items:[
+  {mark:"01",title:"The time you chose",body:"Five-, ten-, and fifteen-minute sessions now use the real recording lengths and repeat the prepared sequence as needed instead of ending after a few short clips."},
+  {mark:"02",title:"Resume where you stopped",body:"The current recording, whole-second playback position, speed, session length, and unsubmitted transcripts stay on this device for a safe parked restart."},
+  {mark:"03",title:"Clearer audio handoffs",body:"Spoken titles and countdowns finish before lesson audio begins. Command listening starts only after its audible prompt, and lock-screen position information stays current where the browser supports it."},
+  {mark:"04",title:"Still practice—not progress credit",body:"Listening and voice commands never complete a lesson or award XP. Recognition failures pause safely, raw cabin audio is never stored, and detailed review waits until parked."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
