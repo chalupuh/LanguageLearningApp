@@ -2,9 +2,10 @@
 import {createContext,useContext} from "react";
 import {frenchContentVisible,canHideBeginnerContent,frenchStage,courseRequirements,type FrenchCourse} from "../lib/french-progression";
 import {passages} from "../content/passages";
+import {spanishBeginnerPassages} from "../content/spanish-beginner";
 export const FrenchCourseContext=createContext<{course:FrenchCourse;completed:string[];showBeginnerContent?:boolean;onShowBeginnerContent?:(show:boolean)=>void}>({course:"legacy",completed:[],showBeginnerContent:false});
 export const useFrenchCourse=()=>useContext(FrenchCourseContext);
-export function useCourseCatalog(language:string){const {course,completed,showBeginnerContent}=useFrenchCourse();return passages.filter(p=>(p.language||"fr")===language&&(language!=="fr"||frenchContentVisible(p.level,course,completed,showBeginnerContent)));}
+export function useCourseCatalog(language:string){const {course,completed,showBeginnerContent}=useFrenchCourse();return [...passages,...spanishBeginnerPassages].filter(p=>(p.language||"fr")===language&&(language!=="fr"||frenchContentVisible(p.level,course,completed,showBeginnerContent)));}
 export function FrenchCourseGuide({tutorial,onTutorial,onLesson,onAnnouncements}:{tutorial:number;onTutorial:(n:number)=>void;onLesson:()=>void;onAnnouncements:()=>void}){
  const {course,completed,showBeginnerContent}=useFrenchCourse();if(course==="legacy"||(canHideBeginnerContent(course,completed)&&!showBeginnerContent))return null;
  const stage=frenchStage(course,completed),requirements=courseRequirements(course);
