@@ -134,6 +134,12 @@ export const releases = [
   {mark:"03",title:"Clearer audio handoffs",body:"Spoken titles and countdowns finish before lesson audio begins. Command listening starts only after its audible prompt, and lock-screen position information stays current where the browser supports it."},
   {mark:"04",title:"Still practice—not progress credit",body:"Listening and voice commands never complete a lesson or award XP. Recognition failures pause safely, raw cabin audio is never stored, and detailed review waits until parked."},
  ]},
+ {id:"2026-11-02-mobile-listening-dock",date:"November 2, 2026",title:"A calmer app in your hand",summary:"Phone navigation, first-time guidance, and lesson controls now stay within easy reach.",items:[
+  {mark:"01",title:"A listening dock for phones",body:"Today, Learn, Library, Hands-free, and Progress stay at the bottom of the screen. Calendar and About live in a compact More menu."},
+  {mark:"02",title:"One welcome, then a real lesson",body:"The first visit is now one four-step guide that ends inside the first conversation. Release notes wait until they will not cover that lesson."},
+  {mark:"03",title:"Lesson actions within reach",body:"Phone-sized playback and next-step controls respect safe areas, text inputs avoid unwanted zoom, and drafts continue to recover after interruptions."},
+  {mark:"04",title:"Clear recovery when loading fails",body:"A failed progress connection now explains what remains safe and offers a direct retry instead of leaving a status line with no next step."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

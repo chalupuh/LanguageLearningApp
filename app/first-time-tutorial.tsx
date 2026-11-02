@@ -3,7 +3,7 @@ import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import type {LearningLanguage} from "./learning-language";
 import {languageName} from "./learning-language";
 
-type Destination="today"|"library"|"calendar"|"progress"|"swedish"|"spanish";
+type Destination="today"|"practice"|"library"|"calendar"|"progress"|"swedish"|"spanish";
 type Step={eyebrow:string;title:string;body:string;destination?:Destination;action?:string};
 const TOUR_VERSION="welcome-v1";
 const greeting=(language:LearningLanguage)=>language==="sv"?"Hej":language==="es"?"Hola":"Bonjour";
@@ -24,12 +24,10 @@ export default function FirstTimeTutorial({language,request,onNavigate}:{languag
  const lab=language==="sv"?"A1 Lab":language==="es"?"A1–A2 Lab":"your learning path";
  const labDestination=language==="sv"?"swedish":language==="es"?"spanish":"today";
  const steps=useMemo<Step[]>(()=>[
-  {eyebrow:`${greeting(language)} · welcome`,title:`Your ${languageName(language)} listening room`,body:"À l’Oreille is built around short listening sessions. You can write, speak, or practise silently; recording is always optional.",destination:"today",action:"See Today"},
-  {eyebrow:"01 · Today",title:"Start with one useful next step",body:"Today recommends a new lesson or a review. It also shows saved phrases, your week, and what your ear is learning to notice.",destination:"today",action:"Open Today"},
-  {eyebrow:`02 · ${lab}`,title:language==="fr"?"Follow the level that fits you":"Build a beginner foundation",body:language==="fr"?"Your pathway and preferences shape the lessons you see.":`The ${lab} groups lessons, words, sounds, and practical missions into a clear path.`,destination:labDestination,action:`Open ${lab}`},
-  {eyebrow:"03 · Library",title:"Choose your own listening",body:"Browse the full lesson catalog and return to completed lessons. The four-step loop moves from a first listen to a retell in your own words.",destination:"library",action:"Explore Library"},
-  {eyebrow:"04 · Calendar and Progress",title:"Plan gently and notice what changes",body:"Calendar holds your own practice intentions. Progress records completed loops and XP as evidence of practice—not as a fluency score.",destination:"progress",action:"View Progress"},
-  {eyebrow:"05 · Saving and help",title:"Your work follows your invited account",body:"Wait for “Progress synced” before switching languages or devices. Open your profile avatar to change language, adjust the seasonal look, or send a feature request or bug report."},
+  {eyebrow:`${greeting(language)} · welcome`,title:`Your ${languageName(language)} listening room`,body:"Short sessions train your ear before asking you to speak. Writing and recording are always optional."},
+  {eyebrow:"01 · One session",title:"Listen, notice, then retell",body:"First catch the meaning. Then open the transcript, rehearse a useful phrase, and retell what you understood in your own words."},
+  {eyebrow:`02 · ${lab}`,title:"Follow one clear next step",body:language==="fr"?"Today recommends a lesson or review that fits your path. The Library is always there when you want to choose.":`Today recommends a lesson or review. ${lab} keeps words, sounds, and practical missions together.`,destination:labDestination,action:`Preview ${lab}`},
+  {eyebrow:"03 · Ready",title:"Begin with a real conversation",body:"Your work saves to your invited account. On a phone, use the listening dock below to move between Today, lessons, Hands-free, and Progress.",destination:"practice",action:"Start first lesson"},
  ],[lab,labDestination,language]);
  const finish=useCallback(()=>{if(storageKey)try{localStorage.setItem(storageKey,"done")}catch{void 0}setOpen(false);opener.current?.focus()},[storageKey]);
  /* The tutorial intentionally opens after account-scoped browser storage is resolved. */
@@ -44,8 +42,8 @@ export default function FirstTimeTutorial({language,request,onNavigate}:{languag
   <button className="tutorial-close" onClick={finish} aria-label="Close welcome tutorial">×</button>
   <div className="tutorial-progress" aria-label={`Tutorial step ${index+1} of ${steps.length}`}>{steps.map((_,stepIndex)=><span key={stepIndex} className={stepIndex<=index?"complete":""}/>)}</div>
   <p className="eyebrow">{step.eyebrow}</p><h1 ref={heading} tabIndex={-1} id="tutorial-title">{step.title}</h1><p id="tutorial-copy">{step.body}</p>
-  <div className="tutorial-actions">{index>0&&<button className="tutorial-secondary" onClick={()=>setIndex(value=>value-1)}>← Back</button>}{step.destination&&<button className="tutorial-secondary" onClick={()=>{onNavigate(step.destination!);if(!last)setIndex(value=>value+1)}}>{step.action} ↗</button>}<button className="tutorial-primary" onClick={()=>last?finish():setIndex(value=>value+1)}>{last?"Start learning":"Next"} <span>→</span></button></div>
-  <small>{index+1} of {steps.length} · You can reopen this guide from About.</small>
+  <div className="tutorial-actions">{index>0&&<button className="tutorial-secondary" onClick={()=>setIndex(value=>value-1)}>← Back</button>}{step.destination&&<button className="tutorial-secondary" onClick={()=>{onNavigate(step.destination!);if(last)finish();else setIndex(value=>value+1)}}>{step.action} ↗</button>}<button className="tutorial-primary" onClick={()=>last?finish():setIndex(value=>value+1)}>{last?"Stay on Today":"Next"} <span>→</span></button></div>
+  <small>{index+1} of {steps.length} · Reopen this guide from About at any time.</small>
  </section></div>;
 }
 
