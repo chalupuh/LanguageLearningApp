@@ -1,0 +1,13 @@
+.hands-free-practice-choice{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;margin:22px 0;padding:18px;border:1px solid #d9cbd1;border-radius:16px}
+.hands-free-practice-choice input{width:22px;height:22px}
+.hands-free-practice-choice strong,.hands-free-practice-choice small{display:block}
+.hands-free-practice-choice small{margin-top:6px;line-height:1.5}
+.hands-free-answer-state{display:grid;gap:14px;max-width:440px;margin:28px auto}
+.hands-free-answer-state button,.hands-free-answer-actions button{min-height:58px;padding:12px 20px;border:1px solid rgba(255,255,255,.35);border-radius:14px;background:#fff;color:#294235;font-weight:800}
+.hands-free-answer-actions{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:28px 0}
+.hands-free-review{margin:28px 0;padding:22px;border-radius:18px;background:#fff;color:#354b3d;text-align:left}
+.hands-free-review h2{margin-top:0}
+.hands-free-review article{padding:14px 0;border-top:1px solid #ded3d8}
+.hands-free-review p{margin:8px 0;line-height:1.55}
+.hands-free-review time{font-size:12px;color:#746d70}
+@media(max-width:620px){.hands-free-answer-actions{grid-template-columns:1fr}.hands-free-practice-choice{text-align:left}}

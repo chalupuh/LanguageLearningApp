@@ -3,11 +3,13 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {parseHandsFreeCommand} from "../lib/hands-free-commands";
 import "./hands-free-session.css";
+import "./hands-free-answers.css";
 
 export type HandsFreeItem={id:string;title:string;text:string;language:"fr"|"sv"|"es";offline?:boolean};
 type Props={items:HandsFreeItem[];loadAudio:(item:HandsFreeItem)=>Promise<Blob>;onExit:()=>void;storageKey?:string};
-type Phase="setup"|"playing"|"paused"|"finished";
-type SavedSession={index:number;rate:number;minutes:number}|null;
+type Phase="setup"|"playing"|"paused"|"answering"|"answer-review"|"finished";
+type HandsFreeAttempt={id:string;itemId:string;title:string;language:"fr"|"sv"|"es";transcript:string;createdAt:string};
+type SavedSession={index:number;rate:number;minutes:number;spokenPractice:boolean;attempts:HandsFreeAttempt[]}|null;
 type SpeechResultEvent={results?:{[key:number]:{[key:number]:{transcript?:string}}}};
 type SpeechRecognizer={lang:string;continuous:boolean;interimResults:boolean;onresult?:(event:SpeechResultEvent)=>void;onerror?:()=>void;onend?:()=>void;start:()=>void;stop:()=>void};
 type SpeechRecognizerConstructor=new()=>SpeechRecognizer;
@@ -15,28 +17,45 @@ type SpeechRecognizerConstructor=new()=>SpeechRecognizer;
 const commandWords=["repeat","slower","normal speed","next","back","pause","continue","help","stop session"];
 const languageName={fr:"French",sv:"Swedish",es:"Spanish"};
 
-function say(message:string){
- if(typeof window==="undefined"||!("speechSynthesis" in window))return;
- window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(message);voice.lang="en-US";window.speechSynthesis.speak(voice);
+function say(message:string,onEnd?:()=>void){
+ if(typeof window==="undefined"||!("speechSynthesis" in window)){onEnd?.();return}
+ window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(message);voice.lang="en-US";if(onEnd)voice.onend=onEnd;window.speechSynthesis.speak(voice);
 }
+
+const validAttempt=(value:unknown):value is HandsFreeAttempt=>{if(!value||typeof value!=="object")return false;const item=value as Record<string,unknown>;return typeof item.id==="string"&&typeof item.itemId==="string"&&typeof item.title==="string"&&["fr","sv","es"].includes(String(item.language))&&typeof item.transcript==="string"&&item.transcript.length>0&&item.transcript.length<=1000&&typeof item.createdAt==="string"};
 
 function savedSession(storageKey:string,maximum:number):SavedSession{
  if(typeof window==="undefined")return null;
- try{const saved=JSON.parse(localStorage.getItem(storageKey)||"null");return saved&&Number.isInteger(saved.index)?{index:Math.min(saved.index,Math.max(0,maximum-1)),rate:saved.rate===.8?.8:1,minutes:[5,10,15].includes(saved.minutes)?saved.minutes:15}:null}catch{return null}
+ try{const saved=JSON.parse(localStorage.getItem(storageKey)||"null");return saved&&Number.isInteger(saved.index)?{index:Math.min(saved.index,Math.max(0,maximum-1)),rate:saved.rate===.8?.8:1,minutes:[5,10,15].includes(saved.minutes)?saved.minutes:15,spokenPractice:saved.spokenPractice===true,attempts:Array.isArray(saved.attempts)?saved.attempts.filter(validAttempt).slice(-30):[]}:null}catch{return null}
 }
 
 export default function HandsFreeSession({items,loadAudio,onExit,storageKey="hands-free-session-v1"}:Props){
  const restored=useRef(savedSession(storageKey,items.length)).current;
- const [phase,setPhase]=useState<Phase>("setup"),[minutes,setMinutes]=useState(restored?.minutes||15),[rate,setRate]=useState(restored?.rate||1),[index,setIndex]=useState(restored?.index||0),[status,setStatus]=useState(restored?"A parked session is ready to resume.":"Set up while parked."),[error,setError]=useState(""),[commandOpen,setCommandOpen]=useState(false),[preparing,setPreparing]=useState(false);
+ const [phase,setPhase]=useState<Phase>("setup"),[minutes,setMinutes]=useState(restored?.minutes||15),[rate,setRate]=useState(restored?.rate||1),[index,setIndex]=useState(restored?.index||0),[status,setStatus]=useState(restored?"A parked session is ready to resume.":"Set up while parked."),[error,setError]=useState(""),[commandOpen,setCommandOpen]=useState(false),[preparing,setPreparing]=useState(false),[spokenPractice,setSpokenPractice]=useState(restored?.spokenPractice===true),[attempts,setAttempts]=useState<HandsFreeAttempt[]>(restored?.attempts||[]),[answerDraft,setAnswerDraft]=useState("");
  const audio=useRef<HTMLAudioElement|null>(null),url=useRef(""),timer=useRef<ReturnType<typeof setTimeout>|null>(null),generation=useRef(0);
  const prepared=useRef(new Map<string,Blob>());
  const commandRecognition=useRef<SpeechRecognizer|null>(null);
+ const recognitionFailures=useRef(0);
  const queue=useMemo(()=>items.slice(0,minutes===5?2:minutes===10?4:6),[items,minutes]);
  const current=queue[index];
  const cleanupAudio=useCallback(()=>{generation.current++;if(timer.current)clearTimeout(timer.current);timer.current=null;audio.current?.pause();audio.current=null;if(url.current)URL.revokeObjectURL(url.current);url.current=""},[]);
 
  const pause=useCallback((announce=true)=>{audio.current?.pause();setPhase("paused");setStatus("Paused. Use Continue when you are ready.");if(announce)say("Paused.")},[]);
- const finish=useCallback(()=>{cleanupAudio();setPhase("finished");setStatus("Session stopped. Review while parked.");say("Session stopped. Review when parked.")},[cleanupAudio]);
+ const finish=useCallback(()=>{commandRecognition.current?.stop();commandRecognition.current=null;cleanupAudio();setPhase("finished");setStatus("Session stopped. Review while parked.");say("Session stopped. Review when parked.")},[cleanupAudio]);
+ const cancelRecognition=()=>{if(timer.current)clearTimeout(timer.current);timer.current=null;commandRecognition.current?.stop();commandRecognition.current=null;setCommandOpen(false)};
+ const Recognition=()=>{const speechWindow=window as unknown as {SpeechRecognition?:SpeechRecognizerConstructor;webkitSpeechRecognition?:SpeechRecognizerConstructor};return speechWindow.SpeechRecognition||speechWindow.webkitSpeechRecognition};
+ const recognitionFailed=(message:string)=>{recognitionFailures.current=Math.min(2,recognitionFailures.current+1);setCommandOpen(false);setError(message);if(recognitionFailures.current>=2){setPhase("paused");setStatus("Paused after two recognition attempts. Continue only when safe.");say("I could not understand twice. The session is paused.")}else{setPhase("paused");setStatus("Recognition did not work. Try again only when safe.");say("I did not understand. The session is paused.")}};
+ function listenForAnswerDecision(item:HandsFreeItem,nextIndex:number,transcript:string){
+  const Constructor=Recognition();if(!Constructor){setError("Voice decisions are unavailable in this browser. Use the large Submit, Try again, or Skip buttons when parked.");setPhase("answer-review");return}
+  const recognition=new Constructor();commandRecognition.current=recognition;recognition.lang="en-US";recognition.continuous=false;recognition.interimResults=false;setCommandOpen(true);setStatus("Say submit, try again, or skip.");
+  timer.current=setTimeout(()=>{recognition.stop();recognitionFailed("No decision was heard. The session is paused.")},12000);
+  recognition.onresult=event=>{if(timer.current)clearTimeout(timer.current);timer.current=null;setCommandOpen(false);const command=parseHandsFreeCommand(String(event.results?.[0]?.[0]?.transcript||""),"answer");if(command==="submit"){recognitionFailures.current=0;setAttempts(values=>[...values,{id:crypto.randomUUID(),itemId:item.id,title:item.title,language:item.language,transcript:transcript.slice(0,1000),createdAt:new Date().toISOString()}].slice(-30));setAnswerDraft("");say("Answer saved for review when parked. Next item.",()=>void playIndex(nextIndex+1,false));return}if(command==="try-again"){recognitionFailures.current=0;setAnswerDraft("");say("Try again.",()=>beginAnswerCapture(item,nextIndex));return}if(command==="skip"){recognitionFailures.current=0;setAnswerDraft("");say("Answer skipped. Next item.",()=>void playIndex(nextIndex+1,false));return}if(command==="stop-session"){finish();return}recognitionFailed("Decision not recognized. The session is paused.")};
+  recognition.onerror=()=>{if(timer.current)clearTimeout(timer.current);timer.current=null;recognitionFailed("Decision listening failed. The session is paused.")};recognition.start();
+ }
+ function beginAnswerCapture(item:HandsFreeItem,nextIndex:number){
+  const Constructor=Recognition();if(!Constructor){setError("Spoken answers are unavailable in this browser. Continuing in listening-only mode.");timer.current=setTimeout(()=>void playIndex(nextIndex+1,false),3000);return}
+  setPhase("answering");setStatus("Get ready to answer in one or two sentences.");setError("");say("In one or two sentences, what did you understand? I will listen for up to twenty seconds.",()=>{const recognition=new Constructor();commandRecognition.current=recognition;recognition.lang=item.language==="es"?"es-MX":item.language==="sv"?"sv-SE":"fr-FR";recognition.continuous=false;recognition.interimResults=false;setCommandOpen(true);setStatus("Microphone on for one answer. Say your response now.");timer.current=setTimeout(()=>{recognition.stop();recognitionFailed("No answer was heard. The session is paused.")},20000);recognition.onresult=event=>{if(timer.current)clearTimeout(timer.current);timer.current=null;setCommandOpen(false);const transcript=String(event.results?.[0]?.[0]?.transcript||"").trim().slice(0,1000);if(!transcript){recognitionFailed("No answer was captured. The session is paused.");return}recognitionFailures.current=0;setAnswerDraft(transcript);setPhase("answer-review");setStatus("Answer captured. Choose submit, try again, or skip.");say("I heard your answer. Say submit, try again, or skip.",()=>listenForAnswerDecision(item,nextIndex,transcript))};recognition.onerror=()=>{if(timer.current)clearTimeout(timer.current);timer.current=null;recognitionFailed("Answer listening failed. The session is paused.")};recognition.start()})
+ }
  // The end-of-track callback intentionally re-enters this function for auto-advance.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  async function playIndex(next:number,announce=true){
@@ -44,7 +63,7 @@ export default function HandsFreeSession({items,loadAudio,onExit,storageKey="han
   cleanupAudio();const attempt=generation.current;setIndex(next);setError("");setStatus(`Preparing ${item.title}…`);
   try{const blob=prepared.current.get(item.id)||await loadAudio(item);if(attempt!==generation.current)return;if(!blob.size||!blob.type.startsWith("audio/"))throw Error("invalid audio");
    url.current=URL.createObjectURL(blob);const player=new Audio(url.current);audio.current=player;player.preload="auto";player.playbackRate=rate;player.preservesPitch=true;
-   player.onended=()=>{setStatus("Next item in three seconds.");say("Next item in three seconds.");timer.current=setTimeout(()=>void playIndex(next+1),3000)};
+   player.onended=()=>{if(spokenPractice){beginAnswerCapture(item,next);return}setStatus("Next item in three seconds.");say("Next item in three seconds.");timer.current=setTimeout(()=>void playIndex(next+1),3000)};
    player.onerror=()=>{setError("This item could not play. The session is paused.");pause(false)};
    if(announce)say(`${item.title}.`);await player.play();setPhase("playing");setStatus(`Playing ${item.title}`);
   }catch{if(attempt===generation.current){setError("Audio is unavailable. Continue in listening-only mode when the item is available.");pause(false)}}
@@ -63,8 +82,8 @@ export default function HandsFreeSession({items,loadAudio,onExit,storageKey="han
   recognition.onresult=(event:SpeechResultEvent)=>handleCommand(String(event.results?.[0]?.[0]?.transcript||""));recognition.onerror=()=>{setCommandOpen(false);pause(false);setError("Command listening failed. The session is paused.")};recognition.onend=()=>setCommandOpen(false);recognition.start();
  },[handleCommand,pause]);
 
- useEffect(()=>()=>{commandRecognition.current?.stop();cleanupAudio()},[cleanupAudio]);
- useEffect(()=>{if(phase!=="setup")localStorage.setItem(storageKey,JSON.stringify({index,rate,minutes,updatedAt:Date.now()}))},[index,minutes,phase,rate,storageKey]);
+ useEffect(()=>()=>{commandRecognition.current?.stop();window.speechSynthesis?.cancel();cleanupAudio()},[cleanupAudio]);
+ useEffect(()=>{if(phase!=="setup")localStorage.setItem(storageKey,JSON.stringify({index,rate,minutes,spokenPractice,attempts,updatedAt:Date.now()}))},[attempts,index,minutes,phase,rate,spokenPractice,storageKey]);
  useEffect(()=>{if(!("mediaSession" in navigator))return;const handlers:{[key:string]:()=>void}={play:()=>void resume(),pause:()=>pause(),nexttrack:next,previoustrack:back,stop:finish};for(const [action,handler] of Object.entries(handlers)){try{navigator.mediaSession.setActionHandler(action as MediaSessionAction,handler)}catch{/* unsupported media action */}}return()=>{for(const action of Object.keys(handlers)){try{navigator.mediaSession.setActionHandler(action as MediaSessionAction,null)}catch{/* unsupported media action */}}}},[back,finish,next,pause,resume]);
  useEffect(()=>{if("mediaSession" in navigator&&current)navigator.mediaSession.metadata=new MediaMetadata({title:current.title,artist:`À l’Oreille · ${languageName[current.language]}`,album:"Hands-free session"})},[current]);
 
@@ -74,11 +93,11 @@ export default function HandsFreeSession({items,loadAudio,onExit,storageKey="han
    <div className="hands-free-warning" role="note"><strong>Safety first</strong><p>This is a learning mode, not a driving aid. Follow local laws. Do not read or operate the screen while moving.</p></div>
    <fieldset><legend>Session length</legend><div className="hands-free-options">{[5,10,15].map(value=><button key={value} aria-pressed={minutes===value} onClick={()=>setMinutes(value)}>{value} minutes</button>)}</div></fieldset>
    <fieldset><legend>Playback speed</legend><div className="hands-free-options"><button aria-pressed={rate===.8} onClick={()=>setRate(.8)}>Slower</button><button aria-pressed={rate===1} onClick={()=>setRate(1)}>Normal</button></div></fieldset>
+   <div className="hands-free-practice-choice"><input aria-label="Spoken recall between recordings" id="hands-free-spoken-practice" type="checkbox" checked={spokenPractice} onChange={event=>setSpokenPractice(event.target.checked)}/><span><strong>Spoken recall between recordings</strong><small>The microphone opens only after an audible prompt, for up to 20 seconds. Only a submitted transcript is kept; raw cabin audio is never saved.</small></span></div>
    <p>{queue.length} bundled activities queued · the complete queue will be prepared before playback starts</p>{error&&<p className="hands-free-error" role="alert">{error}</p>}<button className="hands-free-start" disabled={preparing} onClick={()=>void start()}>{preparing?"Preparing the full queue…":"Prepare and start session"}</button><button className="hands-free-exit" disabled={preparing} onClick={onExit}>Cancel</button></>:
    <><p className="eyebrow">Minimal-attention mode</p><h1 id="hands-free-title">{phase==="finished"?"Session complete":current?.title}</h1><p className="hands-free-status" role="status">{status}</p>{error&&<p className="hands-free-error" role="alert">{error}</p>}
     {phase!=="finished"&&<><div className="hands-free-progress" aria-label={`Item ${index+1} of ${queue.length}`}><span style={{width:`${((index+1)/queue.length)*100}%`}}/></div><p>{index+1} of {queue.length} · {rate===.8?"slower":"normal"} speed</p>
-     <div className="hands-free-primary-controls"><button onClick={phase==="playing"?()=>pause():()=>void resume()}>{phase==="playing"?"Pause":"Continue"}</button><button onClick={repeat}>Repeat</button></div><div className="hands-free-secondary-controls"><button onClick={back}>Back</button><button onClick={next}>Next</button><button onClick={finish}>Stop session</button></div>
-     <button className="hands-free-command" disabled={commandOpen} onClick={listenForCommand}>{commandOpen?"Listening for one command…":"Say one command"}</button><p className="hands-free-command-help">repeat · slower · normal speed · next · back · pause · continue · help · stop session</p></>}
-    {phase==="finished"&&<><p>No lesson completion or XP was awarded from playback. Review detailed practice when parked.</p><button className="hands-free-start" onClick={()=>{setIndex(0);setPhase("setup");setStatus("Set up while parked.")}}>Set up another session</button></>}<button className="hands-free-exit" onClick={onExit}>Back to Today</button></>}
+     {phase==="answering"?<div className="hands-free-answer-state"><strong>One announced answer window is open.</strong><button onClick={()=>{cancelRecognition();recognitionFailed("Answer capture cancelled. The session is paused.")}}>Cancel and pause</button></div>:phase==="answer-review"?<div className="hands-free-answer-actions"><button onClick={()=>{if(!current||!answerDraft)return;cancelRecognition();setAttempts(values=>[...values,{id:crypto.randomUUID(),itemId:current.id,title:current.title,language:current.language,transcript:answerDraft.slice(0,1000),createdAt:new Date().toISOString()}].slice(-30));setAnswerDraft("");say("Answer saved for review when parked. Next item.",()=>void playIndex(index+1,false))}}>Submit</button><button onClick={()=>{if(current){cancelRecognition();setAnswerDraft("");beginAnswerCapture(current,index)}}}>Try again</button><button onClick={()=>{cancelRecognition();setAnswerDraft("");say("Answer skipped. Next item.",()=>void playIndex(index+1,false))}}>Skip</button></div>:<><div className="hands-free-primary-controls"><button onClick={phase==="playing"?()=>pause():()=>void resume()}>{phase==="playing"?"Pause":"Continue"}</button><button onClick={repeat}>Repeat</button></div><div className="hands-free-secondary-controls"><button onClick={back}>Back</button><button onClick={next}>Next</button><button onClick={finish}>Stop session</button></div><button className="hands-free-command" disabled={commandOpen} onClick={listenForCommand}>{commandOpen?"Listening for one command…":"Say one command"}</button><p className="hands-free-command-help">repeat · slower · normal speed · next · back · pause · continue · help · stop session</p></>}</>}
+    {phase==="finished"&&<><p>No lesson completion or XP was awarded from playback. Review detailed practice when parked.</p>{attempts.length>0&&<section className="hands-free-review" aria-label="Spoken answers to review"><h2>Review when parked</h2>{attempts.map(attempt=><article key={attempt.id}><strong>{attempt.title}</strong><p lang={attempt.language}>{attempt.transcript}</p><time>{new Date(attempt.createdAt).toLocaleString()}</time></article>)}</section>}<button className="hands-free-start" onClick={()=>{setIndex(0);setPhase("setup");setStatus("Set up while parked.")}}>Set up another session</button></>}<button className="hands-free-exit" onClick={onExit}>Back to Today</button></>}
  </section>;
 }

@@ -7,7 +7,9 @@ import { checkpoints } from "../../../content/checkpoints";
 import { releases, unseenReleases } from "../../../content/releases";
 const headers = { "Cache-Control": "private, no-store" };
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers });
-const spanishLesson=(source:unknown)=>{const id=typeof source==="string"&&/^library:es-[a-z]+$/.test(source)?source.slice(8):"";if(!id)return undefined;const a1=new Set(["es-hola","es-cafe","es-desayuno","es-precio","es-direccion","es-restaurante"]);return{id,language:"es",level:a1.has(id)?"A1":"A2",topic:"Spanish beginner",speaker:{name:"Sofía y Mateo"}} as const};
+const spanishA1LessonIds=new Set(["es-hola","es-cafe","es-desayuno","es-precio","es-direccion","es-restaurante","es-hotel","es-taxi"]);
+const spanishA2LessonIds=new Set(["es-planes","es-mercado","es-ayer","es-farmacia","es-devolucion","es-finsemana","es-aeropuerto","es-habitacion","es-cita","es-cuenta"]);
+const spanishLesson=(source:unknown)=>{if(typeof source!=="string"||!source.startsWith("library:"))return;const id=source.slice(8),level=spanishA1LessonIds.has(id)?"A1":spanishA2LessonIds.has(id)?"A2":undefined;return level?{id,language:"es",level,topic:"Spanish beginner",speaker:{name:"Spanish conversation"}}:undefined};
 async function context(userId: string, accountUserId=userId) {
   const [{ getDb }, schema, ops] = await Promise.all([import("../../../db"), import("../../../db/schema"), import("drizzle-orm")]);
   const db = getDb();

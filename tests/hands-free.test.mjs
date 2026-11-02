@@ -43,3 +43,11 @@ test('the app exposes a parked, preflighted hands-free mode without progress awa
  assert.match(view,/mediaSession\.setActionHandler/);assert.match(view,/parseHandsFreeCommand/);
  assert.match(view,/No lesson completion or XP was awarded/);assert.doesNotMatch(view,/record\(|onComplete=/);
 });
+
+test('spoken recall is explicitly bounded, transcript-only, and deferred to parked review',async()=>{
+ const view=await readFile(new URL('../app/hands-free-session.tsx',import.meta.url),'utf8');
+ assert.match(view,/Spoken recall between recordings/);assert.match(view,/20000/);
+ assert.match(view,/Say submit, try again, or skip/);assert.match(view,/,"answer"\)/);
+ assert.match(view,/Review when parked/);assert.match(view,/raw cabin audio is never saved/);
+ assert.match(view,/\.filter\(validAttempt\)\.slice\(-30\)/);assert.doesNotMatch(view,/MediaRecorder|getUserMedia|audioBlob/);
+});

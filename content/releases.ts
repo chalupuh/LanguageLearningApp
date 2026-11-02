@@ -122,6 +122,12 @@ export const releases = [
   {mark:"02",title:"Simple controls, spoken aloud",body:"Pause, continue, repeat, change speed, move between lessons, or stop with large controls, supported media buttons, or one clearly requested voice command."},
   {mark:"03",title:"Practice stays honest",body:"Passive listening never marks a lesson complete or awards XP. Detailed answers and corrections remain in the normal lesson flow for review when parked."},
  ]},
+ {id:"2026-11-02-spanish-practice",date:"November 2, 2026",title:"More Spanish to hear, use, and remember",summary:"A deeper beginner path, more real-world listening, and clearer guidance for what to practice next.",items:[
+  {mark:"01",title:"Eighteen Spanish conversations",body:"Six new A1–A2 lessons add hotels, taxis, airports, room problems, appointments, and settling the bill—with bundled Latin American Spanish audio."},
+  {mark:"02",title:"More everyday listening",body:"Try six Spanish announcements and eight server-situation recordings. Choose standard questions, close choices, or write the answer yourself."},
+  {mark:"03",title:"A stronger Spanish Lab",body:"Follow the complete lesson path, cycle through four dictations, open richer word help, and finish three-turn real-life missions. Your practice evidence now suggests a useful next step."},
+  {mark:"04",title:"Answer aloud when parked",body:"Hands-free sessions can offer a short spoken-recall prompt with one 20-second response window. Only the transcript is kept for parked review; it never awards XP or completes a lesson."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
