@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {announcements} from "../content/announcements.ts";
 import {situations} from "../content/situations.ts";
 import {challengeDetails,listeningQuestions,scoreListening} from "../content/listening-challenges.ts";
+import {readFile} from "node:fs/promises";
 
 test("Spanish real-life listening has authored announcements and service situations",()=>{
  const notices=announcements.filter(item=>item.language==="es");
@@ -18,5 +19,11 @@ test("Spanish real-life listening has authored announcements and service situati
   assert.equal(close.length,3);assert.equal(written.length,3);
   assert.equal(scoreListening(item,"write",written.map(question=>question.accepted[0])).score,100,item.id);
  }
+});
+
+test("the shared Library catalog includes Spanish beginner lessons",async()=>{
+ const source=await readFile(new URL("../app/french-course.tsx",import.meta.url),"utf8");
+ assert.match(source,/spanishBeginnerPassages/);
+ assert.match(source,/\.\.\.passages,\.\.\.spanishBeginnerPassages/);
 });
 
