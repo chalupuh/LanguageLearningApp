@@ -5390,5 +5390,173 @@ export const audioRecordings:Record<string,{signature:string;file:string;turns:{
         "end": 7.65
       }
     ]
+  },
+  "avance-correspondance": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Léa\",\"text\":\"Mon premier train est arrivé avec vingt-cinq minutes de retard, alors que je n’avais que dix minutes pour changer à Strasbourg. Je pensais devoir acheter un nouveau billet, mais l’agente m’a expliqué que ma correspondance avait été retenue quelques minutes. Elle m’a conseillé de prendre le passage souterrain plutôt que l’escalator, souvent encombré. J’ai couru jusqu’au quai et les portes se sont fermées juste derrière moi. Mon bagage est arrivé avec moi, ce qui relevait presque du miracle.\",\"voice\":\"marin\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/4bf5394610d8af32720d854b.wav",
+    "turns": [
+      {
+        "role": "Léa",
+        "text": "Mon premier train est arrivé avec vingt-cinq minutes de retard, alors que je n’avais que dix minutes pour changer à Strasbourg. Je pensais devoir acheter un nouveau billet, mais l’agente m’a expliqué que ma correspondance avait été retenue quelques minutes. Elle m’a conseillé de prendre le passage souterrain plutôt que l’escalator, souvent encombré. J’ai couru jusqu’au quai et les portes se sont fermées juste derrière moi. Mon bagage est arrivé avec moi, ce qui relevait presque du miracle.",
+        "voice": "marin",
+        "pcmSha256": "25000f64903b179f7b847bc5a95a9d02baa6dfa62ca913d89c7791d54f5f406a",
+        "start": 0,
+        "end": 31.65
+      }
+    ]
+  },
+  "avance-reservation": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Thomas\",\"text\":\"Nous avions réservé une table pour six, mais le restaurant ne trouvait rien à mon nom. Après quelques minutes, ma sœur s’est souvenue qu’elle avait utilisé son nom de jeune fille dans le formulaire. La table existait bien, mais elle avait été préparée pour quatre personnes, car deux invités n’avaient pas confirmé. Le serveur nous a proposé d’attendre au bar pendant qu’il ajoutait une petite table. Nous avons finalement commencé le dîner avec quinze minutes de retard, sans perdre notre réservation.\",\"voice\":\"cedar\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/d5fb037d0649f37b120f21fd.wav",
+    "turns": [
+      {
+        "role": "Thomas",
+        "text": "Nous avions réservé une table pour six, mais le restaurant ne trouvait rien à mon nom. Après quelques minutes, ma sœur s’est souvenue qu’elle avait utilisé son nom de jeune fille dans le formulaire. La table existait bien, mais elle avait été préparée pour quatre personnes, car deux invités n’avaient pas confirmé. Le serveur nous a proposé d’attendre au bar pendant qu’il ajoutait une petite table. Nous avons finalement commencé le dîner avec quinze minutes de retard, sans perdre notre réservation.",
+        "voice": "cedar",
+        "pcmSha256": "07f5c365389d8735c3716d0ba27076770597e813a75a134299b7e55711c3c540",
+        "start": 0,
+        "end": 30.7
+      }
+    ]
+  },
+  "avance-teletravail": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Malik\",\"text\":\"L’entreprise veut imposer deux jours de présence par semaine pour faciliter les échanges. Personne ne conteste vraiment le principe ; le désaccord porte sur le choix des jours. La direction préfère le mardi et le jeudi, tandis que plusieurs équipes voudraient se coordonner selon leurs projets. Une règle commune rendrait les bureaux plus animés, mais elle compliquerait la vie de ceux qui habitent loin. Je proposerais un jour fixe pour tout le monde et un second choisi par chaque équipe, quitte à réévaluer le dispositif après trois mois.\",\"voice\":\"onyx\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/b736dd9abee7bfde4edc328c.wav",
+    "turns": [
+      {
+        "role": "Malik",
+        "text": "L’entreprise veut imposer deux jours de présence par semaine pour faciliter les échanges. Personne ne conteste vraiment le principe ; le désaccord porte sur le choix des jours. La direction préfère le mardi et le jeudi, tandis que plusieurs équipes voudraient se coordonner selon leurs projets. Une règle commune rendrait les bureaux plus animés, mais elle compliquerait la vie de ceux qui habitent loin. Je proposerais un jour fixe pour tout le monde et un second choisi par chaque équipe, quitte à réévaluer le dispositif après trois mois.",
+        "voice": "onyx",
+        "pcmSha256": "ed7a995ff107b504518af46559feeb14db94a741e63fac65f926af0ba05fc178",
+        "start": 0,
+        "end": 32.25
+      }
+    ]
+  },
+  "avance-retard-festival": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Thomas\",\"text\":\"Selon l’organisation du festival, le concert a commencé en retard à cause d’un contrôle de sécurité prolongé. Des spectateurs affirment pourtant que l’entrée était déjà fluide une heure avant le début prévu. Un technicien évoque plutôt un problème de son découvert pendant les répétitions. Ces explications ne sont pas forcément incompatibles : le public a pu entrer normalement pendant que l’équipe réglait la scène, puis être retenu près des gradins. Faute d’informations plus précises, il serait imprudent d’attribuer le retard à une seule cause.\",\"voice\":\"cedar\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/5262122054145ce259e0c965.wav",
+    "turns": [
+      {
+        "role": "Thomas",
+        "text": "Selon l’organisation du festival, le concert a commencé en retard à cause d’un contrôle de sécurité prolongé. Des spectateurs affirment pourtant que l’entrée était déjà fluide une heure avant le début prévu. Un technicien évoque plutôt un problème de son découvert pendant les répétitions. Ces explications ne sont pas forcément incompatibles : le public a pu entrer normalement pendant que l’équipe réglait la scène, puis être retenu près des gradins. Faute d’informations plus précises, il serait imprudent d’attribuer le retard à une seule cause.",
+        "voice": "cedar",
+        "pcmSha256": "29fe9cc1233c0d8ad84125073b93581b02f605bd7bd2730e32ff39e70d19250e",
+        "start": 0,
+        "end": 32.95
+      }
+    ]
+  },
+  "avance-musee": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Inès\",\"text\":\"La gratuité du musée chaque dimanche attirerait sans doute de nouveaux visiteurs, mais elle ne suffirait pas à diversifier le public. Le prix constitue un obstacle, certes, toutefois les horaires, les transports et le sentiment de ne pas être à sa place comptent aussi. Je préférerais tester un dimanche gratuit par mois et consacrer le budget restant à des visites accompagnées avec les associations du quartier. On pourrait alors mesurer non seulement la fréquentation, mais aussi le nombre de personnes qui reviennent ensuite de leur propre initiative.\",\"voice\":\"coral\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/1701b35bce30e4033e273e0b.wav",
+    "turns": [
+      {
+        "role": "Inès",
+        "text": "La gratuité du musée chaque dimanche attirerait sans doute de nouveaux visiteurs, mais elle ne suffirait pas à diversifier le public. Le prix constitue un obstacle, certes, toutefois les horaires, les transports et le sentiment de ne pas être à sa place comptent aussi. Je préférerais tester un dimanche gratuit par mois et consacrer le budget restant à des visites accompagnées avec les associations du quartier. On pourrait alors mesurer non seulement la fréquentation, mais aussi le nombre de personnes qui reviennent ensuite de leur propre initiative.",
+        "voice": "coral",
+        "pcmSha256": "7d452ccb391989b684818253c4b8f824aaea3c0d17b3ae3e94115b19560764b8",
+        "start": 0,
+        "end": 34.85
+      }
+    ]
+  },
+  "avance-formation": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Léa\",\"text\":\"On m’a recommandé une formation intensive de six semaines pour changer de métier. Le programme semble solide et les anciens participants trouvent rapidement un emploi. Néanmoins, les cours ont lieu tous les après-midi, ce qui m’obligerait à réduire fortement mon temps de travail. Avant de m’inscrire, je voudrais savoir si les projets réalisés peuvent réellement servir de portfolio et si un accompagnement est prévu après la formation. Le taux d’embauche est encourageant, mais il ne dit ni combien de postes sont durables ni s’ils correspondent aux objectifs des participants.\",\"voice\":\"marin\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/0b5b06d1b6c258479ae6ba3a.wav",
+    "turns": [
+      {
+        "role": "Léa",
+        "text": "On m’a recommandé une formation intensive de six semaines pour changer de métier. Le programme semble solide et les anciens participants trouvent rapidement un emploi. Néanmoins, les cours ont lieu tous les après-midi, ce qui m’obligerait à réduire fortement mon temps de travail. Avant de m’inscrire, je voudrais savoir si les projets réalisés peuvent réellement servir de portfolio et si un accompagnement est prévu après la formation. Le taux d’embauche est encourageant, mais il ne dit ni combien de postes sont durables ni s’ils correspondent aux objectifs des participants.",
+        "voice": "marin",
+        "pcmSha256": "02410664a5d7dec5c2fbbd12be3a50ab17d48c9dd92e6c1197d45d0f93125042",
+        "start": 0,
+        "end": 34.45
+      }
+    ]
+  },
+  "avance-reparation": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Thomas\",\"text\":\"Le plombier devait passer entre huit heures et midi, mais à onze heures trente, je n’avais toujours aucune nouvelle. L’agence m’a finalement appelée pour m’annoncer qu’il arriverait après quatorze heures. Comme je travaillais l’après-midi, j’ai demandé s’il pouvait récupérer les clés chez la gardienne. Elle était d’accord, à condition que l’agence confirme son identité avant de les lui confier. La fuite n’était pas urgente, mais je préférais éviter qu’elle s’aggrave pendant le week-end.\",\"voice\":\"cedar\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/31a81a96167c083d77cc3322.wav",
+    "turns": [
+      {
+        "role": "Thomas",
+        "text": "Le plombier devait passer entre huit heures et midi, mais à onze heures trente, je n’avais toujours aucune nouvelle. L’agence m’a finalement appelée pour m’annoncer qu’il arriverait après quatorze heures. Comme je travaillais l’après-midi, j’ai demandé s’il pouvait récupérer les clés chez la gardienne. Elle était d’accord, à condition que l’agence confirme son identité avant de les lui confier. La fuite n’était pas urgente, mais je préférais éviter qu’elle s’aggrave pendant le week-end.",
+        "voice": "cedar",
+        "pcmSha256": "de26578ec62359c79db53ae7dd1659bcdddb6faf9cf794ffd8a30f452fa671e1",
+        "start": 0,
+        "end": 29.45
+      }
+    ]
+  },
+  "avance-place-pietonne": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Inès\",\"text\":\"La mairie souhaite rendre la place centrale entièrement piétonne. Les habitants favorables au projet espèrent moins de bruit et davantage d’espace pour les terrasses. Plusieurs commerçants craignent pourtant que les clients venant des villages voisins renoncent à se déplacer. À mes yeux, l’idée peut fonctionner, mais seulement si les bus circulent plus souvent et si une zone de livraison reste accessible le matin. Sans ces mesures, on risque de déplacer les difficultés plutôt que de les résoudre.\",\"voice\":\"coral\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/682db4e6dce25c655160c902.wav",
+    "turns": [
+      {
+        "role": "Inès",
+        "text": "La mairie souhaite rendre la place centrale entièrement piétonne. Les habitants favorables au projet espèrent moins de bruit et davantage d’espace pour les terrasses. Plusieurs commerçants craignent pourtant que les clients venant des villages voisins renoncent à se déplacer. À mes yeux, l’idée peut fonctionner, mais seulement si les bus circulent plus souvent et si une zone de livraison reste accessible le matin. Sans ces mesures, on risque de déplacer les difficultés plutôt que de les résoudre.",
+        "voice": "coral",
+        "pcmSha256": "376afc1e2da1670ccc13bc8a014981c9290936c6fe66570158f29398f0b5e2be",
+        "start": 0,
+        "end": 32.6
+      }
+    ]
+  },
+  "avance-reparer": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Léa\",\"text\":\"Dans notre atelier, nous aidons les habitants à réparer leurs petits appareils. Le but n’est pas seulement d’éviter des déchets : nous voulons aussi transmettre des gestes simples. Certains visiteurs s’attendent à déposer leur objet et à revenir le chercher plus tard. Or, nous leur demandons de participer, même modestement, car l’apprentissage fait partie du service. Nous ne garantissons pas que chaque réparation réussira, mais une panne irréparable peut encore nous apprendre comment choisir un appareil plus durable la prochaine fois.\",\"voice\":\"marin\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/e7824feccc963734f68aa220.wav",
+    "turns": [
+      {
+        "role": "Léa",
+        "text": "Dans notre atelier, nous aidons les habitants à réparer leurs petits appareils. Le but n’est pas seulement d’éviter des déchets : nous voulons aussi transmettre des gestes simples. Certains visiteurs s’attendent à déposer leur objet et à revenir le chercher plus tard. Or, nous leur demandons de participer, même modestement, car l’apprentissage fait partie du service. Nous ne garantissons pas que chaque réparation réussira, mais une panne irréparable peut encore nous apprendre comment choisir un appareil plus durable la prochaine fois.",
+        "voice": "marin",
+        "pcmSha256": "7da4cbbdb0b5ae1c617ddfee5ef739b9c338a9f22a36e3a08c9969de18ed2344",
+        "start": 0,
+        "end": 31.65
+      }
+    ]
+  },
+  "avance-retour-achat": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Inès\",\"text\":\"J’ai acheté un grille-pain samedi, et dès la première utilisation, le bouton est resté bloqué. Au magasin, le vendeur m’a d’abord proposé un avoir, mais je préférais un échange. Le même modèle n’étant plus disponible, il m’en a montré un légèrement plus cher. Comme le défaut s’était manifesté immédiatement, la responsable a accepté de prendre la différence à sa charge. Je suis repartie avec le nouvel appareil et un reçu indiquant que la garantie continuait à partir de la date du premier achat.\",\"voice\":\"coral\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/80a1a1525ef6292223647ae2.wav",
+    "turns": [
+      {
+        "role": "Inès",
+        "text": "J’ai acheté un grille-pain samedi, et dès la première utilisation, le bouton est resté bloqué. Au magasin, le vendeur m’a d’abord proposé un avoir, mais je préférais un échange. Le même modèle n’étant plus disponible, il m’en a montré un légèrement plus cher. Comme le défaut s’était manifesté immédiatement, la responsable a accepté de prendre la différence à sa charge. Je suis repartie avec le nouvel appareil et un reçu indiquant que la garantie continuait à partir de la date du premier achat.",
+        "voice": "coral",
+        "pcmSha256": "c0da1618ccfe4c67ba013b17eeec7e8bfb755e362516fbd280ac60742aa68fe8",
+        "start": 0,
+        "end": 30.9
+      }
+    ]
+  },
+  "avance-rendezvous": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Malik\",\"text\":\"Le cabinet m’a proposé d’avancer mon rendez-vous au mercredi matin, mais je devais accompagner ma fille à l’école. J’ai demandé s’il restait une place en fin de journée. La secrétaire n’avait qu’un créneau à dix-sept heures quarante-cinq, avec un autre praticien. Elle m’a précisé que mon dossier serait accessible et que je n’aurais pas à tout réexpliquer. J’ai accepté, même si cela m’obligeait à partir du travail un peu plus tôt, car l’autre possibilité était d’attendre trois semaines.\",\"voice\":\"onyx\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/13b961693088c342b5a0c6f2.wav",
+    "turns": [
+      {
+        "role": "Malik",
+        "text": "Le cabinet m’a proposé d’avancer mon rendez-vous au mercredi matin, mais je devais accompagner ma fille à l’école. J’ai demandé s’il restait une place en fin de journée. La secrétaire n’avait qu’un créneau à dix-sept heures quarante-cinq, avec un autre praticien. Elle m’a précisé que mon dossier serait accessible et que je n’aurais pas à tout réexpliquer. J’ai accepté, même si cela m’obligeait à partir du travail un peu plus tôt, car l’autre possibilité était d’attendre trois semaines.",
+        "voice": "onyx",
+        "pcmSha256": "c15dcd5cb99dd8a0da27c83b34c56d498be429030ffd9e785da8b63a21bacdd5",
+        "start": 0,
+        "end": 28.8
+      }
+    ]
+  },
+  "avance-colis": {
+    "signature": "[\"aligned-turns-v1\",\"fr\",[{\"role\":\"Léa\",\"text\":\"Ma voisine m’a demandé de récupérer son colis, puisqu’elle rentrait après la fermeture du point relais. Elle m’avait envoyé une copie de sa pièce d’identité et une autorisation signée. Sur place, l’employé a aussi réclamé le message contenant le code de retrait. Je ne l’avais pas, et ma voisine ne répondait plus. Heureusement, elle avait ajouté mon nom comme personne autorisée dans l’application. Après avoir vérifié ma propre identité, l’employé a pu me remettre le paquet sans attendre le code.\",\"voice\":\"marin\"}],\"advanced\"]",
+    "file": "/audio/passages/aligned-turns-v1/20a5f7baea3aad9ca8db65cf.wav",
+    "turns": [
+      {
+        "role": "Léa",
+        "text": "Ma voisine m’a demandé de récupérer son colis, puisqu’elle rentrait après la fermeture du point relais. Elle m’avait envoyé une copie de sa pièce d’identité et une autorisation signée. Sur place, l’employé a aussi réclamé le message contenant le code de retrait. Je ne l’avais pas, et ma voisine ne répondait plus. Heureusement, elle avait ajouté mon nom comme personne autorisée dans l’application. Après avoir vérifié ma propre identité, l’employé a pu me remettre le paquet sans attendre le code.",
+        "voice": "marin",
+        "pcmSha256": "324091b295690165b1fdb095a4f24f5ed50111eeb1b5f558907548f31f6a1aeb",
+        "start": 0,
+        "end": 30.95
+      }
+    ]
   }
 };

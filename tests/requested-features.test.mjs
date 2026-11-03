@@ -12,11 +12,18 @@ import {speechVersion,speechInstructions} from '../lib/speech-policy.ts';
 import {listeningQuestions,scoreListening,normalizeListeningAnswer,listeningAnswerMatches,challengeDetails} from '../content/listening-challenges.ts';
 import {listeningSummary,validWritingFeedback} from '../lib/writing-feedback.ts';
 
-test('all six poems have a new male recording; every everyday French passage has a separate Parisian adaptation with matching roles',()=>{
+test('all six poems have a new male recording; standard everyday French passages have a separate Parisian adaptation',()=>{
  const poems=passages.filter(p=>p.poem);assert.equal(poems.length,6);
  for(const p of poems){assert.equal(p.speaker.name,'Julien');assert.equal(p.speaker.voice,'cedar');assert.equal(audioRecordings[p.id].signature,recordingSignature(p));assert.equal(parisianVariant(p),null);}
- let count=0;for(const p of passages){const v=parisianVariant(p);if(p.language==='sv'||p.poem||p.speechStyle==='beginner'){assert.equal(v,null);continue;}count++;assert.ok(v,p.id);assert.notEqual(v.text,p.text);assert.equal(v.speechStyle,'parisian');assert.deepEqual(speechTurns(v).map(t=>[t.role,t.voice]),speechTurns(p).map(t=>[t.role,t.voice]));assert.equal(audioRecordings[v.id].signature,recordingSignature(v));}
+ let count=0;for(const p of passages){const v=parisianVariant(p);if(p.language==='sv'||p.poem||['beginner','advanced'].includes(p.speechStyle)){assert.equal(v,null);continue;}count++;assert.ok(v,p.id);assert.notEqual(v.text,p.text);assert.equal(v.speechStyle,'parisian');assert.deepEqual(speechTurns(v).map(t=>[t.role,t.voice]),speechTurns(p).map(t=>[t.role,t.voice]));assert.equal(audioRecordings[v.id].signature,recordingSignature(v));}
  assert.equal(count,23);assert.notEqual(speechVersion('fr','parisian'),speechVersion('fr'));assert.equal(speechVersion('sv','parisian'),speechVersion('sv'));assert.match(speechInstructions('fr','parisian'),/faster|Brisk/);
+});
+test('the advanced French collection adds twelve distinct B1+ and B2 listening lessons',()=>{
+ const advanced=passages.filter(p=>p.speechStyle==='advanced');assert.equal(advanced.length,12);
+ assert.equal(advanced.filter(p=>p.level==='B1+').length,6);assert.equal(advanced.filter(p=>p.level==='B2').length,6);
+ assert.ok(advanced.every(p=>p.language==='fr'&&p.releasedAt==='2026-11-03'&&p.category==='everyday'&&p.decode&&p.phrase&&p.comprehensionPoints.length===4));
+ assert.ok(new Set(advanced.map(p=>p.topic)).size>=10);assert.equal(new Set(advanced.map(p=>p.id)).size,12);
+ for(const p of advanced){assert.equal(parisianVariant(p),null);assert.match(speechInstructions('fr',p.speechStyle),/authentic conversational pace/);}
 });
 test('all 24 French checks have close distractors and independently authored written-answer prompts',()=>{
  const catalog=[...announcements,...situations].filter(p=>p.language!=='sv'&&!['A1','A2'].includes(p.level));assert.equal(catalog.length,24);

@@ -140,6 +140,11 @@ export const releases = [
   {mark:"03",title:"Lesson actions within reach",body:"Phone-sized playback and next-step controls respect safe areas, text inputs avoid unwanted zoom, and drafts continue to recover after interruptions."},
   {mark:"04",title:"Clear recovery when loading fails",body:"A failed progress connection now explains what remains safe and offers a direct retry instead of leaving a status line with no next step."},
  ]},
+ {id:"2026-11-03-advanced-french",date:"November 3, 2026",title:"Twelve new ways to stretch your French",summary:"Fresh B1+ and B2 listening adds practical complications, competing viewpoints, and the details between them.",items:[
+  {mark:"01",title:"Six new B1+ situations",body:"Navigate a missed connection, a delayed repair, a faulty purchase, a rescheduled appointment, a parcel pickup, and a reservation mix-up."},
+  {mark:"02",title:"Six new B2 perspectives",body:"Follow debates, compromises, conflicting accounts, and qualified recommendations across work, community, culture, events, and education."},
+  {mark:"03",title:"New voices ready to play",body:"Every new lesson includes bundled French audio, a full transcript, phrase help, comprehension coaching, retelling, and saved progress."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

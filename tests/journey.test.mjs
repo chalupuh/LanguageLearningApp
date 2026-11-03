@@ -318,7 +318,7 @@ async function moduleUrl(path){
   "../french-course":"app/api/french-course.ts", "../../lib/french-progression":"lib/french-progression.ts", "../../../lib/french-progression":"lib/french-progression.ts", "./french-beginner.ts":"content/french-beginner.ts",
   "../lib/speech-policy.ts":"lib/speech-policy.ts",
   "../../../lib/retell-policy":"lib/retell-policy.ts",
-  "./service-passages.ts":"content/service-passages.ts", "./poetry-passages.ts":"content/poetry-passages.ts", "./swedish-passages.ts":"content/swedish-passages.ts", "../learning-track":"app/api/learning-track.ts", "./app-auth":"app/api/app-auth.ts",
+  "./service-passages.ts":"content/service-passages.ts", "./poetry-passages.ts":"content/poetry-passages.ts", "./swedish-passages.ts":"content/swedish-passages.ts", "./advanced-french-passages.ts":"content/advanced-french-passages.ts", "../learning-track":"app/api/learning-track.ts", "./app-auth":"app/api/app-auth.ts",
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
   "../../../content/releases":"content/releases.ts",

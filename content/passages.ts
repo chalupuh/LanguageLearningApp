@@ -2,6 +2,7 @@ import { servicePassages } from "./service-passages.ts";
 import { poetryPassages } from "./poetry-passages.ts";
 import { swedishPassages } from "./swedish-passages.ts";
 import { frenchBeginnerPassages } from "./french-beginner.ts";
+import { advancedFrenchPassages } from "./advanced-french-passages.ts";
 export type Speaker = {
   name: string;
   age: number;
@@ -24,7 +25,7 @@ export type Passage = {
   meaning: string;
   speaker: Speaker;
   audioFile?: string;
-  speechStyle?: "parisian" | "beginner";
+  speechStyle?: "parisian" | "beginner" | "advanced";
   challenges: string[];
   comprehensionPoints: string[];
   category?: "everyday" | "poetry";
@@ -43,6 +44,7 @@ export const passages: Passage[] = [
   ...frenchBeginnerPassages,
   ...servicePassages,
   ...poetryPassages,
+  ...advancedFrenchPassages,
   ...swedishPassages,
   {
     id: "cafe", level: "B1", title: "Un café à emporter", topic: "Daily life", xp: 30, speaker: lea,

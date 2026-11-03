@@ -6,8 +6,11 @@ Complete at least one requested feature end to end. Start with new B1+/B2 listen
 
 ## Current checkpoint
 
-- GitHub fetched; clean main and origin/main match at 5624e75.
-- No application changes, audio generation, or deployment performed yet.
+- The first deliverable is implemented and verified locally on `main`.
+- Twelve new advanced French lessons are integrated: six B1+ practical situations and six B2 inference/viewpoint pieces.
+- All twelve have bundled aligned audio, appear as new in the French Library, and use the existing four-step learning loop and durable progress model.
+- Automated verification is green: `npm run audio:check` (181 scenes), `npm run typecheck`, `npm test` (154 tests), and `npm run lint:baseline` (zero new diagnostic groups).
+- Browser verification confirms all twelve lessons, level/topic labels, and the lesson player are rendered correctly.
 - Request d9d5d2e1-ab3a-49a8-9854-c0131cb77ebf asks for new French B1+/B2 active listening modules after exhausting the catalog. Submitted October 24, 2026, 23:34 EDT.
 - Existing advanced French material predates that request; later additions were Spanish.
 
@@ -32,4 +35,4 @@ Grammar: authored article and agreement exercises with explanations and retries;
 
 ## Immediate next action
 
-Open the existing Sites source using the Sites skill workflow, reconcile it with GitHub, inspect recording-generation scripts and their credential requirements, then author and integrate the first advanced collection. No feature is completed at this checkpoint.
+Commit and synchronize this verified collection with GitHub, publish it through the existing Sites project, verify the production lesson flow, and then mark request `d9d5d2e1-ab3a-49a8-9854-c0131cb77ebf` shipped. The next development item is the correction notebook, followed by article/agreement drills connected to recurring notebook patterns.

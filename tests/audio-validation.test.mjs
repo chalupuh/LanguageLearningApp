@@ -52,7 +52,13 @@ test("runtime sends the right voices sequentially and rejects missing turn or as
 test("the production preflight runs successfully with all network requests forbidden",async()=>{
  const {execFileSync}=await import("node:child_process");const {fileURLToPath}=await import("node:url");
  const output=execFileSync(process.execPath,["--experimental-strip-types","--import","data:text/javascript,globalThis.fetch=()=>{throw Error('Network forbidden in preflight')}",fileURLToPath(new URL("../scripts/rebuild-aligned-audio.mjs",import.meta.url)),"--check"],{encoding:"utf8",env:{...process.env,OPENAI_API_KEY:""}});
- assert.match(output,/PASS: 169 authored audio scenes/);assert.match(output,/No audible correctness/);
+ assert.match(output,/PASS: 181 authored audio scenes/);assert.match(output,/No audible correctness/);
+});
+
+test("all advanced French lessons have exact bundled recordings and local playback",async()=>{
+ const {readFile}=await import("node:fs/promises"),{passages}=await import("../content/passages.ts"),{audioRecordings}=await import("../content/audio-recordings.ts");
+ const advanced=passages.filter(p=>p.speechStyle==="advanced");assert.equal(advanced.length,12);validateAudioCatalog(advanced);
+ for(const p of advanced){const recording=audioRecordings[p.id];assert.ok(recording,p.id);assert.equal(recording.signature,recordingSignature(p),p.id);const wave=await readFile(new URL("../public"+recording.file,import.meta.url)),clips=validateRecordingAssembly(p,recording,wave);assert.equal(clips.length,1,p.id);assert.equal(hash(clips[0]),recording.turns[0].pcmSha256,p.id);const played=await passagePlayback(p,undefined,audioRecordings,async()=>assert.fail("Unexpected API call"),async()=>assert.fail("Unexpected reassembly"),async()=>new Response(wave,{headers:{"Content-Type":"audio/wav"}}));assert.equal(played.size,wave.length);}
 });
 
 test("all Spanish Lab prompts use complete bundled recordings",async()=>{

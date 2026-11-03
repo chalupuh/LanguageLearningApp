@@ -28,6 +28,7 @@ const versions:Record<string,string[]>={
 };
 
 export function parisianVariant(passage:Passage):Passage|null{
+ if(passage.speechStyle==="advanced")return null;
  const lines=versions[passage.id];if(!lines||passage.language==="sv"||passage.poem)return null;
  if(passage.dialogue&&lines.length!==passage.dialogue.length)throw Error(`Parisian speakers do not match: ${passage.id}`);
  return {...passage,id:passage.id+"-parisian",title:passage.title+" · Parisian French",text:lines.join("\n"),speechStyle:"parisian",audioFile:undefined,dialogue:passage.dialogue?.map((turn,i)=>({...turn,text:lines[i]}))};
