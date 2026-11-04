@@ -145,6 +145,11 @@ export const releases = [
   {mark:"02",title:"Six new B2 perspectives",body:"Follow debates, compromises, conflicting accounts, and qualified recommendations across work, community, culture, events, and education."},
   {mark:"03",title:"New voices ready to play",body:"Every new lesson includes bundled French audio, a full transcript, phrase help, comprehension coaching, retelling, and saved progress."},
  ]},
+ {id:"2026-11-04-correction-notebook",date:"November 4, 2026",title:"Keep the corrections that help you grow",summary:"Your tutor’s feedback now has a home in Library → Correction notebook.",items:[
+  {mark:"01",title:"Original and corrected, together",body:"Save paired texts, highlight what changed, and keep your tutor’s explanation beside your own notes."},
+  {mark:"02",title:"Find your recurring patterns",body:"Tag articles, agreement, tense, vocabulary, and more. Search, edit, archive, and restore entries whenever you need them."},
+  {mark:"03",title:"Private, with a notebook for each language",body:"Saved entries follow your account across devices. Unfinished drafts stay backed up on this device, and newer saved changes are protected."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){
