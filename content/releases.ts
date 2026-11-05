@@ -150,6 +150,11 @@ export const releases = [
   {mark:"02",title:"Find your recurring patterns",body:"Tag articles, agreement, tense, vocabulary, and more. Search, edit, archive, and restore entries whenever you need them."},
   {mark:"03",title:"Private, with a notebook for each language",body:"Saved entries follow your account across devices. Unfinished drafts stay backed up on this device, and newer saved changes are protected."},
  ]},
+ {id:"2026-11-04-grammar-practice",date:"November 4, 2026",title:"Practise the patterns in your corrections",summary:"Twenty-four French drills connect your correction notebook to focused article and agreement practice.",items:[
+  {mark:"01",title:"Write the missing form",body:"Practise articles, elision, contractions, adjective agreement, and plurals with explanations and unlimited retries."},
+  {mark:"02",title:"Accent feedback has its own place",body:"Accepted alternatives count. Accent-only differences get spelling guidance instead of being treated as a different grammar mistake."},
+  {mark:"03",title:"Follow a notebook pattern",body:"Open Library → Grammar practice, or use Practise articles / gender and agreement in your correction notebook. Correct answers save privately across devices."},
+ ]},
 ];
 export type Release = typeof releases[number];
 export function unseenReleases(events:{kind:string;source:string}[],legacyId?:string){

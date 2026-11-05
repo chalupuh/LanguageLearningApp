@@ -2,9 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import { correctionCategories, correctionDiff, emptyNotebook, recurringCategories, validCorrectionDraft, validCorrectionEntry, validNotebook, type CorrectionEntry, type CorrectionNotebook as Notebook } from "../lib/correction-notebook";
 import "./correction-notebook.css";
+import {grammarTopicForCategory} from "../lib/french-grammar";
+import type {GrammarTopic} from "../content/french-grammar";
 
 type Editor = { entry: CorrectionEntry; base: CorrectionEntry | null };
-export default function CorrectionNotebook({language}:{language:"fr"|"sv"|"es"}) {
+export default function CorrectionNotebook({language,onPractice}:{language:"fr"|"sv"|"es";onPractice?:(topic:GrammarTopic)=>void}) {
  const [notebook,setNotebook]=useState<Notebook>(emptyNotebook),[revision,setRevision]=useState(0),[user,setUser]=useState("");
  const [ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[status,setStatus]=useState("Opening your notebook…");
  const [editor,setEditor]=useState<Editor|null>(null),[query,setQuery]=useState(""),[category,setCategory]=useState(""),[archived,setArchived]=useState(false);
@@ -61,7 +63,7 @@ export default function CorrectionNotebook({language}:{language:"fr"|"sv"|"es"})
     <div className="correction-actions"><button type="submit" disabled={changedElsewhere}>{busy?"Saving…":"Save correction"}</button><button type="button" onClick={()=>{keepEditor(null);setError("");setStatus("Draft closed.");}}>Discard draft</button>{editor.base&&<button type="button" onClick={()=>{const now=Date.now();keepEditor({base:null,entry:{...editor.entry,id:crypto.randomUUID(),createdAt:now,updatedAt:now}});setError("");}}>Keep draft as a new entry</button>}{changedElsewhere&&<button type="button" onClick={()=>{const latest=notebook.entries.find(e=>e.id===editor.entry.id);if(latest){keepEditor({entry:latest,base:latest});setError("");}}}>Replace draft with latest saved entry</button>}</div>
    </fieldset>
   </form>}
-  {ready&&<><section className="correction-patterns" aria-label="Recurring correction patterns"><h3>Patterns in your corrections</h3><p>Counts reflect the tags you chose on active entries.</p>{patterns.length?<div>{patterns.map(p=><button key={p.category} aria-pressed={category===p.category} onClick={()=>setCategory(category===p.category?"":p.category)}>{p.category} · {p.count} {p.count===1?"entry":"entries"}</button>)}</div>:<p>Add and tag a correction to start seeing your patterns.</p>}</section>
+  {ready&&<><section className="correction-patterns" aria-label="Recurring correction patterns"><h3>Patterns in your corrections</h3><p>Counts reflect the tags you chose on active entries.</p>{patterns.length?<div>{patterns.map(p=><span key={p.category}><button aria-pressed={category===p.category} onClick={()=>setCategory(category===p.category?"":p.category)}>{p.category} · {p.count} {p.count===1?"entry":"entries"}</button>{onPractice&&grammarTopicForCategory(p.category)&&<button onClick={()=>onPractice(grammarTopicForCategory(p.category)!)}>Practise {p.category.toLowerCase()} →</button>}</span>)}</div>:<p>Add and tag a correction to start seeing your patterns.</p>}</section>
    <div className="correction-filters"><label>Search corrections<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label><label>Pattern<select value={category} onChange={e=>setCategory(e.target.value)}><option value="">All patterns</option>{correctionCategories.map(c=><option key={c}>{c}</option>)}</select></label><label><input type="checkbox" checked={archived} onChange={e=>setArchived(e.target.checked)}/> Show archived entries</label></div>
    <p>{filtered.length} {filtered.length===1?"entry":"entries"} · {notebook.entries.length}/100 saved</p>
    {!filtered.length&&<p>{notebook.entries.length?"No entries match these filters.":"Your first correction can come from a tutor session, a lesson, or a piece of writing you revised."}</p>}

@@ -45,4 +45,15 @@ The correction notebook is implemented on November 4, 2026. Open Library → Cor
 - Shipped as Sites version 64 on November 4, 2026 from commit `4a454f523429cf4f715ff8cc1d0190b59faa07d9`, synchronized to GitHub `main`. Deployment `appgdep_6aeb8a929ca481919f363dfba6fef52f` succeeded. Final checks passed: 159 tests, production build, typecheck, and lint baseline with zero new diagnostic groups.
 - The live feedback inbox lost its signed-in session during this work, so no request status was changed. Reconcile the notebook request and the advanced-content request after restoring inbox access; never assume their statuses were updated. Signed-in production save/reload verification remains outstanding; the full save/recovery workflow passed locally and deployment succeeded.
 
-Next development: authored article and agreement exercises with explanations and retries, then links from notebook patterns to the matching exercises. Category counts are user-applied tags; the notebook does not automatically diagnose grammar or generate corrections. Preserve that distinction in future UI and release notes.
+## Grammar practice checkpoint
+
+Implemented 24 authored French exercises: ten article/elision/contraction prompts, eight gender/adjective agreement prompts, and six plural prompts. Library → Grammar practice opens the set. The correction notebook's Articles and Gender and agreement patterns link to their corresponding exercises.
+
+- Written answers accept case, whitespace, apostrophe typography, canonical Unicode, and explicitly authored alternatives (such as clés/clefs). Accent-only differences receive spelling feedback and must be corrected before completion is saved.
+- Correct answers are checked again on the server. Private D1 rows are unique per authenticated learner/exercise, so retries and simultaneous saves cannot duplicate completions. Completion counts describe practice, not mastery, and add no XP.
+- Added schema-only migration `0010_dark_banshee.sql`; applied locally. Automated coverage includes content, answer checking, routes, authentication, language isolation, origins, server validation, and idempotency.
+- All 163 tests, production build, typecheck, and lint baseline passed. Browser QA passed incorrect/correct retries, accent feedback, alternative spelling, notebook → agreement link, and a 390px layout with 16px inputs and no horizontal overflow.
+- Owner production sign-in was restored. The notebook's save/reload/archive flow passed on production using one clearly labeled release-verification entry, now archived.
+- Next release step at this source checkpoint: synchronize GitHub, publish grammar practice, verify the production grammar flow, and reconcile the completed advanced-content, notebook/example, and grammar requests in the live inbox.
+
+Next development after this release: spoken customer responses for server situations, then recurring calendar checklist items. Category counts are user-applied tags; the notebook does not automatically diagnose grammar or generate corrections.

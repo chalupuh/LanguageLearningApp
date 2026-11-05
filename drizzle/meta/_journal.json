@@ -71,6 +71,13 @@
       "when": 1793820801173,
       "tag": "0009_slimy_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1793846541057,
+      "tag": "0010_dark_banshee",
+      "breakpoints": true
     }
   ]
 }

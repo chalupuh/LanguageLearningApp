@@ -30,6 +30,10 @@ export const correctionNotebooks=sqliteTable("correction_notebooks",{
  userId:text("user_id").primaryKey(),state:text("state").notNull(),revision:integer("revision").notNull(),updatedAt:integer("updated_at").notNull(),
 });
 
+export const grammarCompletions=sqliteTable("grammar_completions",{
+ userId:text("user_id").notNull(),exerciseId:text("exercise_id").notNull(),completedAt:integer("completed_at").notNull(),
+},table=>[primaryKey({columns:[table.userId,table.exerciseId]})]);
+
 export const usageSessions = sqliteTable("usage_sessions", {
   userId: text("user_id").notNull(), id: text("id").notNull(), email: text("email"),
   source: text("source").notNull(), startedAt: integer("started_at").notNull(),
