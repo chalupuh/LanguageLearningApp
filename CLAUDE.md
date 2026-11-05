@@ -15,7 +15,7 @@ secrets) — it is the shared rulebook; this file is the orientation map.
 ## Stack
 - vinext (Next-style app router on Vite 8), React 19, Cloudflare Worker via OpenAI Sites (`vite.config.ts`: vinext + sites + cloudflare plugins). Node >= 22.13.
 - `worker/index.ts`: `/_vinext/image`, otherwise vinext app-router entry.
-- DB: D1 (`DB`) through Drizzle — `db/index.ts` `getDb()`, tables in `db/schema.ts`, migrations `drizzle/0000–0008` (`npm run db:generate`). R2 (`BUCKET`) stores recordings.
+- DB: D1 (`DB`) through Drizzle — `db/index.ts` `getDb()`, tables in `db/schema.ts`, migrations `drizzle/0000–0010` (`npm run db:generate`). R2 (`BUCKET`) stores recordings.
 - Env vars: `ALLOWED_USER_EMAILS`, `OWNER_EMAIL`, `OPENAI_API_KEY`.
 
 ## Layout
@@ -31,8 +31,10 @@ secrets) — it is the shared rulebook; this file is the orientation map.
 - Library sub-route: `#library/<category>?status=&sort=` (`lib/library-route.ts`, `app/use-library-navigation.ts`); categories all/everyday/announcements/situations/lab/native/recordings/poetry.
 - Language from `?language=fr|sv|es` (default fr, `app/learning-language.tsx`); switching does a full reload; state is per-language.
 - Only other real route: `/feedback` (owner inbox), `/usage` (owner dashboard).
+- Phones (<850px): `app/mobile-navigation.tsx` bottom "listening dock" (Today, Learn/lab, Library, Hands-free, Progress) + More sheet (Calendar, About). Views set route-specific `document.title` and focus their heading.
+- Library also hosts Correction notebook (`#library/corrections`, all languages) and French Grammar practice.
 - Studio (YouTube) is paused: `lib/studio-availability.ts` `STUDIO_ENABLED=false`.
-- Onboarding: `app/first-time-tutorial.tsx` (6 steps; key `a-loreille:welcome-v1:<email-hash>:<lang>`, per account + language); `app/french-course.tsx` beginner guide.
+- Onboarding: `app/first-time-tutorial.tsx` (one 4-step flow ending inside the first lesson; key `a-loreille:welcome-v1:<email-hash>:<lang>`, per account + language); `app/french-course.tsx` beginner guide.
 
 ## Styling
 - Hand-written CSS, kebab-case classes (`.app-shell`, `.topbar`, `.session-rail`). Tailwind v4 imported but effectively unused.
@@ -55,10 +57,12 @@ Session is a 4-step `step` index in `Home` (0 player+comprehension, 1 listen clo
 - XP (server-side, deduped, `app/api/journey`, `lib/journey.ts`): loop 40 (once/lesson; needs summary+retell, decoded, rehearsed), due review 20 (per passage, only when due, 24h gap), rehearse 10 (per passage/day), phrase-set 10/day (single phrases 0), checkpoint 25 (French, in order, ≥7 days apart), observations 0. XP only unlocks cosmetics.
 - Level access is separate: `lib/french-progression.ts` (A1→A2→B1→B2 by completed required lessons).
 - Skill evidence: `lib/learning-evidence.ts`, `app/skill-evidence.tsx`.
+- Correction notebook: `app/correction-notebook.tsx`, `lib/correction-notebook.ts` (categories, word diff), `/api/correction-notebook`, table `correction_notebooks` (one JSON per user+language, revision-checked). User-tagged, no auto-diagnosis.
+- Grammar drills (French): `content/french-grammar.ts`, `lib/french-grammar.ts` (`checkGrammarAnswer` → correct/accent/incorrect), `app/french-grammar.tsx`, `/api/grammar`, table `grammar_completions`. Server re-checks answers; no XP. Notebook Articles / Gender and agreement link to drills.
 
 ## API & data
 - Every route: `app/api/app-auth.ts` `authorizeAppRequest` (oai-authenticated headers + allowlist; localhost = local-development). Language namespacing: `learning-track.ts`. AI calls: `ai-guard.ts` (`guardAiRequest`/`fetchAi`, 60/hour in `ai_quota`, 45s timeout, no retry). Owner-only routes compare `OWNER_EMAIL` inline (no shared helper). Localhost skips auth — test 401/403 via the built worker.
-- Routes: progress, calendar, recordings, session-drafts, journey, announcements, usage, owner-usage, session, requests, feedback-inbox, feedback-updates, feedback, comprehension, writing, phrase-help, speech, youtube-transcript.
+- Routes: progress, correction-notebook, grammar, calendar, recordings, session-drafts, journey, announcements, usage, owner-usage, session, requests, feedback-inbox, feedback-updates, feedback, comprehension, writing, phrase-help, speech, youtube-transcript.
 - Progress: one JSON blob per user in `learner_progress`; client `app/use-progress-sync.ts`; three-way merge `lib/progress-sync.ts` `mergeProgress(base, local, remote)` (explicit deletions except `completed`/`practiceDates`, which never delete; newer `reviewedAt` wins for such objects; `listeningPatterns` merge additively). Saves debounced 700ms with `If-Match` revision. Observations live in journey events, not the blob.
 
 ## Content
@@ -75,4 +79,5 @@ Session is a 4-step `step` index in `Home` (0 player+comprehension, 1 listen clo
 - `lint:baseline` fails only on findings beyond `docs/lint-baseline.json`.
 
 ## Open items
+- Current sprint state and next work: `docs/next-sprint-checkpoint.md`, `docs/mobile-experience-sprint.md` — read before picking work to avoid colliding with Codex.
 - French beginner pack: human listening review still pending (`docs/french-production-checkpoint.md`).
