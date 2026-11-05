@@ -54,6 +54,8 @@ Implemented 24 authored French exercises: ten article/elision/contraction prompt
 - Added schema-only migration `0010_dark_banshee.sql`; applied locally. Automated coverage includes content, answer checking, routes, authentication, language isolation, origins, server validation, and idempotency.
 - All 163 tests, production build, typecheck, and lint baseline passed. Browser QA passed incorrect/correct retries, accent feedback, alternative spelling, notebook → agreement link, and a 390px layout with 16px inputs and no horizontal overflow.
 - Owner production sign-in was restored. The notebook's save/reload/archive flow passed on production using one clearly labeled release-verification entry, now archived.
-- Next release step at this source checkpoint: synchronize GitHub, publish grammar practice, verify the production grammar flow, and reconcile the completed advanced-content, notebook/example, and grammar requests in the live inbox.
+- Shipped as Sites version 65 on November 5, 2026 from commit `6581527b96d1a096fb2be71841c7a19bfc525fdf`. Deployment `appgdep_6aebee53e9bc819187087229edc00974` succeeded. Production QA confirmed a correct article answer saved, survived reload, and appeared in the completion count.
+- Marked the advanced B1+/B2 request, correction-notebook request, supporting tutor-example request, and grammar-drills request shipped with learner-facing messages and linked releases.
+- The remaining submitted requests are: spoken or typed customer responses for server situations; add to every Saturday this month; a French crossword; and a vocabulary word-find/game section.
 
 Next development after this release: spoken customer responses for server situations, then recurring calendar checklist items. Category counts are user-applied tags; the notebook does not automatically diagnose grammar or generate corrections.
