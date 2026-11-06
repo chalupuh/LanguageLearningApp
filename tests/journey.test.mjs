@@ -92,6 +92,10 @@ test("new persistent APIs protect revisions, quotas, request ownership, release 
   const history=(await(await ann.GET(req("announcements"))).json()).attempts;assert.equal(history.length,2);assert.equal(history.find(a=>a.score===33).condition,"familiar");assert.deepEqual(new Set(history.map(a=>a.score)),new Set([100,33]));
   assert.equal((await(await ann.GET(req("announcements?category=situations"))).json()).items.length,12);
   assert.equal((await(await ann.GET(req("announcements?language=sv&category=situations"))).json()).items.length,6);
+  const {situations}=await import("../content/situations.ts"),situation=situations.find(item=>item.id==="situation-oven-1"),situationAnswer={id:situation.id,answers:situation.questions.map(question=>question.answer),listens:1,attemptId:"attempt-00000000003"};
+  assert.equal((await ann.POST(req("announcements","POST",situationAnswer))).status,400,"situations require an active customer response");
+  const spoken=await ann.POST(req("announcements","POST",{...situationAnswer,responseMode:"spoken"}));assert.equal(spoken.status,200);assert.equal((await spoken.json()).result.responseMode,"spoken");
+  const typed=await ann.POST(req("announcements","POST",{...situationAnswer,attemptId:"attempt-00000000004",reply:" Je vais attendre, merci. "}));assert.equal((await typed.json()).result.reply,"Je vais attendre, merci.");
  }finally{for(const [key,value]of [["ALLOWED_USER_EMAILS",oldAllowed],["OWNER_EMAIL",oldOwner]])if(value===undefined)delete process.env[key];else process.env[key]=value;delete globalThis.__journeyTestDb;sqlite.close();}
 });
 

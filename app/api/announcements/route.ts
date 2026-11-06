@@ -24,6 +24,9 @@ export async function POST(request:Request){
  const body=await request.json().catch(()=>null),item=[...announcements,...situations].find(a=>a.id===body?.id&&(a.language||"fr")===auth.language);
  const difficulty=body?.difficulty||"standard";
  if(!item||!isListeningDifficulty(difficulty)||(auth.language==="sv"&&difficulty!=="standard")||!Array.isArray(body.answers)||!Number.isInteger(body.listens)||body.listens<1||body.listens>100)return Response.json({error:"Finish listening and answer every question."},{status:400,headers});
+ const reply=typeof body.reply==="string"?body.reply.trim():"",responseMode=body.responseMode;
+ if(item.category==="situations"&&!reply&&responseMode!=="spoken")return Response.json({error:"Add a typed response or record yourself responding before checking."},{status:400,headers});
+ if(responseMode!==undefined&&!["","typed","spoken"].includes(responseMode))return Response.json({error:"Invalid customer response."},{status:400,headers});
  let graded;try{graded=scoreListening(item,difficulty,body.answers)}catch{return Response.json({error:"Answer every question using the selected difficulty."},{status:400,headers})}
  const result={...graded,condition:body.listens===1?"first":"replay",level:item.level,difficulty};
  if(body.attemptId!==undefined&&(typeof body.attemptId!=="string"||!/^[-\w]{16,80}$/.test(body.attemptId)))return Response.json({error:"Invalid attempt."},{status:400,headers});
@@ -33,7 +36,7 @@ export async function POST(request:Request){
  if(prior.length)result.condition="familiar";
  const rows=await db.insert(journeyEvents).values({userId:auth.identity.userId,id:"announcement:"+item.id,kind:"announcement",source:item.id,xp:25,createdAt,details:JSON.stringify(result)}).onConflictDoNothing().returning();
  if(!rows.length)result.condition="familiar";
- await db.insert(journeyEvents).values({userId:auth.identity.userId,id:`announcement-attempt:${item.id}:${body.attemptId||"legacy"}`,kind:"announcement-attempt",source:item.id,xp:0,createdAt,details:JSON.stringify({...result,reply:typeof body.reply==="string"?body.reply.slice(0,600):""})}).onConflictDoNothing();
+ await db.insert(journeyEvents).values({userId:auth.identity.userId,id:`announcement-attempt:${item.id}:${body.attemptId||"legacy"}`,kind:"announcement-attempt",source:item.id,xp:0,createdAt,details:JSON.stringify({...result,reply:reply.slice(0,600),responseMode:reply?"typed":responseMode})}).onConflictDoNothing();
  const saved=await db.select().from(journeyEvents).where(and(eq(journeyEvents.userId,auth.identity.userId),eq(journeyEvents.id,`announcement-attempt:${item.id}:${body.attemptId||"legacy"}`)));
  return Response.json({result:saved.length?JSON.parse(saved[0].details):result,awarded:rows.length?25:0},{headers})}
  catch{return Response.json({error:"Your result could not be saved. Retry safely; XP cannot be duplicated."},{status:503,headers})}
