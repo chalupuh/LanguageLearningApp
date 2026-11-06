@@ -15,6 +15,10 @@ export function monthDays(month:string,startsOn:0|1=0){
  const count=Math.ceil((dateFromKey(next).getTime()-dateFromKey(start).getTime())/86400000/7)*7;
  return Array.from({length:count},(_,index)=>addDays(start,index));
 }
+export function monthWeekdayDates(month:string,weekday:0|1|2|3|4|5|6){
+ if(!validMonth(month))return [];
+ return monthDays(month).filter(date=>date.startsWith(month+"-")&&dateFromKey(date).getUTCDay()===weekday);
+}
 export const fullDateLabel=(date:string)=>dateFromKey(date).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric",timeZone:"UTC"});
 export function goalsOnDate(plan:CalendarPlan,date:string){return plan.goals.filter(goal=>goal.date===date).sort((a,b)=>Number(a.done)-Number(b.done)||a.createdAt-b.createdAt||a.id.localeCompare(b.id))}
 export function validWeek(v:unknown):v is string{return typeof v==="string"&&validMonth(v.slice(0,7))&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(dateFromKey(v).getTime())&&dateKey(dateFromKey(v))===v&&dateFromKey(v).getUTCDay()===1}

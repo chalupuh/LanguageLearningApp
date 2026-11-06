@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
-import {emptyCalendar,validCalendar,validDate,validWeek,weekStart,monthDays,dateFromKey,fullDateLabel,goalsOnDate,monthWeeks,monthShift,mainGoalFor,recentGoalSuggestions,setMainGoal,mergeCalendar} from '../lib/calendar.ts';
+import {emptyCalendar,validCalendar,validDate,validWeek,weekStart,monthDays,monthWeekdayDates,dateFromKey,fullDateLabel,goalsOnDate,monthWeeks,monthShift,mainGoalFor,recentGoalSuggestions,setMainGoal,mergeCalendar} from '../lib/calendar.ts';
 const url=s=>'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64');
 const root=new URL('../',import.meta.url),read=p=>readFile(new URL(p,root),'utf8');
 const goal=(id='goal-000000000001',text='Listen to a poem',week='2026-10-26')=>({id,text,week,done:false,createdAt:1});
@@ -18,6 +18,12 @@ test('visual month cells match real Sunday–Saturday dates, leap years and four
   assert.equal(own.length,new Date(Date.UTC(year,number,0)).getUTCDate());
   days.forEach((date,index)=>assert.equal(dateFromKey(date).getUTCDay(),index%7));
  }
+});
+
+test('Saturday dates stay inside the selected month and include every Saturday',()=>{
+ assert.deepEqual(monthWeekdayDates('2026-11',6),['2026-11-07','2026-11-14','2026-11-21','2026-11-28']);
+ assert.deepEqual(monthWeekdayDates('2027-05',6),['2027-05-01','2027-05-08','2027-05-15','2027-05-22','2027-05-29']);
+ assert.deepEqual(monthWeekdayDates('not-a-month',6),[]);
 });
 
 test('dated checklists validate exact dates, preserve legacy weekly goals, and merge without losing completion',()=>{

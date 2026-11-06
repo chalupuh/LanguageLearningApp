@@ -60,6 +60,7 @@
 .calendar-notice{font-size:13px;line-height:1.5;color:#49684f}
 .calendar-scope{border:1px solid #e1d6dd;border-radius:12px;margin:20px 0;padding:8px 12px}
 .calendar-scope legend{font-size:12px;padding:0 5px}
+.calendar-quick-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.calendar-quick-actions button:not(.calendar-primary){border:0;background:transparent;color:#55755b;text-decoration:underline;padding:8px 2px;min-height:42px;font:inherit}.calendar-quick-actions button:disabled{opacity:.55;text-decoration:none;cursor:default}
 .calendar-dialog .calendar-scope label{display:flex;align-items:center;gap:8px;margin:10px 0}
 .calendar-dialog .calendar-scope input{width:18px;height:18px;padding:0;accent-color:#557960;flex-shrink:0}
 @media(max-width:850px){.calendar-day-cell{min-height:118px;padding:7px 6px 32px}.calendar-today-label{display:none}.calendar-cell-items label{font-size:10px}.calendar-day-count{font-size:9px}}
@@ -72,7 +73,7 @@
  .my-calendar .calendar-day-add{right:3px;bottom:2px;font-size:17px;width:26px;padding:0;min-height:26px}
  .calendar-study-summary{justify-content:flex-start;gap:9px 18px;font-size:11px;margin-top:20px}.calendar-study-summary strong{font-size:16px}
  .calendar-selected-day{padding:20px 16px}.calendar-selected-day>header{display:block}.calendar-selected-day h2{font-size:22px}.calendar-selected-day>header>span{display:block;margin-top:10px}
- .calendar-quick-add{flex-direction:column;align-items:stretch}.calendar-checklist li>label{font-size:14px}.calendar-planning-heading h2{font-size:27px}
+ .calendar-quick-add{flex-direction:column;align-items:stretch}.calendar-quick-actions{align-items:stretch;flex-direction:column;gap:2px}.calendar-quick-actions button:not(.calendar-primary){text-align:left}.calendar-checklist li>label{font-size:14px}.calendar-planning-heading h2{font-size:27px}
 }
 .my-calendar.standalone-view{padding-top:34px}
 .calendar-heading h1{font-size:48px}
