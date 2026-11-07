@@ -143,7 +143,7 @@ export function ContinueSessions({ onContinue, language="fr", allowSource=()=>tr
     void load(); const timer = window.setInterval(load, 5000); window.addEventListener("focus", load);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", load); };
   }, []);
-  const visibleDrafts=drafts.filter(draft=>allowSource(draft.source));
+  const visibleDrafts=drafts.filter(draft=>!draft.source.startsWith("crossword:")&&allowSource(draft.source));
   if (!visibleDrafts.length && !error) return null;
   return <section className="continue-sessions" aria-label="Continue your session"><p className="eyebrow">Right where you left off</p><h2>Continue your session</h2>{error && <p role="status">{error}</p>}{visibleDrafts.slice(0, 6).map(draft => <button key={draft.source} onClick={() => onContinue(draft.source)}><strong>{draft.state.title}</strong><span>{stages[draft.state.step]} · Step {draft.state.step + 1} of 4 →</span></button>)}</section>;
 }

@@ -1,0 +1,12 @@
+.game-picker fieldset{padding-bottom:8px}
+.level-options,.size-options{display:grid;gap:10px}
+.size-options{grid-template-columns:repeat(3,minmax(0,1fr));max-width:680px}
+.size-options button{display:flex;flex-direction:column;gap:4px;text-align:left;border:1px solid #ddd0c5;background:#fff;border-radius:14px;padding:14px;cursor:pointer}
+.size-options button[aria-pressed="true"]{background:#27483d;color:#fff;border-color:#27483d}
+.size-options span{font-size:.72rem;opacity:.72}
+.game-picker .game-generate{margin-top:22px}
+.games-loading{min-height:50vh}
+.games-loading h1{font:clamp(2.2rem,5vw,4.5rem)/1 Georgia,serif;color:#223c32}
+.crossword-save-status,.crossword-keyboard-hint{font-size:.78rem;color:#68746f;margin:10px 0 0}
+.crossword-keyboard-hint{margin-top:4px}
+@media(max-width:800px){.size-options{grid-template-columns:1fr}.crossword-cell input{font-size:1rem}}

@@ -1,6 +1,6 @@
 export const MAX_DRAFT_BYTES = 250000;
 export function validDraftSource(value: unknown): value is string {
-  return typeof value === "string" && /^(library:[a-z0-9-]{1,80}|studio:[A-Za-z0-9_-]{11})$/.test(value);
+  return typeof value === "string" && /^(library:[a-z0-9-]{1,80}|studio:[A-Za-z0-9_-]{11}|crossword:fr)$/.test(value);
 }
 export function validDraft(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;

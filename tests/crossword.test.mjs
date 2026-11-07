@@ -25,3 +25,13 @@ test("generates a connected, reproducible puzzle for every CEFR band",()=>{
   }),`${level} words should connect`);
  }
 });
+
+test("supports quick, standard and challenge board sizes at every level",()=>{
+ const sizes=[{size:13,wordCount:7,minimum:6},{size:15,wordCount:9,minimum:8},{size:17,wordCount:11,minimum:9}];
+ for(const level of crosswordLevels)for(const option of sizes){
+  const puzzle=generateCrossword(entriesForLevel(level),{level,seed:`size-${level}-${option.size}`,size:option.size,wordCount:option.wordCount});
+  assert.equal(puzzle.width,option.size);
+  assert.equal(puzzle.height,option.size);
+  assert.ok(puzzle.words.length>=option.minimum,`${level} on ${option.size} should place enough words`);
+ }
+});

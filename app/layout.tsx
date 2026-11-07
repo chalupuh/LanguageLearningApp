@@ -7,6 +7,7 @@ import "./seasonal-contrast.css";
 import "./tutorial.css";
 import "./mobile-navigation.css";
 import "./games.css";
+import "./games-extensions.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

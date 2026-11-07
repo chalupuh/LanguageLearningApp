@@ -54,7 +54,7 @@ test("draft API saves through real SQLite, enforces account ownership and reject
 
 test("draft contract accepts recoverable state and rejects invalid identities and oversized drafts", () => {
   assert.equal(validDraft(base), true);
-  for (const source of ["library:cafe", "studio:Zpcrn1b6baQ"]) assert.equal(validDraftSource(source), true);
+  for (const source of ["library:cafe", "studio:Zpcrn1b6baQ", "crossword:fr"]) assert.equal(validDraftSource(source), true);
   for (const source of ["other:123", "studio:bad", "../nikki", "", null]) assert.equal(validDraftSource(source), false);
   for (const state of [null, [], { ...base, version: 2 }, { ...base, step: 4 }, { ...base, done: "yes" }, { ...base, transcript: "é".repeat(150000) }]) assert.equal(validDraft(state), false);
 });
