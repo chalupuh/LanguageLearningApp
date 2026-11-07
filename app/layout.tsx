@@ -6,6 +6,7 @@ import "./swedish-lab.css";
 import "./seasonal-contrast.css";
 import "./tutorial.css";
 import "./mobile-navigation.css";
+import "./games.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -1,10 +1,10 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 
-export type MobileDestination="today"|"swedish"|"spanish"|"library"|"handsfree"|"calendar"|"progress"|"about";
+export type MobileDestination="today"|"swedish"|"spanish"|"library"|"games"|"handsfree"|"calendar"|"progress"|"about";
 
-const icons:Record<MobileDestination,string>={today:"⌂",swedish:"Å",spanish:"Ñ",library:"◫",handsfree:"◖",calendar:"□",progress:"↗",about:"i"};
-const labels:Record<MobileDestination,string>={today:"Today",swedish:"Learn",spanish:"Learn",library:"Library",handsfree:"Hands-free",calendar:"Calendar",progress:"Progress",about:"About"};
+const icons:Record<MobileDestination,string>={today:"⌂",swedish:"Å",spanish:"Ñ",library:"◫",games:"✦",handsfree:"◖",calendar:"□",progress:"↗",about:"i"};
+const labels:Record<MobileDestination,string>={today:"Today",swedish:"Learn",spanish:"Learn",library:"Library",games:"Games",handsfree:"Hands-free",calendar:"Calendar",progress:"Progress",about:"About"};
 
 export default function MobileNavigation({language,view,onNavigate}:{language:"fr"|"sv"|"es";view:string;onNavigate:(destination:MobileDestination)=>void}){
  const [moreOpen,setMoreOpen]=useState(false);const moreButton=useRef<HTMLButtonElement|null>(null),sheet=useRef<HTMLDivElement|null>(null);
@@ -16,6 +16,7 @@ export default function MobileNavigation({language,view,onNavigate}:{language:"f
   {moreOpen&&<button className="mobile-more-scrim" aria-label="Close navigation menu" onClick={()=>setMoreOpen(false)}/>} 
   {moreOpen&&<div ref={sheet} className="mobile-more-sheet" role="dialog" aria-modal="true" aria-label="More destinations">
    <div><p>More places</p><button onClick={()=>setMoreOpen(false)} aria-label="Close more destinations">×</button></div>
+   <button onClick={()=>go("games")}><span aria-hidden="true">{icons.games}</span><strong>Games</strong><small>Build a French crossword for your level</small></button>
    <button onClick={()=>go("calendar")}><span aria-hidden="true">{icons.calendar}</span><strong>My Calendar</strong><small>Plan a gentle practice rhythm</small></button>
    <button onClick={()=>go("about")}><span aria-hidden="true">{icons.about}</span><strong>About and guide</strong><small>How the listening loop works</small></button>
   </div>}

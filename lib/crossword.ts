@@ -1,0 +1,26 @@
+import type {CrosswordEntry,CrosswordLevel} from "../content/french-crosswords";
+
+export type CrosswordDirection="across"|"down";
+export type CrosswordWord=CrosswordEntry&{id:string;answerKey:string;row:number;col:number;direction:CrosswordDirection;number:number};
+export type CrosswordPuzzle={level:CrosswordLevel;seed:string;width:number;height:number;words:CrosswordWord[];cells:(string|null)[][]};
+
+export function normalizeCrosswordAnswer(value:string){return value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z]/g,"").toUpperCase()}
+function seeded(seed:string){let n=2166136261;for(const char of seed)n=Math.imul(n^char.charCodeAt(0),16777619);return()=>{n+=0x6D2B79F5;let t=n;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function shuffled<T>(items:T[],random:()=>number){const copy=[...items];for(let i=copy.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
+
+type Draft={entry:CrosswordEntry;answerKey:string;row:number;col:number;direction:CrosswordDirection};
+export function generateCrossword(entries:CrosswordEntry[],options:{level:CrosswordLevel;seed:string;size?:number;wordCount?:number}):CrosswordPuzzle{
+ const size=options.size??15,target=Math.min(options.wordCount??9,entries.length),random=seeded(options.seed);
+ const candidates=shuffled(entries.map(entry=>({entry,answerKey:normalizeCrosswordAnswer(entry.answer)})).filter(item=>item.answerKey.length>=2&&item.answerKey.length<=size-2),random).sort((a,b)=>b.answerKey.length-a.answerKey.length);
+ if(!candidates.length)throw new Error("No crossword entries fit this board.");
+ const placed:Draft[]=[{...candidates.shift()!,row:Math.floor(size/2),col:Math.floor((size-(candidates[0]?.answerKey.length??0))/2),direction:"across"}];
+ // Correct the first word's centering after removing it from the candidate list.
+ placed[0].col=Math.floor((size-placed[0].answerKey.length)/2);
+ const occupied=()=>{const map=new Map<string,{letter:string;directions:Set<CrosswordDirection>}>();for(const word of placed)for(let i=0;i<word.answerKey.length;i++){const row=word.row+(word.direction==="down"?i:0),col=word.col+(word.direction==="across"?i:0),key=`${row},${col}`,cell=map.get(key);if(cell)cell.directions.add(word.direction);else map.set(key,{letter:word.answerKey[i],directions:new Set([word.direction])})}return map};
+ const valid=(answer:string,row:number,col:number,direction:CrosswordDirection,map:ReturnType<typeof occupied>)=>{let crossings=0;const dr=direction==="down"?1:0,dc=direction==="across"?1:0;if(row<0||col<0||row+dr*(answer.length-1)>=size||col+dc*(answer.length-1)>=size)return -1;if(map.has(`${row-dr},${col-dc}`)||map.has(`${row+dr*answer.length},${col+dc*answer.length}`))return -1;for(let i=0;i<answer.length;i++){const r=row+dr*i,c=col+dc*i,cell=map.get(`${r},${c}`);if(cell){if(cell.letter!==answer[i]||cell.directions.has(direction))return -1;crossings++}else{const sides=direction==="across"?[[r-1,c],[r+1,c]]:[[r,c-1],[r,c+1]];if(sides.some(([sr,sc])=>map.has(`${sr},${sc}`)))return -1}}return crossings||-1};
+ let stalled=0;while(candidates.length&&placed.length<target&&stalled<candidates.length*2){const candidate=candidates.shift()!,map=occupied();let best:{row:number;col:number;direction:CrosswordDirection;score:number}|null=null;for(const word of placed)for(let a=0;a<candidate.answerKey.length;a++)for(let b=0;b<word.answerKey.length;b++)if(candidate.answerKey[a]===word.answerKey[b]){const direction:CrosswordDirection=word.direction==="across"?"down":"across",row=word.row+(word.direction==="down"?b:0)-(direction==="down"?a:0),col=word.col+(word.direction==="across"?b:0)-(direction==="across"?a:0),crossings=valid(candidate.answerKey,row,col,direction,map);if(crossings>0){const score=crossings*100-Math.abs(size/2-row)-Math.abs(size/2-col)+random();if(!best||score>best.score)best={row,col,direction,score}}}if(best){placed.push({...candidate,row:best.row,col:best.col,direction:best.direction});stalled=0}else{candidates.push(candidate);stalled++}}
+ if(placed.length<target&&!options.seed.includes(":retry")){let best:CrosswordPuzzle|null=null;for(let attempt=1;attempt<=6;attempt++){const retry=generateCrossword(entries,{...options,seed:`${options.seed}:retry${attempt}`});if(!best||retry.words.length>best.words.length)best=retry;if(best.words.length>=target)break}if(best&&best.words.length>placed.length)return {...best,seed:options.seed}}
+ const ordered=[...placed].sort((a,b)=>a.row-b.row||a.col-b.col||(a.direction==="across"?-1:1));let number=0,last="";const words:CrosswordWord[]=ordered.map((word,index)=>{const key=`${word.row},${word.col}`;if(key!==last){number++;last=key}const {entry,...placement}=word;return {...entry,...placement,id:`${options.seed}-${index}`,number}});
+ const cells=Array.from({length:size},()=>Array<string|null>(size).fill(null));for(const word of words)for(let i=0;i<word.answerKey.length;i++)cells[word.row+(word.direction==="down"?i:0)][word.col+(word.direction==="across"?i:0)]=word.answerKey[i];
+ return {level:options.level,seed:options.seed,width:size,height:size,words,cells};
+}

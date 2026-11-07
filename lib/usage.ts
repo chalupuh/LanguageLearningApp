@@ -3,7 +3,7 @@ export const USAGE_TIMEZONE = "America/New_York";
 export const usageStages = ["First listen", "Listen closer", "Retell practice / Rehearse", "Retell"];
 export type UsageSession = { id: string; source: string; startedAt: number; lastActiveAt: number; stage: number; completedAt: number | null };
 export type UsageSample = { sessionId: string; start: number; end: number; stage?:number|null;feature?:string|null;language?:string|null };
-export const usageFeatures=["today","library","phrase-review","phrase-help","fluency","listening-lab","announcements","situations","recordings","original-voices","swedish-lab","spanish-lab","handsfree","progress","collection","about","studio","practice"] as const;
+export const usageFeatures=["today","library","games","phrase-review","phrase-help","fluency","listening-lab","announcements","situations","recordings","original-voices","swedish-lab","spanish-lab","handsfree","progress","collection","about","studio","practice"] as const;
 
 // Prune individual expired/invalid samples, rather than keeping an entire
 // poisoned queue because one newer sample remains. Matches the API contract.
