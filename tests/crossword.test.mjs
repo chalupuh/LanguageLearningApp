@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {crosswordLevels,entriesForLevel} from "../content/french-crosswords.ts";
+import {crosswordLevels,crosswordTopics,entriesForLevel} from "../content/french-crosswords.ts";
 import {generateCrossword,normalizeCrosswordAnswer} from "../lib/crossword.ts";
 
 test("normalizes French accents and punctuation for a crossword grid",()=>{
@@ -33,5 +33,13 @@ test("supports quick, standard and challenge board sizes at every level",()=>{
   assert.equal(puzzle.width,option.size);
   assert.equal(puzzle.height,option.size);
   assert.ok(puzzle.words.length>=option.minimum,`${level} on ${option.size} should place enough words`);
+ }
+});
+
+test("every level includes travel, food, grammar and listening vocabulary",()=>{
+ for(const level of crosswordLevels){
+  const entries=entriesForLevel(level);
+  assert.ok(entries.length>=20,`${level} should have an expanded bank`);
+  for(const topic of crosswordTopics.filter(topic=>topic!=="mixed"))assert.ok(entries.filter(entry=>entry.focus===topic).length>=2,`${level} needs ${topic} words`);
  }
 });

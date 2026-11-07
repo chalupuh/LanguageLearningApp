@@ -326,6 +326,7 @@ async function moduleUrl(path){
   "../app-auth":"app/api/app-auth.ts","../../../lib/journey":"lib/journey.ts","../../../lib/usage":"lib/usage.ts",
   "../../../content/passages":"content/passages.ts","../../../content/checkpoints":"content/checkpoints.ts",
   "../../../content/releases":"content/releases.ts",
+  "../../../content/french-crosswords":"content/french-crosswords.ts", "../../../lib/crossword":"lib/crossword.ts",
   "../../../content/announcements":"content/announcements.ts", "../../../content/listening-challenges":"content/listening-challenges.ts", "../../../content/situations":"content/situations.ts", "../../../lib/feedback-notes":"lib/feedback-notes.ts", "../../db/schema":"db/schema.ts",
   "../../../db/schema":"db/schema.ts",
  };
@@ -386,6 +387,13 @@ test("journey API: real SQLite awards, privacy, migration, retries, reviews, and
   const phrases=await Promise.all([post({kind:"phrase",source:"bonjour",rating:"Good"}),post({kind:"phrase",source:"merci",rating:"Again"})]);
   assert.equal(phrases.reduce((sum,r)=>sum+r.awarded,0),10);
   assert.equal((await post({kind:"phrase",source:"bonjour",rating:"Good"})).awarded,0);
+  const crosswordContent=await import(await moduleUrl("content/french-crosswords.ts")),crosswordLib=await import(await moduleUrl("lib/crossword.ts")),seed="journey-test-seed";
+  const puzzle=crosswordLib.generateCrossword(crosswordContent.entriesForLevel("A1"),{level:"A1",seed,size:13,wordCount:7,preferredTopic:"food"}),answers={};
+  for(const word of puzzle.words)for(let index=0;index<word.answerKey.length;index++)answers[`${word.row+(word.direction==="down"?index:0)}:${word.col+(word.direction==="across"?index:0)}`]=word.answerKey[index];
+  const crossword={kind:"crossword",source:"crossword:"+seed,seed,level:"A1",size:"quick",topic:"food",answers,hints:1,reveals:0};
+  assert.equal((await post({...crossword,answers:{}})).status,400);
+  assert.equal((await post(crossword)).awarded,4);
+  assert.equal((await post(crossword)).awarded,0);
   assert.equal((await post({kind:"checkpoint",source:"town-transport",answers:[1,2,0],listens:1})).status,409);
   const checkpoint=await post({kind:"checkpoint",source:"library-hours",answers:[0,1,2],listens:1});
   assert.equal(checkpoint.awarded,25);assert.equal(checkpoint.result.score,100);

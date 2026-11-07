@@ -1,4 +1,4 @@
-import type {CrosswordEntry,CrosswordLevel} from "../content/french-crosswords";
+import type {CrosswordEntry,CrosswordLevel,CrosswordTopic} from "../content/french-crosswords";
 
 export type CrosswordDirection="across"|"down";
 export type CrosswordWord=CrosswordEntry&{id:string;answerKey:string;row:number;col:number;direction:CrosswordDirection;number:number};
@@ -9,9 +9,9 @@ function seeded(seed:string){let n=2166136261;for(const char of seed)n=Math.imul
 function shuffled<T>(items:T[],random:()=>number){const copy=[...items];for(let i=copy.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
 
 type Draft={entry:CrosswordEntry;answerKey:string;row:number;col:number;direction:CrosswordDirection};
-export function generateCrossword(entries:CrosswordEntry[],options:{level:CrosswordLevel;seed:string;size?:number;wordCount?:number}):CrosswordPuzzle{
+export function generateCrossword(entries:CrosswordEntry[],options:{level:CrosswordLevel;seed:string;size?:number;wordCount?:number;preferredTopic?:CrosswordTopic}):CrosswordPuzzle{
  const size=options.size??15,target=Math.min(options.wordCount??9,entries.length),random=seeded(options.seed);
- const candidates=shuffled(entries.map(entry=>({entry,answerKey:normalizeCrosswordAnswer(entry.answer)})).filter(item=>item.answerKey.length>=2&&item.answerKey.length<=size-2),random).sort((a,b)=>b.answerKey.length-a.answerKey.length);
+ const candidates=shuffled(entries.map(entry=>({entry,answerKey:normalizeCrosswordAnswer(entry.answer)})).filter(item=>item.answerKey.length>=2&&item.answerKey.length<=size-2),random).sort((a,b)=>Number(options.preferredTopic!=="mixed"&&b.entry.focus===options.preferredTopic)-Number(options.preferredTopic!=="mixed"&&a.entry.focus===options.preferredTopic)||b.answerKey.length-a.answerKey.length);
  if(!candidates.length)throw new Error("No crossword entries fit this board.");
  const placed:Draft[]=[{...candidates.shift()!,row:Math.floor(size/2),col:Math.floor((size-(candidates[0]?.answerKey.length??0))/2),direction:"across"}];
  // Correct the first word's centering after removing it from the candidate list.

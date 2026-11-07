@@ -5,6 +5,8 @@ import { earnedXp, rewards, localDay } from "../../../lib/journey";
 import { passages } from "../../../content/passages";
 import { checkpoints } from "../../../content/checkpoints";
 import { releases, unseenReleases } from "../../../content/releases";
+import {crosswordLevels,crosswordTopics,entriesForLevel,type CrosswordLevel,type CrosswordTopic} from "../../../content/french-crosswords";
+import {generateCrossword} from "../../../lib/crossword";
 const headers = { "Cache-Control": "private, no-store" };
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers });
 const spanishA1LessonIds=new Set(["es-hola","es-cafe","es-desayuno","es-precio","es-direccion","es-restaurante","es-hotel","es-taxi"]);
@@ -93,6 +95,16 @@ export async function POST(request: Request) {
         xp=20; id="review:"+body.source+":"+day;
       } else { xp=40; id="loop:"+body.source; }
       data={speaker:passage?.speaker.name||"Studio",topic:passage?.topic||"Personal video",level:passage?.level||"Uncalibrated Studio",day};
+    } else if (kind==="crossword") {
+      const sizes={quick:{board:13,words:7,xp:5},standard:{board:15,words:9,xp:8},challenge:{board:17,words:11,xp:10}} as const;
+      const level=body.level as CrosswordLevel,size=body.size as keyof typeof sizes,topic=body.topic as CrosswordTopic,config=sizes[size];
+      if(auth.language!=="fr"||typeof body.seed!=="string"||!/^crossword:[A-Za-z0-9:-]{1,100}$/.test(body.source)||body.source!=="crossword:"+body.seed||!crosswordLevels.includes(level)||!config||!crosswordTopics.includes(topic)||!body.answers||typeof body.answers!=="object"||Array.isArray(body.answers)||!Number.isInteger(body.hints)||body.hints<0||body.hints>50||!Number.isInteger(body.reveals)||body.reveals<0||body.reveals>config.words)return reply({error:"Complete a valid French crossword first."},400);
+      const puzzle=generateCrossword(entriesForLevel(level),{level,seed:body.seed,size:config.board,wordCount:config.words,preferredTopic:topic});
+      const expected=new Map<string,string>();for(const word of puzzle.words)for(let index=0;index<word.answerKey.length;index++)expected.set(`${word.row+(word.direction==="down"?index:0)}:${word.col+(word.direction==="across"?index:0)}`,word.answerKey[index]);
+      const submitted=body.answers as Record<string,unknown>;
+      if(Object.keys(submitted).length>expected.size||[...expected].some(([key,letter])=>submitted[key]!==letter))return reply({error:"Finish every crossword square before recording it."},400);
+      id="crossword:"+body.seed;const assistance=Math.min(config.xp-2,Math.min(5,body.hints)+body.reveals*2);xp=Math.max(2,config.xp-assistance);
+      data={level,size,topic,hints:body.hints,reveals:body.reveals,wordCount:puzzle.words.length,day,evidence:"Completed vocabulary practice; not a proficiency score."};
     } else if (kind==="phrase") {
       if (!c.legacy.savedPhrases?.includes(body.source) || !["Again","Hard","Good","Easy"].includes(body.rating)) return reply({error:"Review a saved phrase first."},400);
       const due=c.legacy.phraseReviews?.[body.source];
