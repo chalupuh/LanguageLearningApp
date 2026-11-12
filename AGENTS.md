@@ -25,3 +25,9 @@ https://github.com/chalupuh/LanguageLearningApp
 - Never commit `.env*`, credentials, `.sites-runtime/`, `.wrangler/`, generated build outputs, or private recordings and test artifacts.
 - Keep `.openai/hosting.json` tracked with the existing Site identity and storage bindings.
 - Each device needs its own ignored local configuration and dependencies; GitHub synchronizes source and bundled assets, not production user data or local databases.
+
+## Studio agents (AIDevCompanyHQ engine)
+- Work only on branches named `studio/<task>`; never commit to `main`.
+- Open a PR labelled `owner-review`; the owner merges and publishes to Sites. The studio never deploys.
+- Specs and intake work orders live in `docs/specs/` and `docs/intake/`.
+- Progress: `node "<HQ>/.studio/studio.js" log <agent> <pct> "<msg>"` when the HQ checkout is present.

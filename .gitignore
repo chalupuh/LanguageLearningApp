@@ -43,3 +43,5 @@ yarn-error.log*
 /work/
 
 /worker-configuration.d.ts
+
+docs/intake/*/export-*.txt
